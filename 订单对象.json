@@ -1,0 +1,28 @@
+transaction_documents_description=[
+	{
+		"transaction_document_id": ,
+		"doc_type": ,
+		"trading_object":,
+		"created_time": ,
+		"storehouse": ,
+		"money_received": ,
+		"comment":
+	}
+
+
+]
+
+transaction_documents_content_001=[
+	{
+		"product_id": ,
+		"line_number": ,
+		"admin_define_id": ,
+		"fullname": ,
+		"单位": [],
+		"规格": ,
+		"数量": ,
+		"单价":	,
+		"金额": ,
+		"备注": ""
+	}
+]
