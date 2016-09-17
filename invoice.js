@@ -255,8 +255,9 @@ var td = TRANSACTION_DOCUMENT = {
         amount += Number(i_c_tr[i].querySelector("*[name='amount']").innerHTML);
         money_received += Number(i_c_tr[i].querySelector("*[name='amount_multiply_by_unit']").innerHTML);
       };
+      money_received=money_received.toFixed(2);
       document.querySelector("tfoot").querySelector("*[name='total_amount']").innerHTML = amount;
-      document.querySelector("tfoot").querySelector("*[name='money_received']").innerHTML = Number(money_received.toFixed(2));
+      document.querySelector("tfoot").querySelector("*[name='money_received']").innerHTML = Number(money_received);
       function convertCurrency(currencyDigits) { 
         // Constants: 
         var MAXIMUM_NUMBER = 99999999999.99; 
@@ -404,18 +405,23 @@ var td = TRANSACTION_DOCUMENT = {
     //amount or price column 添加次为event listener
     "amount_or_price_affect_received": function (e){
       this.parentNode.querySelector('*[name="amount_multiply_by_unit"]').innerHTML = 
-      Number(this.parentNode.querySelector('*[name="price_base_on_unit"]').innerHTML) * 
-      Number(this.parentNode.querySelector('*[name="amount"]').innerHTML);
+      Number(
+        (
+            (Number(this.parentNode.querySelector('*[name="price_base_on_unit"]').innerHTML)*100) * 
+            (Number(this.parentNode.querySelector('*[name="amount"]').innerHTML)*100)/10000
+        ).toFixed(4)
+      );
       td.builder.sum_refresher();
 
     },
 
     "receive_affects_price": function (e){
-      var a = (Number(this.parentNode.querySelector('*[name="amount_multiply_by_unit"]').innerHTML)*1000/Number(this.parentNode.querySelector('*[name="amount"]').innerHTML)/1000).toFixed(5);
-      // for (var i = a.length - 1; i >= 0; i--) {
-      //   a[i]=="0"?a[i]=="":break;
-      // };
+      var a = (
+        Number(this.parentNode.querySelector('*[name="amount_multiply_by_unit"]').innerHTML)*1000/
+        Number(this.parentNode.querySelector('*[name="amount"]').innerHTML)/1000
+        ).toFixed(5);
       if(a.toString()=="NaN"||a==Infinity) a = "";
+      Number(a).toFixed(5);
       this.parentNode.querySelector('*[name="price_base_on_unit"]').innerHTML = Number(a);
       td.builder.sum_refresher();
 
