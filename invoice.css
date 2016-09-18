@@ -7,13 +7,41 @@
 	box-sizing: border-box;
   margin: 0;
   padding: 0;
+  text-align: center;
 }
-#documents_tab li{
+
+body {
+  width: 1024px;
+}
+
+
+#web_function{
+  width: 100%;
+}
+
+#web_function > *{
   display: inline-block;
+  width: 33.3333%;
+}
+
+#web_function>li>ul{
+  display: none;
+  position: absolute;
+}
+
+#documents_tab{
+  font-size: 0;
+}
+
+#documents_tab li{
+  font-size: 14px;
+  display: inline-block;
+  width: <?php echo 1024/5;?>px;
 }
 
 table {
 	border-collapse: collapse;
+  margin: auto;
 }
 
 tbody,th, td {

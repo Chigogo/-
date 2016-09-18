@@ -6,13 +6,28 @@
 	<link rel="stylesheet" href="invoice.css">
 </head>
 <body id="body">
+		<div>
+			<ul id="web_function">
+				<li id="invoice_create">新建单据
+					<ul>
+						<li id="creator_xs">创建销售单据</li>
+						<li id="creator_jh">创建进货单据</li>
+					</ul>
+					</li
+				><li id="basic_information_build">基础信息维护
+					<ul>
+						<li>单位信息</li>
+						<li>商品信息</li>
+						<li>物价管理</li>
+					</ul>
+				</li
+				><li>经营历程
+			</li>
+			</ul>
+		</div>
 		<div id="documents_tab">
 			<ul>
-				<li>销售 王长发</li>
-				<li>进货 昌裕</li>
-				<li>销售 周树平</li>
-				<li>销售 黄继光</li>
-				<li id="creator">创建销售单据</li>
+
 			</ul>
 		</div>
 	<!-- xs_i 表示invoice_xs -->
@@ -59,242 +74,21 @@
 				<td name="amount_multiply_by_unit">160</td>
 				<td name="comment_for_item">要好吃的</td>
 			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
-			<tr class="product_item" >
-				<td name="line_number">1</td> 
-				<td>001</td>
-				<td name="admin_defined_id" >昌裕001</td>
-				<td contenteditable name="full_name" >小脆筒</td>
-				<td>1*60</td>
-				<td>箱</td>
-				<td name="amount">8</td>
-				<td name="price_base_on_unit">20</td>
-				<td name="amount_multiply_by_unit">160</td>
-				<td name="comment_for_item">要好吃的</td>
-			</tr>
 		</tbody>
 		<tfoot>
-			<td>合计</td>
-			<td colspan=3 name="money_received_chinese"></td>
-			<td >数量</td>
-			<td name="total_amount"></td>
-			<td>金额</td>
-			<td colspan=2	name="money_received"></td>
+			<tr>
+				<td>合计</td>
+				<td colspan=3 name="money_received_chinese"></td>
+				<td >数量</td>
+				<td name="total_amount"></td>
+				<td>金额</td>
+				<td colspan=2	name="money_received"></td>
+			</tr>
+			<tr>
+				<td>存为草稿</td>
+				<td>打印单据</td>
+				<td>单据过账</td>
+			</tr>
 		</tfoot>
 		</table>
 

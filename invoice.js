@@ -30,6 +30,7 @@ PRODUCT_ITEMS_queried = {
 
 };
 
+var d_q=document.querySelector;
 
 //这是单据内容的构造函数
 function transaction_document_content(){
@@ -90,8 +91,9 @@ var td = TRANSACTION_DOCUMENT = {
           ]
       }
   },
-  //方法————单据对象的查看
+  //方法————单据对象的查看，查看之前需先保存当前显示的销售单
   "viewer": function(invoice_id){
+    td.saver(document.querySelector("*[name=invoice_id]").id);
     var des = document.querySelector('#i_des');
 
     des.querySelector('td[name="invoice_id"]').id = invoice_id;
@@ -103,13 +105,11 @@ var td = TRANSACTION_DOCUMENT = {
       des.querySelector('td[name="trading_object"]').innerHTML ="";
 
     des.querySelector('td[name="generated_id"]').innerHTML = a.doc_type+"-"+invoice_id;
-
     des.querySelector('td[name="store_house"]').innerHTML = a.storehouse[1];
-    
     des.querySelector('td[name="comment"]').innerHTML = a.comment;  
 
     if(a.money_received)
-    des.querySelector('td[name="money_received"]').innerHTML = a.money_received;
+    document.querySelector('td[name="money_received"]').innerHTML = a.money_received;
 
     var c = document.querySelector('#i_c');
     //清空，并初始化表格
@@ -130,10 +130,36 @@ var td = TRANSACTION_DOCUMENT = {
     td.builder.line_number_refresher(c);
   },
 
+  "saver": function(id){
+    var a = document.querySelector("#i_c").querySelectorAll("tr");
+    var d_a=td.document_lists["invoice_id"+id].document_content_array;
+    d_a=[];
+    for (var i = 1; i < a.length-1; i++) {
+      console.log(1);
+      var o = {
+      "id": a[i].querySelector('*[name="product_id"]').innerHTML,
+      "admin_defined_id": a[i].querySelector('*[name="admin_defined_id"]').innerHTML,
+      "full_name": a[i].querySelector('*[name="full_name"]').innerHTML,
+      "another_unit_factor": a[i].querySelector('*[name="another_unit_factor"]').innerHTML,
+      "un": "箱",//标注用户所选用的计算规格的方式
+      "amount_on_unit_1": a[i].querySelector('*[name="amount"]').innerHTML,
+      "item_money_received": a[i].querySelector('*[name="amount_multiply_by_unit"]').innerHTML,
+      "comment": a[i].querySelector('*[name="comment_for_item"]').innerHTML
+      };
+      d_a.push(o);
+    }
+
+
+  },
+
 
   //方法————单据对象的创建
+  //在主数据库创建一个单据，主数据库返回单据id
   "creator": function (doc_type){
     var c_new_i;
+    var doc_type_Chinese;
+    if(doc_type=="xs") doc_type_Chinese="销售给某单位";
+    if(doc_type=="jh") doc_type_Chinese="进货从某单位";
     (function query(string){
       var ajax_object;
       if (window.XMLHttpRequest) ajax_object = new XMLHttpRequest();
@@ -154,6 +180,11 @@ var td = TRANSACTION_DOCUMENT = {
             "document_status" : "管理员编辑", 
             "document_content_array": []
           };
+          var a = document.createElement("li");
+          a.setAttribute("my_invoice_id",c_new_i);
+          a.innerHTML=doc_type_Chinese;
+          a.addEventListener("click",function(){ td.viewer(this.getAttribute("my_invoice_id")); });
+          document.querySelector("#documents_tab>ul").appendChild(a);
           //创建并添加到视图
           td.viewer(c_new_i);
         }
@@ -163,8 +194,12 @@ var td = TRANSACTION_DOCUMENT = {
     ("c_new_i=1&doc_type="+doc_type);
   },
 
-  "xs_creator": function(){
+  "creator_xs": function(){
     td.creator("xs");
+  },
+
+  "jh_creator": function(){
+    td.creator("jh")
   },
   /*
   如果该方法由viewer 唤起，则为相应td 元素添加事件处理器；
@@ -208,12 +243,12 @@ var td = TRANSACTION_DOCUMENT = {
       id_td.innerHTML =a.id;
       adid_td.innerHTML = a.admin_defined_id;
       fn_td.innerHTML =a.full_name;
-      md_td.innerHTML ="1*"+a.another_unit_factor;
+      md_td.innerHTML =a.another_unit_factor?"1*"+a.another_unit_factor:"1*";
       un_td.innerHTML =a.un;
-      am_td.innerHTML =a.amount_on_unit_1;
-      pr_td.innerHTML =a.price?a.price:0;
+      am_td.innerHTML =a.amount_on_unit_1?a.amount_on_unit_1:0;
+      pr_td.innerHTML =a.price?a.price:Number((a.item_money_received*100/Number(am_td.innerHTML)/100).toFixed(5));
       gn_td.innerHTML =a.item_money_received?a.item_money_received:0;
-      cm_td.innerHTML =a.comment; 
+      cm_td.innerHTML =a.comment?a.comment:""; 
 
       new_tr.appendChild(ln_td);
       new_tr.appendChild(id_td);
@@ -599,9 +634,10 @@ var td = TRANSACTION_DOCUMENT = {
             "price": 0,//如何获取最新价格？
             "item_money_received": 0
           };
-        td.document_lists["invoice_id"+id].document_content_array.push(o);
+        // td.document_lists["invoice_id"+id].document_content_array.push(o);
         new_tr = td.builder.new_line_creator(o);
         document.querySelector("#i_c").insertBefore(new_tr, document.querySelector("#i_c").lastChild);
+        document.querySelector("#i_c").lastChild.querySelector("*[name='full_name']").innerHTML="";//最后一行文件名制空权
 
        };
 
@@ -776,6 +812,22 @@ var td = TRANSACTION_DOCUMENT = {
 
 };
 
+var css_modify = {
+  "drop_down_toggle_display":function(e){
+    // alert("good");
+    if (e.type=="mouseover")
+    this.querySelector("ul").style.display="block";
+    if(e.type=="mouseout")
+    this.querySelector("ul").style.display="none";
+  },
+
+  "add_mouser_over_out_to_element": function(selector){
+    document.querySelector(selector).addEventListener("mouseover", css_modify.drop_down_toggle_display);
+    document.querySelector(selector).addEventListener("mouseout", css_modify.drop_down_toggle_display);
+  }
+
+};
+
 function in_page_query (event){
   if(event.keyCode==13){
     var that = this;
@@ -787,7 +839,11 @@ function in_page_query (event){
 }
 
 document.querySelector("td[name='trading_object']").addEventListener("keypress", td.query_people);
-document.querySelector("#creator").addEventListener("click", td.xs_creator);
+document.querySelector("#creator_xs").addEventListener("click", td.creator_xs);
+document.querySelector("#creator_jh").addEventListener("click", td.creator_jh);
+
+css_modify.add_mouser_over_out_to_element("#invoice_create");
+css_modify.add_mouser_over_out_to_element("#basic_information_build");
 
 document.addEventListener("keydown", td.esc_display);
 td.viewer(1);

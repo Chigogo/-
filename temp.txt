@@ -1,35 +1,50 @@
-LOAD DATA INFILE "D:/公司文档/广德冷饮文档/管家婆web版本/单位信息ANSIutf8.txt" INTO TABLE people;
-
-LOAD DATA INFILE "D:/公司文档/广德冷饮文档/管家婆web版本/单位信息ANSIutf8  去首行.txt" 
-INTO TABLE people people_id, full_name, @v1, @v2, @tel, @phone, @Address, @v3, py_code, @v3 ,@v3)
-    set 
-    tel=nullif@tel,''),
-    phone=nullif@phone,''),
-    Address=nullif@Address,'')
-    ;
-
-load data infile "D:/公司文档/广德冷饮文档/管家婆web版本/商品信息utf8  去首行.txt" into table product_info id, admin_define_id, full_name, manufacture, simple_name, user_define_unit_1, py_code);
-[{"id":"85","full_name":"\u5c0f\u8106\u7b52"}]
-[{"id":"85","full_name":"\u5c0f\u8106\u7b52"},{"id":"116","full_name":"\u592a\u5983\u5c0f\u8106\u7b52-\u5bb6\u5ead\u88c5"}]
-
-[{"id":"85","full_name":"\u5c0f\u8106\u7b52"},{"id":"116","full_name":"\u592a\u5983\u5c0f\u8106\u7b52-\u5bb6\u5ead\u88c5"},{"id":"733","full_name":"\u5de7\u4e50\u6ecb\u5fc3\u60a6\u5c0f\u8106\u7b52"}]
-
-GRANT ALL ON test.* TO 'Chigogo'@'localhost';
-
-GRANT ALL ON test.* TO 'Chigogo'@'localhost' WITH GRANT OPTION;
-
-create table transaction_documents_description(
-id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
-doc_type set('xs','jh','cg','db','dd'),/*销售，进货，草稿，调拨，用户订单*/
-trading_object INT NOT NULL,
-foreign key trading_object(trading_object)
-references people(people_id),
-/* 系统维护人员!!! */
-created_time TIMESTAMP NOT NULL,
-into_database_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-storehouse tinyint not null,
-money_received Decimal(12,2),
-comment varchar(63),
-document_status enum("成功", "管理员反冲", "管理员编辑", "用户提交（关）", "用户编辑", "用户开", "管理员取消", "用户取消", 
-) not null default "管理员编辑"
+insert into product_info(
+id,
+admin_defined_id,
+full_name,
+manufacture,
+simple_name,
+admin_defined_unit_1,
+admin_defined_unit_2,
+admin_defined_unit_3,
+predefined_price_for_manufacture,
+predefined_price_for_dealer,
+predefined_price_for_bigger,
+predefined_price_for_big,
+predefined_price_for_Medium,
+predefined_price_for_small,
+predefined_price_for_smaller,
+predefined_price_for_smallest,
+historical_selled_amount,
+unit1_volume_length,
+unit1_volume_width,
+unit1_volume_height,
+unit1_weight,
+user_comment,
+system_log
+)
+values(
+null,/*id*/
+昌裕010,/*admin_defined_id*/
+18度,/*full_name*/
+昌裕,/*manufacture*/
+18.,/*simple_name*/
+箱,/*admin_defined_unit_1*/
+支,/*admin_defined_unit_2*/
+null,/*admin_defined_unit_3*/
+null,/*predefined_price_for_manufacture*/
+null,/*predefined_price_for_dealer*/
+null,/*predefined_price_for_bigger*/
+null,/*predefined_price_for_big*/
+null,/*predefined_price_for_Medium*/
+null,/*predefined_price_for_small*/
+null,/*predefined_price_for_smaller*/
+null,/*predefined_price_for_smallest*/
+null,/*historical_selled_amount*/
+null,/*unit1_volume_length*/
+null,/*unit1_volume_width*/
+null,/*unit1_volume_height*/
+null,/*unit1_weight*/
+null,/*user_comment*/
+null/*system_log*/
 );
