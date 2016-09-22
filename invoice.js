@@ -247,9 +247,9 @@ var td = TRANSACTION_DOCUMENT = {
                                             fn_td.addEventListener("blur", td.builder.line_checker);
                                             fn_td.addEventListener("click", td.builder.line_checker);
                                             fn_td.addEventListener("click", function(){
-                                              var a = document.querySelector("*[input_satrt_point]");
-                                              if(a)a.removeAttribute("input_satrt_point");
-                                              this.setAttribute("input_satrt_point","")});
+                                              var a = document.querySelector("*[input_start_point]");
+                                              if(a)a.removeAttribute("input_start_point");
+                                              this.setAttribute("input_start_point","")});
                                             fn_td.setAttribute("name","full_name");
                                             fn_td.setAttribute("placeholder",a.full_name);//用于checker
                                             fn_td.setAttribute("contenteditable","true");
@@ -715,7 +715,7 @@ var td = TRANSACTION_DOCUMENT = {
         // td.document_lists["invoice_id"+id].document_content_array.push(o);
         new_tr = td.builder.new_line_creator(o);
         var i_c = document.querySelector("#i_c");
-        var s_point = i_c.querySelector("*[input_satrt_point]");
+        var s_point = i_c.querySelector("*[input_start_point]");
         // console.log(s_point);
         if(s_point && s_point.parentNode!=i_c.lastChild){
           i_c.insertBefore(new_tr, s_point.parentNode);
@@ -725,6 +725,9 @@ var td = TRANSACTION_DOCUMENT = {
           document.querySelector("#i_c").insertBefore(new_tr, document.querySelector("#i_c").lastChild);
           document.querySelector("#i_c").lastChild.querySelector("*[name='full_name']").innerHTML="";//最后一行文件名制空权
         }
+        // if(i_c.querySelector("*[input_start_point]")){
+        //   i_c.querySelector("*[input_start_point]").removeAttribute("input_start_point");
+        // }
        };
 
        event.preventDefault();
