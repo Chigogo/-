@@ -138,7 +138,7 @@ var td = TRANSACTION_DOCUMENT = {
     var last_line = document.createElement("tr")
 
     //new line 模版
-    last_line.innerHTML='<tr class="product_item" ><td name="line_number">1</td> <td>001</td><td name="admin_defined_id" ></td><td name="full_name" ></td><td></td><td>箱</td><td name="amount"></td><td name="price_base_on_unit"></td><td name="amount_multiply_by_unit"></td><td name="comment_for_item"></td></tr>';
+    last_line.innerHTML='<tr class="product_item" ><td name="line_number">1</td> <td>001</td><td name="admin_defined_id" ></td><td name="full_name" input_end_point></td><td></td><td>箱</td><td name="amount"></td><td name="price_base_on_unit"></td><td name="amount_multiply_by_unit"></td><td name="comment_for_item"></td></tr>';
     c.appendChild(last_line);
     for (var i = 1; i < c.childNodes.length; i++) {
       td.builder.make_td_contenteditable.call(c.childNodes[i],"tr");
@@ -246,10 +246,18 @@ var td = TRANSACTION_DOCUMENT = {
       fn_td = document.createElement("td"); fn_td.addEventListener("keypress",td.builder.query_products);
                                             fn_td.addEventListener("blur", td.builder.line_checker);
                                             fn_td.addEventListener("click", td.builder.line_checker);
-                                            fn_td.addEventListener("click", function(){
-                                              var a = document.querySelector("*[input_start_point]");
-                                              if(a)a.removeAttribute("input_start_point");
-                                              this.setAttribute("input_start_point","")});
+                                            fn_td.addEventListener("click", 
+                                              function(){
+                                                var a = document.querySelector("*[input_start_point]");
+                                                if(a)a.removeAttribute("input_start_point");
+
+                                                var b = document.querySelector("*[input_end_point]");
+                                                if(b && b.parentNode!=b.parentNode.parentNode.lastChild)b.removeAttribute("input_end_point");
+
+                                                this.setAttribute("input_start_point","");
+                                                this.parentNode.nextElementSibling.querySelector("[name='full_name']").setAttribute("input_end_point","");
+                                              }
+                                              );
                                             fn_td.setAttribute("name","full_name");
                                             fn_td.setAttribute("placeholder",a.full_name);//用于checker
                                             fn_td.setAttribute("contenteditable","true");
@@ -716,19 +724,21 @@ var td = TRANSACTION_DOCUMENT = {
         new_tr = td.builder.new_line_creator(o);
         var i_c = document.querySelector("#i_c");
         var s_point = i_c.querySelector("*[input_start_point]");
+        var e_point = i_c.querySelector("*[input_end_point]");
         // console.log(s_point);
         if(s_point && s_point.parentNode!=i_c.lastChild){
           i_c.insertBefore(new_tr, s_point.parentNode);
           td.builder.line_deleter(s_point.parentNode);
         }
         else{
-          document.querySelector("#i_c").insertBefore(new_tr, document.querySelector("#i_c").lastChild);
+          document.querySelector("#i_c").insertBefore(new_tr, e_point.parentNode);
           document.querySelector("#i_c").lastChild.querySelector("*[name='full_name']").innerHTML="";//最后一行文件名制空权
         }
         // if(i_c.querySelector("*[input_start_point]")){
         //   i_c.querySelector("*[input_start_point]").removeAttribute("input_start_point");
         // }
        };
+       if(e_point.parentNode!=e_point.parentNode.parentNode.lastChild)e_point.removeAttribute("input_end_point");
 
        event.preventDefault();
      //关闭pop_up
@@ -906,6 +916,10 @@ var td = TRANSACTION_DOCUMENT = {
 
 };
 
+var ld = list_documents= {
+
+};
+
 var css_modify = {
   "drop_down_toggle_display":function(e){
     // alert("good");
@@ -938,4 +952,4 @@ document.querySelector("#creator_xs").addEventListener("click", td.creator_xs);
 document.querySelector("#creator_jh").addEventListener("click", td.creator_jh);
 
 document.addEventListener("keydown", td.esc_display);
-// td.viewer(1);
+

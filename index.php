@@ -12,6 +12,7 @@
 					<ul>
 						<li id="creator_xs">创建销售单据</li>
 						<li id="creator_jh">创建进货单据</li>
+						<li id="viewer_craft">查看草稿</li>
 					</ul>
 					</li
 				><li id="basic_information_build">基础信息维护
@@ -34,8 +35,8 @@
 		
 	</section>
 	<div id="pop_up" class=""></div>
-	<script type="text/javascript" src="index.js"></script>
 	<script type="text/javascript" src="invoice.js"></script>
+	<script type="text/javascript" src="basic_information_and_history.js"></script>
 	<script type="text/javascript">
 
 
