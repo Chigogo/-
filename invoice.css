@@ -49,7 +49,7 @@ tbody,th, td {
 }
 
 td {
-	overflow-x: auto;
+	/*overflow-x: auto;*/
 }
 
 thead *{

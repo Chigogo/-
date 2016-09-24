@@ -6,7 +6,8 @@
 	//$port = 33060;
 	$conn = new mysqli($servername, $username, $password, $dbname /*,$port*/);
 	if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+		header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
+    	die("Connection failed: " . $conn->connect_error);
 } 
 
 	//新建记录，返回新纪录id 的方法

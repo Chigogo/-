@@ -215,6 +215,9 @@ var td = TRANSACTION_DOCUMENT = {
           //创建并添加到视图
           td.viewer(c_new_i);
         }
+        if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status == 404){
+          alert("数据库连接错误");
+        }
       };
       ajax_object.open("GET", "query.php?" + string, true);ajax_object.send();
       })//此处传入的c_new_i是字符串，php发现此标记后，进行新发票的创建，返回新发票id
