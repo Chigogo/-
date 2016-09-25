@@ -17,9 +17,9 @@
 					</li
 				><li id="basic_information_build">基础信息维护
 					<ul>
-						<li>单位信息</li>
-						<li>商品信息</li>
-						<li>物价管理</li>
+						<li id="checkout_people_info">单位信息</li>
+						<li id="checkout_product_info">商品信息</li>
+						<li id="checkout_specific_price">价格跟踪</li>
 					</ul>
 				</li
 				><li>经营历程

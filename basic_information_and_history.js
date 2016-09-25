@@ -69,14 +69,60 @@ var ls = list = {
     };
   },
 
-  "products_info": [],//products_tag 加入
-  "products_info_for_update": [],
+  "product_info": [1,[],[],[1,[]]],
+  //products_tag 加入,第一个元素表状态，0表示没有基础信息变动，无需从服务区抓取数据，1表示基础信息已有变动，需要更新;
+  // 第二个元素表示抓取的原始数据，
+  // 第三个元素表示处理过，用于展示的数据
+  // 第四个数据是一个包含两个元素的数组，第一个元素表示更新状态，1表示需要更新（还未更新），0表示不需要更新(已经更新)；
+  "pr_q_d": function(e){//product query and display，用于商品信息的查询event listener
+    if(ls.product_info[0]==0);
+    else if(ls.query("*","product_info","")==0){
+      for (var i = 0; i < ls.product_info[1].length; i++) {
+        for (var i = 0; i < Things.length; i++) {
+          Things[i]
+        };
+        ls.product_info[2][i]=ls.product_info[1][i];
+
+      };
+      for (var i = 0; i < ls.product_info[2].length; i++) {
+        switch(ls.product_info[2][i]){
+
+        }
+      };
+
+    }
+
+    ls.display(ls.product_info[2]);
+    ls.product_info[0]=0;
+  },
 
   "people": [],//people tag 加入
-  "prople_for_update": [],
+  "people_for_update": [],
 
   "specific_price_specific_person": [],
   "specific_price_specific_person_for_update": [],
+
+  "query": function(queried_columns, table, condition){
+    ajax_object.onreadystatechange = function(){//在invoice.js中已经定义
+      if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200)
+      {
+        if(Number(ajax_object.response) != 0)
+        {
+          ls[table][1] = JSON.parse(ajax_object.response);//查询的结果数组立即作为数组存储
+          ls[table][0] = 0;
+          return 0;//表示查询成功，数组已经写入ls 对象
+        }
+          else {
+            alert("当前查询条件无结果");
+            return 1;
+          }
+
+        }
+      };
+    ajax_object.open("GET", "query.php?query_multiple&q_columns_name=*&q_table=product_info&condition="+condition
+         +"&q_condition_value="+this.innerHTML, true);
+    ajax_object.send();
+  },
 
   "history_invoice": [],
   "craft_invoice": ,
@@ -91,3 +137,5 @@ var ls = list = {
 
   "filter": function(){}, //for information displaying
 };
+
+document.querySelector("#checkout_people_info").addEventListener("click", ls.pr_q_d);
