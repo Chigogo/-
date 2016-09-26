@@ -42,14 +42,15 @@ values(null,'".($_GET["doc_type"]?$_GET["doc_type"]:'xs')."',1,1)";
 	if (isset($_GET["query_multiple"])){
 
 		header('Content-Type: application/json');
+		if($_GET["q_condition_value"]=="")
+			$q_condition = "";
+		else
+			$q_condition =" where ".$_GET["q_condition_column"]." like '%".$_GET["q_condition_value"]."%'";
 		$sql = "select ".
 		$_GET["q_columns_name"].
 		" from ".
-		$_GET["q_table"].
-		" where ".
-		$_GET["q_condition_column"].
-		" like '%". 
-		$_GET["q_condition_value"]."%'";
+		$_GET["q_table"].$q_condition;
+		
 
 		//如果有返回结果，则返回，否则报错
 		$result = $conn->query($sql);
