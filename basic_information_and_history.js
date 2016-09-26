@@ -6,7 +6,7 @@ function window_close_check (e) {
 }
 
 var ls = list = {
-  "display": function(table_head, table_data, display_column){
+  "display": function(table_head, table_data){
     //table_head 是一个数组，[[{}...{}]...[{}...{}]],每一个元素对应一个td
       //每一个元素也是数组，这个数组由对应的td 的内容组成，比如属性、事件、innerHTM等
     //table_data 是一个数组，比上述数组高一阶[
@@ -78,7 +78,7 @@ var ls = list = {
     if(ls.product_info[0]==0);
     else if(ls.query("*","product_info","")==0){
       for (var i = 0; i < ls.product_info[1].length; i++) {
-        for (var i = 0; i < Things.length; i++) {
+        for (var i = 0; i < ls.product_info[1].length; i++) {
           Things[i]
         };
         ls.product_info[2][i]=ls.product_info[1][i];
@@ -91,8 +91,32 @@ var ls = list = {
       };
 
     }
+    var table_head = [
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","admin_defined_id"]},{type: "i",value:"商品编号"}],
+      [{type: "a",value:["name","full_name"]},{type: "i",value:"商品全名"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+      [{type: "a",value:["name","manufacture"]},{type: "i",value:"生产厂家"}],
+      [{type: "a",value:["name","py_code"]},{type: "i",value:"拼音码"}],
+    ];
 
-    ls.display(ls.product_info[2]);
+    ls.display(table_head,ls.product_info[2]);
     ls.product_info[0]=0;
   },
 
