@@ -98,15 +98,15 @@ var ls = list = {
 
 
             for (var i = 0; i < ls.product_info[1].length; i++) {
+
               var p_names = Object.getOwnPropertyNames(ls.product_info[1][i]);//所有属性组成的数组
               ls.product_info[2][i] = [];
               for (var j = 0; j < p_names.length; j++) {
                 var a = ls.product_info[2][i][j] =[]; 
                 if(p_names[j]=="id")
-                  a.push({type:a,value:['name','product_id']});
+                  a.push({type:"a",value:['name','product_id']});
                 else
-                  a.push({type:a,value:['name',p_names[j]]});
-
+                  a.push({type:"a",value:['name',p_names[j]]});
                 // switch(p_names[j]){
                 //   case "id" : 
                   
@@ -142,11 +142,11 @@ var ls = list = {
                 // }
                 var td_value = ls.product_info[1][i][p_names[j]];
                 if(td_value!=null && td_value!="null" && td_value!=undefined && td_value!="undefined")
-                  a.push({type:i,value: td_value});
+                  a.push({type:"i",value: td_value});
                 else
-                  a.push({type:i,value:""});
-            }
-          }
+                  a.push({type:"i",value:""});
+            }//内循环结束
+          }//外循环结束
         }
             else {
               alert("当前查询条件无结果");
