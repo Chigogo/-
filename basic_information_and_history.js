@@ -24,11 +24,10 @@ var ls = list = {
     //   value = [name,value]/[listenertype,funcion]/"string"
     // }
     var ds = document.querySelector("#display_section");
-
     //条件语句，若当前窗口有未保存的修改，则不继续执行下列语句
     ds.innerHTML = "";
     ds = ds.appendChild(document.createElement("table"));
-    var th = document.createElement("tr");
+    var th = document.createElement("tr");//th是head_tr
     for (var i = 0; i < table_head.length; i++) {
       var td = document.createElement("th");
       for (var j = 0; j < table_head[i].length; j++) {
@@ -42,30 +41,38 @@ var ls = list = {
     };
 
     ds.appendChild(th);//表头字段写入页面
-
-    for (var i = 0; i < table_data.length; i++) {
+    for (var i = 0; i < table_data.length; i++) {//遍历每一个数组元素，创建对一个的tr，一个tr对应一个商品
       var tr = document.createElement("tr");
-      for (var j = 0; j < th.children.length; j++) {
+      for (var j = 0; j < th.children.length; j++) {//遍历head_tr的每一个td，也就是每一列
         td = document.createElement("td");
-        for (var k = 0, k_useful = false; k < table_data[i].length; k++) {
-          for (var l = 0; l < table_data[i][k].length; l++) {
-            if(table_data[i][k][l].type == "a" && table_data[i][k][l].value[0]=="name" && table_data[i][k][l].value[1]== th.children[j].getAttribute("name")) {  
-              k_useful = true; break;
+        for (var k = 0, k_useful = false; k < table_data[i].length; k++) {//遍历单个商品数组的每一个元素，每个元素数组对应一个td
+          for (var l = 0; l < table_data[i][k].length; l++) {//td对应tr数组的一个元素，遍历td元素的元素，
+            if(table_data[i][k][l].type == "a" && table_data[i][k][l].value[0]=="name" && table_data[i][k][l].value[1]== th.children[j].getAttribute("name")) 
+            {  
+              k_useful = true; 
             }
-          };
-          if(k_useful)
-            for (var l = 0; l < table_data[i][k].length; l++) {
-              switch(table_data[i][k][l].type){
-                case "a": td.setAttribute(table_head[i][k][l].value[0],table_head[i][k][l].value[1]);break;
-                case "e": td.addEventListener(table_head[i][k][l].value[0],table_head[i][k][l].value[1]);break;
-                case "i": td.innerHTML= table_head[i][k][l].value;break;
+            if(k_useful)
+            {
+              for (var l = 0; l < table_data[i][k].length; l++) {
+                //console.log(table_data);
+                switch(table_data[i][k][l].type){
+                  case "a": td.setAttribute(table_data[i][k][l].value[0],table_data[i][k][l].value[1]);break;
+                  case "e": td.addEventListener(table_data[i][k][l].value[0],table_data[i][k][l].value[1]);break;
+                  case "i": td.innerHTML= table_data[i][k][l].value;break;
+                }
               }
-            };
-        };
+              break;
+            }
+          }
+          if(k_useful){
+            k_useful = false;
+            break;
+          }
+        }
         tr.appendChild(td);
-      };
+      }
       ds.appendChild(tr);
-    };
+    }
 
     for (var i = 0; i < ds.children.length; i++) {
       ds.children[i].insertBefore(document.createElement("td"),ds.children[i].children[0]);//td和th 在用一行？
@@ -147,6 +154,35 @@ var ls = list = {
                   a.push({type:"i",value:""});
             }//内循环结束
           }//外循环结束
+
+           var table_head = [
+            [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+            [{type: "a",value:["name","admin_defined_id"]},{type: "i",value:"商品编号"}],
+            [{type: "a",value:["name","full_name"]},{type: "i",value:"商品全名"}],
+            [{type: "a",value:["name","simple_name"]},{type: "i",value:"简名"}],
+            [{type: "a",value:["name","admin_defined_unit_1"]},{type: "i",value:"辅助单位1"}],
+            [{type: "a",value:["name","admin_defined_unit_1_factor"]},{type: "i",value:"辅助单位1系数"}],//辅助单位需要有alt 弹出提示吗？
+            [{type: "a",value:["name","admin_defined_unit_2"]},{type: "i",value:"辅助单位2"}],
+            [{type: "a",value:["name","admin_defined_unit_2_factor"]},{type: "i",value:"辅助单位2系数"}],//辅助单位需要有alt 弹出提示吗？
+            [{type: "a",value:["name","price_base"]},{type: "i",value:"基准价"}],
+            [{type: "a",value:["name","price_for_manufacturer"]},{type: "i",value:"厂商价"}],
+            [{type: "a",value:["name","price_for_dealer"]},{type: "i",value:"经销商价"}],
+            [{type: "a",value:["name","price_for_bigger"]},{type: "i",value:"特大户价"}],
+            [{type: "a",value:["name","price_for_big"]},{type: "i",value:"大户价"}],
+            [{type: "a",value:["name","price_for_Medium"]},{type: "i",value:"中户价"}],
+            [{type: "a",value:["name","price_for_small"]},{type: "i",value:"小户价"}],
+            [{type: "a",value:["name","price_for_smaller"]},{type: "i",value:"个人价"}],
+            [{type: "a",value:["name","price_for_smallest"]},{type: "i",value:"零售价"}],
+            [{type: "a",value:["name","manufacturer"]},{type: "i",value:"生产厂家"}],
+            [{type: "a",value:["name","py_code"]},{type: "i",value:"拼音码"}],
+            [{type: "a",value:["name","created_at"]},{type: "i",value:"创建时间"}],
+            [{type: "a",value:["name","changed_at"]},{type: "i",value:"上次修改时间"}],
+            [{type: "a",value:["name","hidden_toggle"]},{type: "i",value:"是否停用"}],
+            [{type: "a",value:["name","user_comment"]},{type: "i",value:"用户备注"}]
+          ];
+
+          ls.display(table_head,ls.product_info[2]);
+          ls.product_info[0]=0;
         }
             else {
               alert("当前查询条件无结果");
@@ -156,36 +192,6 @@ var ls = list = {
     };
     ls.query("*","product_info","");
   }
-
-
-    var table_head = [
-      [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
-      [{type: "a",value:["name","admin_defined_id"]},{type: "i",value:"商品编号"}],
-      [{type: "a",value:["name","full_name"]},{type: "i",value:"商品全名"}],
-      [{type: "a",value:["name","simple_name"]},{type: "i",value:"简名"}],
-      [{type: "a",value:["name","admin_defined_unit_1"]},{type: "i",value:"辅助单位1"}],
-      [{type: "a",value:["name","admin_defined_unit_1_factor"]},{type: "i",value:"辅助单位1系数"}],//辅助单位需要有alt 弹出提示吗？
-      [{type: "a",value:["name","admin_defined_unit_2"]},{type: "i",value:"辅助单位2"}],
-      [{type: "a",value:["name","admin_defined_unit_2_factor"]},{type: "i",value:"辅助单位2系数"}],//辅助单位需要有alt 弹出提示吗？
-      [{type: "a",value:["name","price_base"]},{type: "i",value:"基准价"}],
-      [{type: "a",value:["name","price_for_manufacturer"]},{type: "i",value:"厂商价"}],
-      [{type: "a",value:["name","price_for_dealer"]},{type: "i",value:"经销商价"}],
-      [{type: "a",value:["name","price_for_bigger"]},{type: "i",value:"特大户价"}],
-      [{type: "a",value:["name","price_for_big"]},{type: "i",value:"大户价"}],
-      [{type: "a",value:["name","price_for_Medium"]},{type: "i",value:"中户价"}],
-      [{type: "a",value:["name","price_for_small"]},{type: "i",value:"小户价"}],
-      [{type: "a",value:["name","price_for_smaller"]},{type: "i",value:"个人价"}],
-      [{type: "a",value:["name","price_for_smallest"]},{type: "i",value:"零售价"}],
-      [{type: "a",value:["name","manufacturer"]},{type: "i",value:"生产厂家"}],
-      [{type: "a",value:["name","py_code"]},{type: "i",value:"拼音码"}],
-      [{type: "a",value:["name","created_at"]},{type: "i",value:"创建时间"}],
-      [{type: "a",value:["name","changed_at"]},{type: "i",value:"上次修改时间"}],
-      [{type: "a",value:["name","hidden_toggle"]},{type: "i",value:"是否停用"}],
-      [{type: "a",value:["name","user_comment"]},{type: "i",value:"用户备注"}]
-    ];
-
-    ls.display(table_head,ls.product_info[2]);
-    ls.product_info[0]=0;
   },
 
   "people": [],//people tag 加入
