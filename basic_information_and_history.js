@@ -85,6 +85,43 @@ var ls = list = {
   // 第二个元素表示抓取的原始数据，
   // 第三个元素表示处理过，用于展示的数据
   // 第四个数据是一个包含两个元素的数组,该数组用语更新商品信息，第一个元素表示更新状态，1表示需要更新（还未更新），0表示不需要更新(已经更新)；
+
+  generator: {
+  },
+
+
+
+  "checker": {
+    status: {
+      equal_origin_value : function(){
+        if(this.innerHTML!=this.getAttribute("placeholder")){
+
+          if(this.innerHTML.replace(/ |　|&nbsp;/g,"")=="") this.innerHTML = this.getAttribute("placeholder");
+          else {
+            this.setAttribute("modify_status",true);
+            };
+          }
+        
+
+      }
+
+
+    },//status 对象结束
+
+    "number_check_when_input": function (e){
+      if(e.keyCode >= 48 && e.keyCode<=57 || e.keyCode==46);
+      else e.preventDefault();
+    },
+
+    "number_check_after_input": function(){
+      if(this.innerHTML=="NaN") this.innerHTML = 0;
+      if(this.innerHTML=="undefined") this.innerHTML = 0;
+      this.innerHTML= Number(Number(this.innerHTML).toFixed(5));
+      
+    }
+
+  },
+
   "pr_q_d": function(e){//product query and display，用于商品信息的查询event listener
     if(ls.product_info[0]==0) alert("0");
     else {
@@ -96,14 +133,10 @@ var ls = list = {
 
       // };
       ajax_object.onreadystatechange = function(){//在invoice.js中已经定义
-        if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200)
-        {
-          if(Number(ajax_object.response) != 0)
-          { 
+        if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200){
+          if(Number(ajax_object.response) != 0){
             ls["product_info"][1] = JSON.parse(ajax_object.response);//查询的结果数组立即作为数组存储
             ls["product_info"][0] = 0;
-
-
             for (var i = 0; i < ls.product_info[1].length; i++) {
 
               var p_names = Object.getOwnPropertyNames(ls.product_info[1][i]);//所有属性组成的数组
@@ -114,84 +147,111 @@ var ls = list = {
                   a.push({type:"a",value:['name','product_id']});
                 else
                   a.push({type:"a",value:['name',p_names[j]]});
-                // switch(p_names[j]){
-                //   case "id" : 
+                //需要饱含的函数预定义
+
                   
-                //   break;
-                //   case "py_code" :
-                //   case "admin_defined_id" :
-                //   case "full_name" :
-                //   case "manufacturer" :
-                //   case "simple_name" :
-                //   case "unit_1" :
-                //   case "admin_defined_unit_1" :
-                //   case "admin_defined_unit_1_factor" :;break;
-                //   case "admin_defined_unit_2" :;break;
-                //   case "admin_defined_unit_2_factor" :;break;
-                //   case "price_base" :;break;
-                //   case "price_for_manufacturer" :;break;
-                //   case "price_for_dealer" :;break;
-                //   case "price_for_bigger" :;break;
-                //   case "price_for_big" :;break;
-                //   case "price_for_Medium" :;break;
-                //   case "price_for_small" :;break;
-                //   case "price_for_smaller" :;break;
-                //   case "price_for_smallest" :;break;
-                //   case "size_id" :;break;
-                //   case "created_at" :;break;
-                //   case "changed_at" :;break;
-                //   case "user_comment" :;break;
-                //   case "system_log" :;break;
-                //   case "hidden_toggle" :;break;
-                //   default:
-                  
-                //   break;
-                // }
-                var td_value = ls.product_info[1][i][p_names[j]];
+                var td_value = ls.product_info[1][i][p_names[j]];//原来的值
+
+                var c_e = ["contenteditable","true"];
+                var nc_w = ["keypress",ls.checker.number_check_when_input];
+                var nc_a = ["blur",ls.checker.number_check_after_input];
+
+                function editable(){
+                  a.push({type: "a", value: c_e}); 
+                  a.push({type: "a", value: ["modify_status", false]});
+                  var origin = td_value?td_value.toString():"";
+                  a.push({type: "a", value: ["placeholder", origin]});//把原来的值存入placeholder 属性中，便于后来的状态检查
+                  a.push({type: "e", value: ["blur",ls.checker.status.equal_origin_value]});
+
+                }
+                function e_num(){//add event listener for num tds
+                  a.push({type: "a", value: c_e}); 
+                  a.push({type: "e", value: nc_w});
+                  a.push({type: "e", value: nc_a});
+                }
+
+                switch(p_names[j]){
+                  case "id" : 
+                  break;
+                  case "py_code" : break;
+                  case "admin_defined_id" : editable(); break;
+                  case "full_name" : editable(); break;
+                  case "manufacturer" : editable(); break;
+                  case "simple_name" : editable(); break;
+
+                  case "unit_1" : editable(); break;
+
+                  case "admin_defined_unit_1" : editable(); break;
+                  case "admin_defined_unit_1_factor" :editable(); break;
+                  case "admin_defined_unit_2" :editable(); break;
+                  case "admin_defined_unit_2_factor" :editable(); break;
+                  case "price_base" :e_num();
+                  case "price_for_manufacturer" :e_num();
+                  case "price_for_dealer" :e_num();
+                  case "price_for_bigger" :e_num();
+                  case "price_for_big" :e_num();
+                  case "price_for_Medium" :e_num();
+                  case "price_for_small" :e_num();
+                  case "price_for_smaller" :e_num();
+                  case "price_for_smallest" :e_num();
+                  break;
+
+                  case "size_id" :editable(); break;
+
+                  case "created_at" :;break;
+                  case "changed_at" :;break;
+                  case "user_comment" :editable(); break;
+                  case "system_log" :;break;
+                  case "hidden_toggle" :editable(); break;
+                  default:
+
+                  break;
+                }
+
                 if(td_value!=null && td_value!="null" && td_value!=undefined && td_value!="undefined")
                   a.push({type:"i",value: td_value});
                 else
                   a.push({type:"i",value:""});
-            }//内循环结束
-          }//外循环结束
+              }//内循环结束
+            }//外循环结束
 
-           var table_head = [
-            [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
-            [{type: "a",value:["name","admin_defined_id"]},{type: "i",value:"商品编号"}],
-            [{type: "a",value:["name","full_name"]},{type: "i",value:"商品全名"}],
-            [{type: "a",value:["name","simple_name"]},{type: "i",value:"简名"}],
-            [{type: "a",value:["name","admin_defined_unit_1"]},{type: "i",value:"辅助单位1"}],
-            [{type: "a",value:["name","admin_defined_unit_1_factor"]},{type: "i",value:"辅助单位1系数"}],//辅助单位需要有alt 弹出提示吗？
-            [{type: "a",value:["name","admin_defined_unit_2"]},{type: "i",value:"辅助单位2"}],
-            [{type: "a",value:["name","admin_defined_unit_2_factor"]},{type: "i",value:"辅助单位2系数"}],//辅助单位需要有alt 弹出提示吗？
-            [{type: "a",value:["name","price_base"]},{type: "i",value:"基准价"}],
-            [{type: "a",value:["name","price_for_manufacturer"]},{type: "i",value:"厂商价"}],
-            [{type: "a",value:["name","price_for_dealer"]},{type: "i",value:"经销商价"}],
-            [{type: "a",value:["name","price_for_bigger"]},{type: "i",value:"特大户价"}],
-            [{type: "a",value:["name","price_for_big"]},{type: "i",value:"大户价"}],
-            [{type: "a",value:["name","price_for_Medium"]},{type: "i",value:"中户价"}],
-            [{type: "a",value:["name","price_for_small"]},{type: "i",value:"小户价"}],
-            [{type: "a",value:["name","price_for_smaller"]},{type: "i",value:"个人价"}],
-            [{type: "a",value:["name","price_for_smallest"]},{type: "i",value:"零售价"}],
-            [{type: "a",value:["name","manufacturer"]},{type: "i",value:"生产厂家"}],
-            [{type: "a",value:["name","py_code"]},{type: "i",value:"拼音码"}],
-            [{type: "a",value:["name","created_at"]},{type: "i",value:"创建时间"}],
-            [{type: "a",value:["name","changed_at"]},{type: "i",value:"上次修改时间"}],
-            [{type: "a",value:["name","hidden_toggle"]},{type: "i",value:"是否停用"}],
-            [{type: "a",value:["name","user_comment"]},{type: "i",value:"用户备注"}]
-          ];
+            var table_head = [
+              [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
+              [{type: "a",value:["name","admin_defined_id"]},{type: "i",value:"商品编号"}],
+              [{type: "a",value:["name","full_name"]},{type: "i",value:"商品全名"}],
+              [{type: "a",value:["name","simple_name"]},{type: "i",value:"简名"}],
+              [{type: "a",value:["name","admin_defined_unit_1"]},{type: "i",value:"辅助单位1"}],
+              [{type: "a",value:["name","admin_defined_unit_1_factor"]},{type: "i",value:"辅助单位1系数"}],//辅助单位需要有alt 弹出提示吗？
+              [{type: "a",value:["name","admin_defined_unit_2"]},{type: "i",value:"辅助单位2"}],
+              [{type: "a",value:["name","admin_defined_unit_2_factor"]},{type: "i",value:"辅助单位2系数"}],//辅助单位需要有alt 弹出提示吗？
+              [{type: "a",value:["name","price_base"]},{type: "i",value:"基准价"}],
+              [{type: "a",value:["name","price_for_manufacturer"]},{type: "i",value:"厂商价"}],
+              [{type: "a",value:["name","price_for_dealer"]},{type: "i",value:"经销商价"}],
+              [{type: "a",value:["name","price_for_bigger"]},{type: "i",value:"特大户价"}],
+              [{type: "a",value:["name","price_for_big"]},{type: "i",value:"大户价"}],
+              [{type: "a",value:["name","price_for_Medium"]},{type: "i",value:"中户价"}],
+              [{type: "a",value:["name","price_for_small"]},{type: "i",value:"小户价"}],
+              [{type: "a",value:["name","price_for_smaller"]},{type: "i",value:"个人价"}],
+              [{type: "a",value:["name","price_for_smallest"]},{type: "i",value:"零售价"}],
+              [{type: "a",value:["name","manufacturer"]},{type: "i",value:"生产厂家"}],
+              [{type: "a",value:["name","py_code"]},{type: "i",value:"拼音码"}],
+              [{type: "a",value:["name","created_at"]},{type: "i",value:"创建时间"}],
+              [{type: "a",value:["name","changed_at"]},{type: "i",value:"上次修改时间"}],
+              [{type: "a",value:["name","hidden_toggle"]},{type: "i",value:"是否停用"}],
+              [{type: "a",value:["name","user_comment"]},{type: "i",value:"用户备注"}]
+            ];
 
-          ls.display(table_head,ls.product_info[2]);
-          ls.product_info[0]=0;
-        }
-            else {
-              alert("当前查询条件无结果");
-              return;
-            }
-        }
-    };
-    ls.query("*","product_info","");
-  }
+            ls.display(table_head,ls.product_info[2]);
+            ls.product_info[0]=0;
+          }//内if结束
+          else {
+            alert("当前查询条件无结果");
+            return;
+          }
+        }//外if 结束
+      };
+      ls.query("*","product_info","");
+    }
   },
 
   "people": [],//people tag 加入
@@ -209,7 +269,7 @@ var ls = list = {
   "craft_invoice": [],
 
   "edit": {
-    "edir_event": function(){},
+    "edit_event": function(){},
     "updater": function(){}, //for basic_info
     "event": function(){} //event for edit
   },
@@ -219,4 +279,4 @@ var ls = list = {
   "filter": function(){}, //for information displaying
 };
 
-document.querySelector("#checkout_people_info").addEventListener("click", ls.pr_q_d);
+document.querySelector("#checkout_product_info").addEventListener("click", ls.pr_q_d);
