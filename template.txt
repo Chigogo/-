@@ -1,3 +1,4 @@
+/* 创建一条商品信息 */
 insert into product_info(
 id,
 admin_defined_id,
@@ -49,4 +50,8 @@ null,/*system_log*/
 null
 );
 
+/*载入用户数据
+*/
 
+
+LOAD DATA LOCAL INFILE '/Users/Chigogo/Documents/Study_Material/LearningCS/建站/gjp_web/单位信息sublime utf-8.txt' INTO TABLE people;

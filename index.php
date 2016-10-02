@@ -3,7 +3,7 @@
 <head>
 	<title>Welcome to gjp_web!</title>
 	<meta charset="utf-8">
-	<link rel="stylesheet" href="invoice.css">
+	<link rel="stylesheet" href="index.css">
 </head>
 <body id="body">
 		<div>

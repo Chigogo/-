@@ -81,6 +81,13 @@ p {
   color: white;
 }
 
+tr[td_modified]{
+  background-color: lightblue;  
+}
+
+td[modify_status="true"]{
+  color: white;
+}
 /*.product_item{
   background-color: rgba(0,0,0, 0.9);
 }*/
