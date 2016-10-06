@@ -96,7 +96,7 @@ var ls = list = {
     //status对象开始，
     //用于标记各种状态，用于检查各种状态，用于修改各种状态
     status: {
-      whether_modified : function(){
+      whether_td_modified : function(){
         if(this.innerHTML!=this.getAttribute("placeholder")){
           if(this.innerHTML.replace(/ |　|&nbsp;/g,"")=="") {
             this.innerHTML = this.getAttribute("placeholder");
@@ -124,7 +124,22 @@ var ls = list = {
         else{
           this.parentNode.removeAttribute("td_modified");
         }
-      }
+      },
+
+      whether_table_modified : function(){
+        var ds = document.querySelector("#display_section");
+        var ds_t = ds.querySelector("table");
+        if(ds_t)
+        {
+          var t_tr = ds_t.querySelectorAll("tr");
+          for (var i = 0; i < t_tr.length; i++) {
+            if(Number(t_tr[i].getAttribute("td_modify_count"))!=0){
+              return true;
+            }
+          };
+          return false;
+        }
+      }//whether_table_modified函数结束
 
     },//status 对象结束
 
@@ -148,6 +163,11 @@ var ls = list = {
   },
 
   "pr_q_d": function(e){//product query and display，用于商品信息的查询event listener
+    if(ls.checker.status.whether_table_modified()) {
+          alert("请保存或者放弃修改！");
+          return;
+    }
+    
     function p_display(){
       for (var i = 0; i < ls.product_info[1].length; i++) {
 
@@ -174,7 +194,7 @@ var ls = list = {
             a.push({type: "a", value: c_e}); 
             a.push({type: "a", value: ["modify_status", false]});
             a.push({type: "a", value: ["placeholder", origin]});//把原来的值存入placeholder 属性中，便于后来的状态检查
-            a.push({type: "e", value: ["blur",ls.checker.status.whether_modified]});
+            a.push({type: "e", value: ["blur",ls.checker.status.whether_td_modified]});
             
             a.push({type: "e", value: ["keypress", ls.checker.word_check_when_input]});
             a.push({type: "e", value: text_s});
@@ -182,7 +202,7 @@ var ls = list = {
           function e_num(){//add event listener for num tds
             a.push({type: "a", value: ["modify_status", false]});
             a.push({type: "a", value: ["placeholder", origin]});//把原来的值存入placeholder 属性中，便于后来的状态检查
-            a.push({type: "e", value: ["blur",ls.checker.status.whether_modified]});
+            a.push({type: "e", value: ["blur",ls.checker.status.whether_td_modified]});
 
             a.push({type: "a", value: c_e}); 
             a.push({type: "e", value: nc_w});
@@ -263,6 +283,42 @@ var ls = list = {
 
       ls.display(table_head,ls.product_info[2]);
       ls.product_info[0]=0;
+
+
+      //给基础信息页面添加功能：新建商品、删除商品、保存更改、放弃更改（什么是更改？新建、删除、修改都是更改）
+      var ds = document.querySelector("#display_section");
+      var f_container = document.createElement("div");
+      var f_list = document.createElement("ul");
+      f_list.setAttribute("name","f_list");
+      var f_list_1 = document.createElement("li");
+      f_list_1.setAttribute("name","createNewItem");
+      f_list_1.innerHTML="新建商品";
+      var f_list_2 = document.createElement("li");
+      f_list_2.setAttribute("name","deleteItem");
+      f_list_2.innerHTML="删除选中商品";
+      var f_list_3 = document.createElement("li");
+      f_list_3.setAttribute("name","saveChange");
+      f_list_3.innerHTML="保存修改";
+      var f_list_4 = document.createElement("li");
+      f_list_4.setAttribute("name","abortChange");
+      f_list_4.innerHTML="放弃修改";
+
+      f_list.appendChild(f_list_1);
+      f_list.appendChild(f_list_2);
+      f_list.appendChild(f_list_3);
+      f_list.appendChild(f_list_4);
+
+      f_container.appendChild(f_list);
+      ds.appendChild(f_container);
+
+      if(!document.querySelector("#documents_tab>ul").querySelector('*[list_type="product_info"]')){
+        var a = document.createElement("li");
+        a.setAttribute("tab_type","list");
+        a.setAttribute("list_type","product_info");
+        a.innerHTML="商品信息";
+        a.addEventListener("click", ls.pr_q_d);
+        document.querySelector("#documents_tab>ul").appendChild(a);
+      }
     }
 
     if(ls.product_info[0]==0) p_display();
@@ -287,8 +343,11 @@ var ls = list = {
           }
         }//外if 结束
       };
+
       ls.query("*","product_info","");
     }
+
+
   },
 
   "people": [],//people tag 加入

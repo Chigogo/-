@@ -22,11 +22,17 @@ body {
 #web_function > *{
   display: inline-block;
   width: 33.3333%;
+  position: relative;
 }
 
 #web_function>li>ul{
   display: none;
+  width: 100%;
   position: absolute;
+  background-color: white;
+}
+#web_function>li>ul>li{
+  list-style: none;
 }
 
 #documents_tab{
@@ -87,6 +93,14 @@ tr[td_modified]{
 
 td[modify_status="true"]{
   color: white;
+}
+*[name="f_list"] {
+  position: fixed;
+  bottom: 20px;
+}
+*[name="f_list"]>li{
+  display: inline-block;
+  padding: 0 20px;
 }
 /*.product_item{
   background-color: rgba(0,0,0, 0.9);

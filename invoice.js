@@ -209,6 +209,7 @@ var td = TRANSACTION_DOCUMENT = {
           };
           var a = document.createElement("li");
           a.setAttribute("my_invoice_id",c_new_i);
+          a.setAttribute("tabType","invoice");
           a.innerHTML=doc_type_Chinese;
           a.addEventListener("click",function(){ td.viewer(this.getAttribute("my_invoice_id")); });
           document.querySelector("#documents_tab>ul").appendChild(a);
