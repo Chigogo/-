@@ -96,6 +96,16 @@ var ls = list = {
     //status对象开始，
     //用于标记各种状态，用于检查各种状态，用于修改各种状态
     status: {
+      //normal_check, 用来进行整体的check，防止用户在保存修改前就进入其他页面
+      normal_check: function(){
+        if(ls.checker.status.whether_table_modified()) {
+          alert("请保存或者放弃修改！");
+          event.stopPropagation();
+        }
+
+      },
+
+
       whether_td_modified : function(){
         if(this.innerHTML!=this.getAttribute("placeholder")){
           if(this.innerHTML.replace(/ |　|&nbsp;/g,"")=="") {
@@ -124,6 +134,8 @@ var ls = list = {
         else{
           this.parentNode.removeAttribute("td_modified");
         }
+
+
       },
 
       whether_table_modified : function(){
@@ -390,3 +402,8 @@ var ls = list = {
 };
 
 document.querySelector("#checkout_product_info").addEventListener("click", ls.pr_q_d);
+document.addEventListener("click",ls.checker.status.normal_check);
+
+
+
+

@@ -956,4 +956,3 @@ document.querySelector("#creator_xs").addEventListener("click", td.creator_xs);
 document.querySelector("#creator_jh").addEventListener("click", td.creator_jh);
 
 document.addEventListener("keydown", td.esc_display);
-
