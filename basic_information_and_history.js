@@ -98,10 +98,12 @@ var ls = list = {
     status: {
       //normal_check, 用来进行整体的check，防止用户在保存修改前就进入其他页面
       normal_check: function(){
-        if(ls.checker.status.whether_table_modified()) {
-          alert("请保存或者放弃修改！");
-          event.stopPropagation();
-        }
+        var srcE=event.target.tagName.toLowerCase();console.log(srcE);
+        if(srcE=="td"||srcE=="th"||srcE=="table"||srcE=="html"){}
+          else if(ls.checker.status.whether_table_modified()) {
+            alert("请保存或者放弃修改！");
+            event.stopPropagation();
+          }
 
       },
 
@@ -402,7 +404,7 @@ var ls = list = {
 };
 
 document.querySelector("#checkout_product_info").addEventListener("click", ls.pr_q_d);
-document.addEventListener("click",ls.checker.status.normal_check);
+document.addEventListener("click",ls.checker.status.normal_check, true);
 
 
 
