@@ -2,9 +2,8 @@
 /* 此文件用于放在各个css 文件头部*/
     header("Content-type: text/css; charset: UTF-8");
 ?>
-
 * {
-	box-sizing: border-box;
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
   text-align: center;
