@@ -35,9 +35,7 @@
 		
 	</section>
 	<div id="pop_up" class=""></div>
-	<script type="text/javascript" src="invoice.js"></script>
-	<script type="text/javascript" src="basic_information_and_history.js"></script>
-	<script type="text/javascript">
+	<script type="text/javascript" src="gjp.js"></script>
 
 
   </script>
