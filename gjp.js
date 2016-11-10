@@ -851,94 +851,26 @@ var td = TRANSACTION_DOCUMENT = {
           event.preventDefault();
           event.stopPropagation();
         }
-
-  },
-
-  // "query_multiple_products": function(event){
-  //   if (event.keyCode == 13){
-  //       var that = this;
-
-  //       var q_condition_column;
-  //       //判断是否是拼音或者汉子
-  //       if (that.innerHTML.charCodeAt(0)>= 123 ||
-  //           that.innerHTML.charCodeAt(0)<= 96)
-  //         q_condition_column = "full_name";
-  //       else
-  //         q_condition_column = "py_code";
-
-  //       (function query(string) 
-  //       {
-  //       var ajax_object;
-  //       if (window.XMLHttpRequest) ajax_object = new XMLHttpRequest();
-  //       else {/*code for IE6, IE5*/ajax_object = new ActiveXObject("Microsoft.XMLHTTP");}
-  //       ajax_object.onreadystatechange = function(){
-  //         if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200) 
-    
-  //         if(JSON.parse(ajax_object.response)) {
-  //           //that, td 都可用，思考原因
-  //           td.query_result = JSON.parse(ajax_object.response);
-  //           p = document.querySelector('#pop_up');
-  //           p.tabIndex = 12;
-  //           //清楚pop中上一次查询结果
-  //           p.innerHTML = "";
-
-  //           // console.log("ajax");//test exec
-  //           td.toggle_display.call(p);
-  //           //t is #pop_pu->table
-  //           var t = p.appendChild(document.createElement("table"));
-  //           var tb = t.appendChild(document.createElement("tbody"));
-  //           for(var j=0;j<td.query_result.length;j++){
-  //             var a = td.query_result[j];
-  //             var new_tr = document.createElement("tr");
-  //             new_tr.addEventListener("mouseover", td.make_selection_single);
-  //             new_tr.innerHTML = 
-  //             "<td>"+(j+1)+"</td>"+
-  //             "<td>"+a.id+"</td>"+
-  //             "<td>"+a.full_name+"</td>"+
-  //             "<td>"+a.py_code+"</td>"+
-  //             "<td>1*"+a.admin_defined_unit_2_factor+"</td>"+
-  //             "<td>"+a.user_comment+"</td>";
-  //             tb.appendChild(new_tr);
-  //             }
-  //           }      
-  //           else td.query_result = false;
-  //         };
-
-  //         ajax_object.open("GET", "query.php?" + string, true);ajax_object.send();
-  //         }
-  //         )("query_multiple&q_columns_name=*&q_table=people&q_condition_column="+q_condition_column+"&q_condition_value="+that.innerHTML);
-
-  //         //enter key event
-  //         event.preventDefault();
-  //         event.stopPropagation();
-  //       }
-
-  // } 
-
-  //"submitter"
-  
-
-};
-
-var ld = list_documents= {
-
-};
-
-var css_modify = {
-  "drop_down_toggle_display":function(e){
-    // alert("good");
-    if (e.type=="mouseover")
-    this.querySelector("ul").style.display="block";
-    if(e.type=="mouseout")
-    this.querySelector("ul").style.display="none";
-  },
-
-  "add_mouser_over_out_to_element": function(selector){
-    document.querySelector(selector).addEventListener("mouseover", css_modify.drop_down_toggle_display);
-    document.querySelector(selector).addEventListener("mouseout", css_modify.drop_down_toggle_display);
   }
-
 };
+
+// var css_modify = {
+//   "drop_down_toggle_display":function(e){
+//     // alert("good");
+//     if (e.type=="mouseover")
+//     this.querySelector("ul").style.display="block";
+//     if(e.type=="mouseout")
+//     this.querySelector("ul").style.display="none";
+//   },
+
+//   "add_mouser_over_out_to_element": function(selector){
+//     document.querySelector(selector).addEventListener("mouseover", css_modify.drop_down_toggle_display);
+//     document.querySelector(selector).addEventListener("mouseout", css_modify.drop_down_toggle_display);
+//   }
+
+// };
+// css_modify.add_mouser_over_out_to_element("#invoice_create");
+// css_modify.add_mouser_over_out_to_element("#basic_information_build");
 
 function in_page_query (event){
   if(event.keyCode==13){
@@ -950,6 +882,8 @@ function in_page_query (event){
 
 }
 
+
+//new file imported
 //如何阻止用户close window？
 window.onclose = window_close_check;
 
@@ -1050,7 +984,10 @@ var ls = list = {
     status: {
       //normal_check, 用来进行整体的check，防止用户在保存修改前就进入其他页面
       normal_check: function(){
-        var srcE=event.target.tagName.toLowerCase();console.log(srcE);
+        // 检查单机的目标，如果用户未保存修改，则不允许用户进入其他界面
+        var srcE=event.target.tagName.toLowerCase();
+
+        console.log(srcE);
         if(srcE=="td"||srcE=="th"||srcE=="table"||srcE=="html"){}
           else if(ls.checker.status.whether_table_modified()) {
             alert("请保存或者放弃修改！");
@@ -1358,9 +1295,6 @@ var ls = list = {
 document.querySelector("#checkout_product_info").addEventListener("click", ls.pr_q_d);
 document.addEventListener("click",ls.checker.status.normal_check, true);
 
-
-css_modify.add_mouser_over_out_to_element("#invoice_create");
-css_modify.add_mouser_over_out_to_element("#basic_information_build");
 document.querySelector("#creator_xs").addEventListener("click", td.creator_xs);
 document.querySelector("#creator_jh").addEventListener("click", td.creator_jh);
 

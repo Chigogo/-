@@ -14,7 +14,7 @@ body {
 }
 
 
-#web_function{
+/*#web_function{
   width: 100%;
 }
 
@@ -22,14 +22,15 @@ body {
   display: inline-block;
   width: 33.3333%;
   position: relative;
-}
+}*/
 
-#web_function>li>ul{
+/*#web_function>li>ul{
   display: none;
   width: 100%;
   position: absolute;
   background-color: white;
-}
+}*/
+
 #web_function>li>ul>li{
   list-style: none;
 }
