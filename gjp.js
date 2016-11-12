@@ -92,7 +92,7 @@ var td = TRANSACTION_DOCUMENT = {
       }
   },
   //方法————单据对象的查看，查看之前需先保存当前显示的销售单
-  //1、获取当前invoice 的id
+  // 1、获取当前invoice 的id
   // 2、注明当前的invoice type
   // 3、给部分表格（客户）添加事件监听器
   // 4、把新的id 写入表格描述部分
@@ -101,13 +101,13 @@ var td = TRANSACTION_DOCUMENT = {
   "viewer": function(invoice_id){
     var section = document.querySelector("#display_section");
 
-    //当前视图如果存在单据，则先保存
+    //当前视图如果存在单据,id=i，则先保存该单据
     if(section.querySelector("#i")){
         td.saver(document.querySelector("td[name=invoice_id]").getAttribute("invoice_id"));
     }
 
-    var doc_type_caption = document.querySelector("*[my_invoice_id='"+invoice_id+"']").innerHTML.replace(/^(销售|进货).*/,"$1"+"单");
-    section.innerHTML='    <!-- xs_i 表示invoice_xs -->    <table id="i">    <caption>'+doc_type_caption+'</caption>    <!-- i_des 表示invoice_description-->    <thead id="i_des">      <tr>        <td>往来单位：</td>        <td name="trading_object" colspan="2" contenteditable></td>        <td name="invoice_id" invoice_id="'+invoice_id+'">单据编号：</td>        <td name="generated_id" colspan="2"></td>      </tr>      <tr>        <td>仓库：</td>        <td name="store_house" colspan="2"></td>        <td>备注：</td>        <td name="comment" colspan="2" contenteditable></td>      </tr>    </thead>    <!-- i_c表示invoice content -->    <tbody id="i_c">          </tbody>    <tfoot>      <tr>        <td>合计</td>        <td colspan=3 name="money_received_chinese"></td>        <td >数量</td>        <td name="total_amount"></td>        <td>金额</td>        <td colspan=2 name="money_received"></td>      </tr>      <tr>        <td>存为草稿</td>        <td>打印单据</td>        <td>单据过账</td>    ';
+    var doc_type_caption = document.querySelector("*[my_invoice_id='"+invoice_id+"']").querySelector("a").innerHTML.replace(/^(销售|进货).*/,"$1"+"单");
+    section.innerHTML='    <!-- i 表示invoice -->    <table id="i">    <caption class="text-center lead">'+doc_type_caption+'</caption>    <!-- i_des 表示invoice_description-->    <thead id="i_des">      <tr>        <td>往来单位：</td>        <td name="trading_object" colspan="2" contenteditable></td>        <td name="invoice_id" invoice_id="'+invoice_id+'">单据编号：</td>        <td name="generated_id" colspan="2"></td>      </tr>      <tr>        <td>仓库：</td>        <td name="store_house" colspan="2"></td>        <td>备注：</td>        <td name="comment" colspan="2" contenteditable></td>      </tr>    </thead>    <!-- i_c表示invoice content -->    <tbody id="i_c">          </tbody>    <tfoot>      <tr>        <td>合计</td>        <td colspan=3 name="money_received_chinese"></td>        <td >数量</td>        <td name="total_amount"></td>        <td>金额</td>        <td colspan=2 name="money_received"></td>      </tr>      <tr>        <td>存为草稿</td>        <td>打印单据</td>        <td>单据过账</td>    ';
 
     document.querySelector("td[name='trading_object']").addEventListener("keypress", td.query_people);
 
@@ -588,40 +588,46 @@ var td = TRANSACTION_DOCUMENT = {
           {
             if(Number(ajax_object.response) != 0)
             {
+              //重写查询结果对象
               td.query_result = JSON.parse(ajax_object.response);
-              td.queried_result_products = td.queried_result_products.concat(td.query_result);
+              // td.queried_result_products = td.queried_result_products.concat(td.query_result);
               // td.queried_result_products = td.query_result;
-              p = document.querySelector('#pop_up');
+              var p = $('#pop_up_modal');
+              var pop_up = p.find("#pop_up");
+              p.find(".modal-title").text("商品查询结果");
               p.tabIndex = 12;
               //清楚pop中上一次查询结果
-              p.innerHTML = "";
-  
-              // console.log("ajax");//test exec
-              td.toggle_display.call(p);
+              pop_up.html("");
+
+              console.log("正在查询");
+      
+              p.modal("show");
               //t is #pop_pu->table
-              var t = p.appendChild(document.createElement("table"));
-              var tb = t.appendChild(document.createElement("tbody"));
+              var t = $("<table></table>").appendTo(pop_up);
+              var tb = $("<tbody></tbody>").appendTo(t);
               for(var j=0;j<td.query_result.length;j++)
               {
                 var a = td.query_result[j];
-                var new_tr = document.createElement("tr");
-                new_tr.addEventListener("dblclick", td.input_selected_products);
-                new_tr.addEventListener("click", td.toggle_selection);
-                new_tr.addEventListener("keypress", td.toggle_selection);
+                var new_tr = $("<tr></tr>");
+                new_tr.on({"dblclick": td.input_selected_products,
+                  "click keypress": td.toggle_selection
+                });
 
-                new_tr.innerHTML = 
+                new_tr.html(
                 "<td>"+(j+1)+"</td>"+
                 "<td style='display:none;' name='product_id'>"+a.id+"</td>"+
                 "<td name='admin_defined_id'>"+a.admin_defined_id+"</td>"+
                 "<td name='full_name'>"+a.full_name+"</td>"+
                 "<td>"+a.py_code+"</td>"+
                 "<td name='another_unit_factor'>1*"+a.admin_defined_unit_2_factor+"</td>"+
-                "<td>"+a.hidden_toggle+"</td>";
-                tb.appendChild(new_tr);
+                "<td>"+a.hidden_toggle+"</td>");
+                new_tr.appendTo(tb);
+                console.log(tb);
+                console.log(new_tr);
               }
               ajax_object.response = 0;
-              document.querySelector('#pop_up').addEventListener("dblclick",td.input_selected_products);
-              document.querySelector('#pop_up').addEventListener("keypress",td.input_selected_products);
+
+              pop_up.on("keypress",td.input_selected_products);
             }
               else 
                 alert("当前查询条件无结果");
@@ -634,6 +640,8 @@ var td = TRANSACTION_DOCUMENT = {
       }
     }
   },
+  //builder 对象结束
+
   "query_single_and_modify": function(that, q_name, q_table, q_condition){
     //php发现query_single标记后，进行单挑条目查询，返回字符串
     var query_result;
@@ -661,7 +669,6 @@ var td = TRANSACTION_DOCUMENT = {
 
     (function query(string) 
     {
-////
     ajax_object.onreadystatechange = function(){
       if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200) 
 
@@ -710,54 +717,56 @@ var td = TRANSACTION_DOCUMENT = {
 
   "esc_display": function(event){
       if(event.keyCode == 27){
-      document.querySelector("#pop_up").style.display="none";
+      $("#pop_up_modal").modal("hide");
       }
   },
 
   "input_selected_products": function(event){
     if(event.keyCode ==13 || event.type=="dblclick" ){
       //a 是选中的元素组成的数组
-      var a = document.querySelector("#pop_up").getElementsByClassName("selected");
+      var a = $("#pop_up").find(".selected");
        //获取视图中发票的id
-      var id = document.querySelector("td[name='invoice_id']").getAttribute("id");
+      var id = $("td[name='invoice_id']").attr("invoice_id");
       var new_tr;
       for (var i = 0; i < a.length; i++) {
         var o = {
-            "id": a[i].querySelector('*[name="product_id"]').innerHTML,
-            "admin_defined_id": a[i].querySelector('*[name="admin_defined_id"]').innerHTML,
-            "full_name": a[i].querySelector('*[name="full_name"]').innerHTML,
-            "md": a[i].querySelector('*[name="another_unit_factor"]').innerHTML,
+            "id": $(a[i]).find('*[name="product_id"]').html(),
+            "admin_defined_id": $(a[i]).find('*[name="admin_defined_id"]').html(),
+            "full_name": $(a[i]).find('*[name="full_name"]').html(),
+            "md": $(a[i]).find('*[name="another_unit_factor"]').html(),
             "un": "箱",//标注用户所选用的计算规格的方式
             "amount": 0,
             "price": 0,//如何获取最新价格？
             "item_money_received": 0
           };
         // td.document_lists["invoice_id"+id].document_content_array.push(o);
-        new_tr = td.builder.new_line_creator(o);
-        var i_c = document.querySelector("#i_c");
-        var s_point = i_c.querySelector("*[input_start_point]");
-        var e_point = i_c.querySelector("*[input_end_point]");
+        new_tr = $(td.builder.new_line_creator(o));
+        var i_c = $("#i_c");
+        var s_point = i_c.find("*[input_start_point]").first();
+        var e_point = i_c.find("*[input_end_point]").first();
         // console.log(s_point);
-        if(s_point && s_point.parentNode!=i_c.lastChild){
-          i_c.insertBefore(new_tr, s_point.parentNode);
-          td.builder.line_deleter(s_point.parentNode);
+        if(s_point && s_point.parent()!=i_c.children().last()){
+          new_tr.insertBefore(s_point.parent());
+          // td.builder.line_deleter(s_point.parentNode);
+          // 覆盖原有行，添加新行然后删除旧行
+          s_point.parent().remove();
+          td.builder.sum_refresher();
+          td.builder.line_number_refresher(document.querySelector("#i_c"));
         }
         else{
-          document.querySelector("#i_c").insertBefore(new_tr, e_point.parentNode);
-          document.querySelector("#i_c").lastChild.querySelector("*[name='full_name']").innerHTML="";//最后一行文件名制空权
+          new_tr.insertBefore(e_point.parent());
+          i_c.children("tr").last().find("*[name='full_name']").html("");//最后一行文件名制空权
         }
         // if(i_c.querySelector("*[input_start_point]")){
         //   i_c.querySelector("*[input_start_point]").removeAttribute("input_start_point");
         // }
-       };
-       if(e_point.parentNode!=e_point.parentNode.parentNode.lastChild)e_point.removeAttribute("input_end_point");
-
+       
+       if(e_point.parent().get(0)!=e_point.parent().parent().children().last().get(0))e_point.removeAttr("input_end_point");
+       }
        event.preventDefault();
      //关闭pop_up
      td.esc_display({keyCode:27});
      td.builder.line_number_refresher(document.querySelector("#i_c"))
-     document.querySelector('#pop_up').removeEventListener("dblclick",td.input_selected_products);
-     document.querySelector('#pop_up').removeEventListener("keypress",td.input_selected_products);
      }
   },
 
@@ -861,6 +870,7 @@ var td = TRANSACTION_DOCUMENT = {
         }
   }
 };
+//td 对象结束
 
 // var css_modify = {
 //   "drop_down_toggle_display":function(e){
@@ -995,7 +1005,7 @@ var ls = list = {
         // 检查单机的目标，如果用户未保存修改，则不允许用户进入其他界面
         var srcE=event.target.tagName.toLowerCase();
 
-        console.log(srcE);
+        // console.log(srcE);
         if(srcE=="td"||srcE=="th"||srcE=="table"||srcE=="html"){}
           else if(ls.checker.status.whether_table_modified()) {
             alert("请保存或者放弃修改！");
