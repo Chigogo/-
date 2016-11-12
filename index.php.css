@@ -9,9 +9,9 @@
   text-align: center;
 }
 
-body {
+/*body {
   width: 1024px;
-}
+}*/
 
 
 /*#web_function{
@@ -30,6 +30,11 @@ body {
   position: absolute;
   background-color: white;
 }*/
+
+.btn:active{
+  background-color: lightblue;
+  color: white;
+}
 
 #web_function>li>ul>li{
   list-style: none;

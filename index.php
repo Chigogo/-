@@ -15,37 +15,37 @@
 
 </head>
 <body id="body">
-		<div>
-			<ul id="web_function" class="nav nav-tabs">
-				<li id="invoice_create" class="btn dropdown">
-					<a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
-      新建单据 <span class="caret"></span>
-    			</a>
-					<ul class="dropdown-menu">
-						<li id="creator_xs">创建销售单据</li>
-						<li id="creator_jh">创建进货单据</li>
-						<li id="viewer_craft">查看草稿</li>
-					</ul>
-				</li>
-				<!-- 
-		 --><li id="basic_information_build" class="btn dropdown">
-					<a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
-      基础信息维护 <span class="caret"></span>
-    			</a>
-		 <ul class="dropdown-menu">
-						<li id="checkout_people_info">单位信息</li>
-						<li id="checkout_product_info">商品信息</li>
-						<li id="checkout_specific_price">价格跟踪</li>
-					</ul>
-					</li><!-- 
-		  --><!-- 
-				 --><li class="btn"><a href="#" role="button" aria-haspopup="true" aria-expanded="false">
-      经营历程
-    			</a></li>
-			</ul>
-		</div>
-		<div id="documents_tab">
-			<ul>
+	<nav class="navbar navbar-default navbar-static-top container-fluid row">
+		<ul id="web_function" class="nav nav-tabs container">
+			<li id="invoice_create" class="btn dropdown">
+				<a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+    新建单据 <span class="caret"></span>
+  			</a>
+				<ul class="dropdown-menu">
+					<li id="creator_xs">创建销售单据</li>
+					<li id="creator_jh">创建进货单据</li>
+					<li id="viewer_craft">查看草稿</li>
+				</ul>
+			</li>
+			<!-- 
+	 --><li id="basic_information_build" class="btn dropdown">
+				<a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+    基础信息维护 <span class="caret"></span>
+  			</a>
+	 <ul class="dropdown-menu">
+					<li id="checkout_people_info">单位信息</li>
+					<li id="checkout_product_info">商品信息</li>
+					<li id="checkout_specific_price">价格跟踪</li>
+				</ul>
+				</li><!-- 
+	  --><!-- 
+			 --><li class="btn"><a href="#" role="button" aria-haspopup="true" aria-expanded="false">
+    经营历程
+  			</a></li>
+		</ul>
+	</nav>
+		<div id="documents_tab" class="container-fluid">
+			<ul class="nav nav-pills">
 
 			</ul>
 		</div>

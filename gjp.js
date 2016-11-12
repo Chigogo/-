@@ -92,11 +92,19 @@ var td = TRANSACTION_DOCUMENT = {
       }
   },
   //方法————单据对象的查看，查看之前需先保存当前显示的销售单
+  //1、获取当前invoice 的id
+  // 2、注明当前的invoice type
+  // 3、给部分表格（客户）添加事件监听器
+  // 4、把新的id 写入表格描述部分
+  // 5、更新发票对应的对象
+  // 6、修改tab 状态
   "viewer": function(invoice_id){
     var section = document.querySelector("#display_section");
+
+    //当前视图如果存在单据，则先保存
     if(section.querySelector("#i")){
         td.saver(document.querySelector("td[name=invoice_id]").getAttribute("invoice_id"));
-      }
+    }
 
     var doc_type_caption = document.querySelector("*[my_invoice_id='"+invoice_id+"']").innerHTML.replace(/^(销售|进货).*/,"$1"+"单");
     section.innerHTML='    <!-- xs_i 表示invoice_xs -->    <table id="i">    <caption>'+doc_type_caption+'</caption>    <!-- i_des 表示invoice_description-->    <thead id="i_des">      <tr>        <td>往来单位：</td>        <td name="trading_object" colspan="2" contenteditable></td>        <td name="invoice_id" invoice_id="'+invoice_id+'">单据编号：</td>        <td name="generated_id" colspan="2"></td>      </tr>      <tr>        <td>仓库：</td>        <td name="store_house" colspan="2"></td>        <td>备注：</td>        <td name="comment" colspan="2" contenteditable></td>      </tr>    </thead>    <!-- i_c表示invoice content -->    <tbody id="i_c">          </tbody>    <tfoot>      <tr>        <td>合计</td>        <td colspan=3 name="money_received_chinese"></td>        <td >数量</td>        <td name="total_amount"></td>        <td>金额</td>        <td colspan=2 name="money_received"></td>      </tr>      <tr>        <td>存为草稿</td>        <td>打印单据</td>        <td>单据过账</td>    ';
@@ -111,7 +119,7 @@ var td = TRANSACTION_DOCUMENT = {
     //从对象文件中读取描述和数据
     //展示往来单位
     var des_td = des.querySelector("td[name='trading_object']");
-    des_td.addEventListener("click",td.builder.line_checker);
+    des_td.addEventListener("click",td.builder.cell_checker);
     if(a.trading_object[1])
       des_td.innerHTML = a.trading_object[1];
     else
@@ -121,7 +129,7 @@ var td = TRANSACTION_DOCUMENT = {
     des.querySelector('td[name="store_house"]').innerHTML = a.storehouse[1];
     var des_comment = des.querySelector('td[name="comment"]');
     des_comment.innerHTML = a.comment;
-    des_comment.addEventListener("click",td.builder.line_checker);
+    des_comment.addEventListener("click",td.builder.cell_checker);
     des_comment.addEventListener("blur",function(){
       a.comment = this.innerHTML;  
     });
@@ -208,9 +216,9 @@ var td = TRANSACTION_DOCUMENT = {
             "document_content_array": []
           };
           var a = document.createElement("li");
+          a.innerHTML="<a href='#'>"+doc_type_Chinese+"</a>";
           a.setAttribute("my_invoice_id",c_new_i);
           a.setAttribute("tabType","invoice");
-          a.innerHTML=doc_type_Chinese;
           a.addEventListener("click",function(){ td.viewer(this.getAttribute("my_invoice_id")); });
           document.querySelector("#documents_tab>ul").appendChild(a);
           //创建并添加到视图
@@ -242,14 +250,14 @@ var td = TRANSACTION_DOCUMENT = {
     new_line_creator: function (a){//a是document_content_array的item
       var new_tr, ln_td, id_td, adid_td, fn_td, md_td, un_td, am_td, pr_td, gn_td, cm_td;
 
-      new_tr = document.createElement("tr"); new_tr.addEventListener("blur", td.builder.line_checker);//失去焦点，立即更新对应的对象
+      new_tr = document.createElement("tr"); new_tr.addEventListener("blur", td.builder.cell_checker);//失去焦点，立即更新对应的对象
 
       ln_td = document.createElement("td"); ln_td.setAttribute("name","line_number");
       id_td = document.createElement("td"); id_td.setAttribute("name",'product_id');
       adid_td = document.createElement("td"); adid_td.setAttribute("name",'admin_defined_id');
       fn_td = document.createElement("td"); fn_td.addEventListener("keypress",td.builder.query_products);
-                                            fn_td.addEventListener("blur", td.builder.line_checker);
-                                            fn_td.addEventListener("click", td.builder.line_checker);
+                                            fn_td.addEventListener("blur", td.builder.cell_checker);
+                                            fn_td.addEventListener("click", td.builder.cell_checker);
                                             fn_td.addEventListener("click", 
                                               function(){
                                                 var a = document.querySelector("*[input_start_point]");
@@ -269,24 +277,24 @@ var td = TRANSACTION_DOCUMENT = {
       un_td = document.createElement("td");
       am_td = document.createElement("td"); am_td.setAttribute("name",'amount'); 
                                             am_td.addEventListener("blur",td.builder.number_check_after_input);
-                                            am_td.addEventListener("click", td.builder.line_checker);
+                                            am_td.addEventListener("click", td.builder.cell_checker);
                                             am_td.addEventListener("blur",td.builder.amount_or_price_affect_received);
                                             am_td.addEventListener("keypress", td.builder.number_check_when_input);
                                             am_td.setAttribute("contenteditable","true");
       pr_td = document.createElement("td"); pr_td.setAttribute("name",'price_base_on_unit');
                                             pr_td.addEventListener("blur",td.builder.number_check_after_input);
                                             pr_td.addEventListener("blur",td.builder.amount_or_price_affect_received);
-                                            pr_td.addEventListener("click", td.builder.line_checker);
+                                            pr_td.addEventListener("click", td.builder.cell_checker);
                                             pr_td.addEventListener("keypress", td.builder.number_check_when_input);
                                             pr_td.setAttribute("contenteditable","true");
       gn_td = document.createElement("td"); gn_td.setAttribute("name",'amount_multiply_by_unit');
                                             gn_td.addEventListener("blur",td.builder.number_check_after_input);
                                             gn_td.addEventListener("blur",td.builder.receive_affects_price);
-                                            gn_td.addEventListener("click", td.builder.line_checker);
+                                            gn_td.addEventListener("click", td.builder.cell_checker);
                                             gn_td.addEventListener("keypress", td.builder.number_check_when_input);
                                             gn_td.setAttribute("contenteditable","true");
       cm_td = document.createElement("td"); cm_td.setAttribute("name",'comment_for_item');
-                                            cm_td.addEventListener("click", td.builder.line_checker);
+                                            cm_td.addEventListener("click", td.builder.cell_checker);
                                             cm_td.setAttribute("contenteditable","true");
 
       ln_td.innerHTML ="";
@@ -333,7 +341,7 @@ var td = TRANSACTION_DOCUMENT = {
       return new_tr;
     },
 
-    "line_checker": function(e){
+    "cell_checker": function(e){
       if(e.type=="click"){
         if (document.selection) {
             var range = document.body.createTextRange();
@@ -764,13 +772,13 @@ var td = TRANSACTION_DOCUMENT = {
            td.document_lists["invoice_id"+id].trading_object = [a.childNodes[1].innerHTML,a.childNodes[2].innerHTML];
            //在此修tab
            var tab = document.querySelector("[my_invoice_id='"+id+"']");
-           tab.innerHTML = tab.innerHTML.replace(/^(销售给|进货从).*/,'$1'+a.childNodes[2].innerHTML);
+           tab.querySelector("a").innerHTML = tab.querySelector("a").innerHTML.replace(/^(销售给|进货从).*/,'$1'+a.childNodes[2].innerHTML);
 
            //在此修td
            var des_td = document.querySelector("#i_des").querySelector("td[name='trading_object']");
            des_td.innerHTML=a.childNodes[2].innerHTML;
            des_td.setAttribute("placeholder",a.childNodes[2].innerHTML);
-           // des_td.addEventListener("click",td.builder.line_checker);
+           // des_td.addEventListener("click",td.builder.cell_checker);
            des_td.addEventListener("blur", 
             function(){
             if(this.innerHTML!=this.getAttribute("placeholder"))
@@ -993,6 +1001,10 @@ var ls = list = {
             alert("请保存或者放弃修改！");
             event.stopPropagation();
           }
+
+      },
+
+      tab_active_check: function(){
 
       },
 
@@ -1291,6 +1303,8 @@ var ls = list = {
 
   "filter": function(){}, //for information displaying
 };
+
+$(".dropdown-menu li").addClass("btn");
 
 document.querySelector("#checkout_product_info").addEventListener("click", ls.pr_q_d);
 document.addEventListener("click",ls.checker.status.normal_check, true);
