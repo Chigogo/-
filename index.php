@@ -72,9 +72,9 @@
 
 
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-  <script src="//cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/jquery/1.12.4/jquery.js"></script>
   <!-- Include all compiled plugins (below), or include individual files as needed -->
-  <script src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.js"></script>
   <!-- 管家婆的js -->
 	<script type="text/javascript" src="gjp.js"></script>
 

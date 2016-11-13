@@ -1,4 +1,5 @@
 var ajax_object;
+var cl=console.log;
 if (window.XMLHttpRequest) ajax_object = new XMLHttpRequest();
 else {/*code for IE6, IE5*/ajax_object = new ActiveXObject("Microsoft.XMLHTTP");}
 
@@ -609,7 +610,8 @@ var td = TRANSACTION_DOCUMENT = {
               {
                 var a = td.query_result[j];
                 var new_tr = $("<tr></tr>");
-                new_tr.on({"dblclick": td.input_selected_products,
+                new_tr.on({
+                  // "dblclick": td.input_selected_products,
                   "click keypress": td.toggle_selection
                 });
 
@@ -622,12 +624,12 @@ var td = TRANSACTION_DOCUMENT = {
                 "<td name='another_unit_factor'>1*"+a.admin_defined_unit_2_factor+"</td>"+
                 "<td>"+a.hidden_toggle+"</td>");
                 new_tr.appendTo(tb);
-                console.log(tb);
-                console.log(new_tr);
               }
+              pop_up.on("keypress",td.input_selected_products);
+              $("#pop_up_modal").find('.btn-primary').on("click", td.input_selected_products);
+
               ajax_object.response = 0;
 
-              pop_up.on("keypress",td.input_selected_products);
             }
               else 
                 alert("当前查询条件无结果");
@@ -722,12 +724,13 @@ var td = TRANSACTION_DOCUMENT = {
   },
 
   "input_selected_products": function(event){
-    if(event.keyCode ==13 || event.type=="dblclick" ){
+    if(event.keyCode ==13 || event.type=="click" ){
       //a 是选中的元素组成的数组
-      var a = $("#pop_up").find(".selected");
-       //获取视图中发票的id
-      var id = $("td[name='invoice_id']").attr("invoice_id");
-      var new_tr;
+      //获取视图中发票的id
+      var a = $("#pop_up").find(".selected"),
+          id = $("td[name='invoice_id']").attr("invoice_id"),
+          i_c = $("#i_c"),
+          new_tr;
       for (var i = 0; i < a.length; i++) {
         var o = {
             "id": $(a[i]).find('*[name="product_id"]').html(),
@@ -741,11 +744,10 @@ var td = TRANSACTION_DOCUMENT = {
           };
         // td.document_lists["invoice_id"+id].document_content_array.push(o);
         new_tr = $(td.builder.new_line_creator(o));
-        var i_c = $("#i_c");
         var s_point = i_c.find("*[input_start_point]").first();
         var e_point = i_c.find("*[input_end_point]").first();
         // console.log(s_point);
-        if(s_point && s_point.parent()!=i_c.children().last()){
+        if(s_point.get(0) && s_point.parent().get(0)!=i_c.children().last().get(0)){
           new_tr.insertBefore(s_point.parent());
           // td.builder.line_deleter(s_point.parentNode);
           // 覆盖原有行，添加新行然后删除旧行
@@ -754,16 +756,20 @@ var td = TRANSACTION_DOCUMENT = {
           td.builder.line_number_refresher(document.querySelector("#i_c"));
         }
         else{
-          new_tr.insertBefore(e_point.parent());
+          cl(new_tr.insertBefore(e_point.parent()));
           i_c.children("tr").last().find("*[name='full_name']").html("");//最后一行文件名制空权
         }
         // if(i_c.querySelector("*[input_start_point]")){
         //   i_c.querySelector("*[input_start_point]").removeAttribute("input_start_point");
         // }
        
-       if(e_point.parent().get(0)!=e_point.parent().parent().children().last().get(0))e_point.removeAttr("input_end_point");
+        if(e_point.parent().get(0)!=e_point.parent().parent().children().last().get(0))e_point.removeAttr("input_end_point");
+
        }
-       event.preventDefault();
+       //for 循环结束
+       if(event.preventDefault)event.preventDefault();
+       $("#pop_up_modal").find('.btn-primary').off("click", td.input_selected_products);
+
      //关闭pop_up
      td.esc_display({keyCode:27});
      td.builder.line_number_refresher(document.querySelector("#i_c"))
