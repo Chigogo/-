@@ -9,6 +9,10 @@
   text-align: center;
 }
 
+*:focus{
+  /*background-color: red;*/
+}
+
 /*body {
   width: 1024px;
 }*/

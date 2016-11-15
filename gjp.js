@@ -92,6 +92,7 @@ var td = TRANSACTION_DOCUMENT = {
           ]
       }
   },
+
   //方法————单据对象的查看，查看之前需先保存当前显示的销售单
   // 1、获取当前invoice 的id
   // 2、注明当前的invoice type
@@ -100,7 +101,10 @@ var td = TRANSACTION_DOCUMENT = {
   // 5、更新发票对应的对象
   // 6、修改tab 状态
   "viewer": function(invoice_id){
-    var section = document.querySelector("#display_section");
+    var section = document.querySelector("#display_section"),
+        tab=$("#documents_tab");
+    tab.find(".active").removeClass("active");
+    tab.find("[my_invoice_id='"+invoice_id+"']").addClass("active");
 
     //当前视图如果存在单据,id=i，则先保存该单据
     if(section.querySelector("#i")){
@@ -184,8 +188,8 @@ var td = TRANSACTION_DOCUMENT = {
   //方法————单据对象的创建
   //在主数据库创建一个单据，主数据库返回单据id
   "creator": function (doc_type){
-    var c_new_i;
-    var doc_type_Chinese;
+    var c_new_i,
+        doc_type_Chinese;
 
     if(doc_type=="xs") {
       doc_type_Chinese="销售给某单位";
@@ -218,10 +222,12 @@ var td = TRANSACTION_DOCUMENT = {
           };
           var a = document.createElement("li");
           a.innerHTML="<a href='#'>"+doc_type_Chinese+"</a>";
+          document.querySelector("#documents_tab>ul").appendChild(a);
+          
+
           a.setAttribute("my_invoice_id",c_new_i);
           a.setAttribute("tabType","invoice");
           a.addEventListener("click",function(){ td.viewer(this.getAttribute("my_invoice_id")); });
-          document.querySelector("#documents_tab>ul").appendChild(a);
           //创建并添加到视图
           td.viewer(c_new_i);
         }
@@ -343,7 +349,7 @@ var td = TRANSACTION_DOCUMENT = {
     },
 
     "cell_checker": function(e){
-      if(e.type=="click"){
+      if(e.type=="click" || e.type=="focus"){
         if (document.selection) {
             var range = document.body.createTextRange();
             range.moveToElementText(this);
