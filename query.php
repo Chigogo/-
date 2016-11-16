@@ -58,6 +58,24 @@ values(null,'".($_GET["doc_type"]?$_GET["doc_type"]:'xs')."',1,1)";
 			// echo var_dump($result["num_rows"]);
 			// echo "<br>".$sql;
 			for ($result_items; $result_item = $result->fetch_assoc(); $result_items[]=$result_item);
+			foreach ($result_items as $item_key=>$item) {
+				foreach ($item as $pkey=>$property) {
+					if ($property == NULL) {
+						// print_r($pkey);echo "\n";
+						unset($result_items[$item_key][$pkey]);
+					}
+				}
+				# code...
+			}
+			// print_r( $result_items);
+
+			//PHP 数组测试
+			// $test_var =[0,1,2,3]; foreach ($test_var as $value) {
+			// 	echo gettype($value).$value; unset($value); echo "r:".gettype($value)."\n";
+			// }
+			// var_dump($test_var);
+
+			// echo gettype($result_items[0][simple_name]);
 			echo json_encode($result_items, JSON_UNESCAPED_UNICODE);
 		}
 		else {			

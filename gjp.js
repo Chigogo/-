@@ -610,7 +610,7 @@ var td = TRANSACTION_DOCUMENT = {
       
               p.modal("show");
               //t is #pop_pu->table
-              var t = $("<table></table>").appendTo(pop_up);
+              var t = $("<table class='table'></table>").appendTo(pop_up);
               var tb = $("<tbody></tbody>").appendTo(t);
               for(var j=0;j<td.query_result.length;j++)
               {
@@ -624,15 +624,16 @@ var td = TRANSACTION_DOCUMENT = {
                 new_tr.html(
                 "<td>"+(j+1)+"</td>"+
                 "<td style='display:none;' name='product_id'>"+a.id+"</td>"+
-                "<td name='admin_defined_id'>"+a.admin_defined_id+"</td>"+
-                "<td name='full_name'>"+a.full_name+"</td>"+
-                "<td>"+a.py_code+"</td>"+
-                "<td name='another_unit_factor'>1*"+a.admin_defined_unit_2_factor+"</td>"+
-                "<td>"+a.hidden_toggle+"</td>");
+                "<td name='admin_defined_id'>"+(a.admin_defined_id?a.admin_defined_id:"")+"</td>"+
+                "<td name='full_name'>"+(a.full_name?a.full_name:"")+"</td>"+
+                "<td>"+(a.py_code?a.py_code:"")+"</td>"+
+                "<td name='another_unit_factor'>"+(a.admin_defined_unit_2_factor?"1*"+a.admin_defined_unit_2_factor:"")+"</td>"+
+                "<td>"+(a.hidden_toggle?a.hidden_toggle:"")+"</td>");
                 new_tr.appendTo(tb);
               }
               pop_up.on("keypress",td.input_selected_products);
-              $("#pop_up_modal").find('.btn-primary').on("click", td.input_selected_products);
+              p.find('.btn-primary').on("click", td.input_selected_products);
+              p.find('modal-content').on("click", )
 
               ajax_object.response = 0;
 
@@ -712,6 +713,7 @@ var td = TRANSACTION_DOCUMENT = {
             this.className="selected";
         }
         else this.className="unselected";
+        e.stopPropagation();
       };
   },
 
@@ -848,7 +850,7 @@ var td = TRANSACTION_DOCUMENT = {
             p.innerHTML = "";
 
             console.log("ajax");//test exec
-            td.toggle_display.call(p);
+            $("#pop_up_modal").modal("show");
             //t is #pop_pu->table
             var t = p.appendChild(document.createElement("table"));
             var tb = t.appendChild(document.createElement("tbody"));
@@ -857,12 +859,12 @@ var td = TRANSACTION_DOCUMENT = {
               var new_tr = document.createElement("tr");
               new_tr.addEventListener("mouseover", td.make_selection_single);
               new_tr.innerHTML = 
-              "<td>"+j+"</td>"+
+              "<td>"+j+"</td>"+//j 行号
               "<td>"+a.id+"</td>"+
-              "<td>"+a.full_name+"</td>"+
-              "<td>"+a.py_code+"</td>"+
-              "<td>"+a.tel+"</td>"+
-              "<td>"+a.phone+"</td>";
+              "<td>"+(a.full_name?a.full_name:"")+"</td>"+
+              "<td>"+(a.py_code?a.py_code:"")+"</td>"+
+              "<td>"+(a.tel?a.tel:"")+"</td>"+
+              "<td>"+(a.phone?a.phone:"")+"</td>";
               tb.appendChild(new_tr);
               }
             document.querySelector('#pop_up').addEventListener("dblclick",td.input_selected_des);
