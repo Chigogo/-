@@ -59,9 +59,9 @@ table {
   margin: auto;
 }
 
-tbody,th, td {
+/*tbody,th, td {
 	border:1px solid black;
-}
+}*/
 
 td {
 	/*overflow-x: auto;*/

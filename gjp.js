@@ -112,7 +112,7 @@ var td = TRANSACTION_DOCUMENT = {
     }
 
     var doc_type_caption = document.querySelector("*[my_invoice_id='"+invoice_id+"']").querySelector("a").innerHTML.replace(/^(销售|进货).*/,"$1"+"单");
-    section.innerHTML='    <!-- i 表示invoice -->    <table id="i">    <caption class="text-center lead">'+doc_type_caption+'</caption>    <!-- i_des 表示invoice_description-->    <thead id="i_des">      <tr>        <td>往来单位：</td>        <td name="trading_object" colspan="2" contenteditable></td>        <td name="invoice_id" invoice_id="'+invoice_id+'">单据编号：</td>        <td name="generated_id" colspan="2"></td>      </tr>      <tr>        <td>仓库：</td>        <td name="store_house" colspan="2"></td>        <td>备注：</td>        <td name="comment" colspan="2" contenteditable></td>      </tr>    </thead>    <!-- i_c表示invoice content -->    <tbody id="i_c">          </tbody>    <tfoot>      <tr>        <td>合计</td>        <td colspan=3 name="money_received_chinese"></td>        <td >数量</td>        <td name="total_amount"></td>        <td>金额</td>        <td colspan=2 name="money_received"></td>      </tr>      <tr>        <td>存为草稿</td>        <td>打印单据</td>        <td>单据过账</td>    ';
+    section.innerHTML='    <!-- i 表示invoice -->    <table id="i" class="table table-bordered col-md-8">    <caption class="text-center lead">'+doc_type_caption+'</caption>    <!-- i_des 表示invoice_description-->    <thead id="i_des">      <tr>        <td>往来单位：</td>        <td name="trading_object" colspan="2" contenteditable></td>        <td name="invoice_id" invoice_id="'+invoice_id+'">单据编号：</td>        <td name="generated_id" colspan="2"></td>      </tr>      <tr>        <td>仓库：</td>        <td name="store_house" colspan="2"></td>        <td>备注：</td>        <td name="comment" colspan="2" contenteditable></td>      </tr>    </thead>    <!-- i_c表示invoice content -->    <tbody id="i_c">          </tbody>    <tfoot>      <tr>        <td>合计</td>        <td colspan=3 name="money_received_chinese"></td>        <td >数量</td>        <td name="total_amount"></td>        <td>金额</td>        <td colspan=2 name="money_received"></td>      </tr>      <tr>        <td>存为草稿</td>        <td>打印单据</td>        <td>单据过账</td>    ';
 
     document.querySelector("td[name='trading_object']").addEventListener("keypress", td.query_people);
 
@@ -618,7 +618,7 @@ var td = TRANSACTION_DOCUMENT = {
                 var new_tr = $("<tr></tr>");
                 new_tr.on({
                   // "dblclick": td.input_selected_products,
-                  "click keypress": td.toggle_selection
+                  "click keypress":  function(e){var that = this; td.selection_status(e, that,"select_one");}
                 });
 
                 new_tr.html(
@@ -633,7 +633,7 @@ var td = TRANSACTION_DOCUMENT = {
               }
               pop_up.on("keypress",td.input_selected_products);
               p.find('.btn-primary').on("click", td.input_selected_products);
-              p.find('modal-content').on("click", )
+              p.find('.modal-content').on("click", function(e){var that = this; td.selection_status(e, that, "unselect_all");});
 
               ajax_object.response = 0;
 
@@ -694,27 +694,34 @@ var td = TRANSACTION_DOCUMENT = {
          +"&q_condition_value="+q_condition_value
      );    
   },
+
   "make_selection_single": function (){
     document.querySelector('#pop_up').focus();
-      if(this.className!=="selected"){
-          var a = document.querySelector("#pop_up").getElementsByClassName("selected");
+      if(this.className!=="info"){
+          var a = document.querySelector("#pop_up").getElementsByClassName("info");
           for (var i = 0; i < a.length; i++) {
-            a[i].className = "unselected";
+            a[i].className = "";
             }
-          this.className="selected";
+          this.className="info";
       }
-      else this.className="unselected";
+      else this.className="";
   },
 
-  "toggle_selection": function(e){
-    if (e.keyCode==32 || e.type=="click") {
+  "selection_status": function(e, that, type){
+    if (type=="select_one") {
       document.querySelector('#pop_up').focus();
-        if(this.className!=="selected"){
-            this.className="selected";
-        }
-        else this.className="unselected";
-        e.stopPropagation();
-      };
+      if(that.className!=="info"){
+        that.className="info";
+      }
+      else that.className="";cl(716);
+    };
+
+    if(type == 'unselect_all'){
+      $(that).find(".info").removeClass('info');cl(720);
+    }
+
+    e.stopPropagation();
+
   },
 
   "toggle_display": function (){

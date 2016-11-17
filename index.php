@@ -49,7 +49,7 @@
 
 			</ul>
 		</div>
-	<section id="display_section">
+	<section id="display_section" class="container">
 		
 	</section>
 	<div id="pop_up_modal" class="modal fade" tabindex="-1" role="dialog">
