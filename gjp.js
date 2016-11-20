@@ -112,7 +112,7 @@ var td = TRANSACTION_DOCUMENT = {
     }
 
     var doc_type_caption = document.querySelector("*[my_invoice_id='"+invoice_id+"']").querySelector("a").innerHTML.replace(/^(销售|进货).*/,"$1"+"单");
-    section.innerHTML='    <!-- i 表示invoice -->    <table id="i" class="table table-bordered col-md-8">    <caption class="text-center lead">'+doc_type_caption+'</caption>    <!-- i_des 表示invoice_description-->    <thead id="i_des">      <tr>        <td>往来单位：</td>        <td name="trading_object" colspan="2" contenteditable></td>        <td name="invoice_id" invoice_id="'+invoice_id+'">单据编号：</td>        <td name="generated_id" colspan="2"></td>      </tr>      <tr>        <td>仓库：</td>        <td name="store_house" colspan="2"></td>        <td>备注：</td>        <td name="comment" colspan="2" contenteditable></td>      </tr>    </thead>    <!-- i_c表示invoice content -->    <tbody id="i_c">          </tbody>    <tfoot>      <tr>        <td>合计</td>        <td colspan=3 name="money_received_chinese"></td>        <td >数量</td>        <td name="total_amount"></td>        <td>金额</td>        <td colspan=2 name="money_received"></td>      </tr>      <tr>        <td>存为草稿</td>        <td>打印单据</td>        <td>单据过账</td>    ';
+    section.innerHTML='    <!-- i 表示invoice -->    <table id="i" class="table table-bordered col-md-12">    <caption class="text-center lead">'+doc_type_caption+'</caption>    <!-- i_des 表示invoice_description-->    <thead id="i_des">      <tr>        <td>往来单位：</td>        <td name="trading_object" colspan="4" contenteditable></td>        <td name="invoice_id" invoice_id="'+invoice_id+'">单据编号：</td>        <td name="generated_id" colspan="3"></td>      </tr>      <tr>        <td>仓库：</td>        <td name="store_house" colspan="4"></td>        <td>备注：</td>        <td name="comment" colspan="3" contenteditable></td>      </tr>    </thead>    <!-- i_c表示invoice content -->    <tbody id="i_c">          </tbody>    <tfoot>      <tr>        <td>合计</td>        <td colspan=3 name="money_received_chinese"></td>        <td >数量</td>        <td name="total_amount"></td>        <td>金额</td>        <td colspan=2 name="money_received"></td>      </tr>      <tr>        <td>存为草稿</td>        <td>打印单据</td>        <td>单据过账</td>    ';
 
     document.querySelector("td[name='trading_object']").addEventListener("keypress", td.query_people);
 
@@ -235,7 +235,8 @@ var td = TRANSACTION_DOCUMENT = {
           alert("数据库连接错误");
         }
       };
-      ajax_object.open("GET", "query.php?" + string, true);ajax_object.send();
+      ajax_object.open("GET", "query.php?" + string, true);
+      ajax_object.send();
       })//此处传入的c_new_i是字符串，php发现此标记后，进行新发票的创建，返回新发票id
     ("c_new_i=1&doc_type="+doc_type);
   },
@@ -707,20 +708,25 @@ var td = TRANSACTION_DOCUMENT = {
       else this.className="";
   },
 
+  //使用info来进行选中高亮、选中标记
   "selection_status": function(e, that, type){
-    if (type=="select_one") {
-      document.querySelector('#pop_up').focus();
-      if(that.className!=="info"){
-        that.className="info";
-      }
-      else that.className="";cl(716);
-    };
-
-    if(type == 'unselect_all'){
-      $(that).find(".info").removeClass('info');cl(720);
+    cl(type);
+    if(type){
+      if (type=="select_one") {
+          document.querySelector('#pop_up').focus();
+          if(that.className!=="info"){
+            that.className="info";
+          }
+          else that.className="";cl(716);
+          e.stopPropagation();
+        };
+    
+      if(type == 'unselect_all'){
+          $(that).find(".info").removeClass('info');cl(720);
+        }
+    
+      // e.stopPropagation();
     }
-
-    e.stopPropagation();
 
   },
 
@@ -742,7 +748,7 @@ var td = TRANSACTION_DOCUMENT = {
     if(event.keyCode ==13 || event.type=="click" ){
       //a 是选中的元素组成的数组
       //获取视图中发票的id
-      var a = $("#pop_up").find(".selected"),
+      var a = $("#pop_up").find(".info"),
           id = $("td[name='invoice_id']").attr("invoice_id"),
           i_c = $("#i_c"),
           new_tr;

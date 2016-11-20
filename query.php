@@ -20,7 +20,10 @@ transaction_documents_description(id,doc_type,trading_object,store_house)
 values(null,'".($_GET["doc_type"]?$_GET["doc_type"]:'xs')."',1,1)";
 
 		if($conn->query($sql))
-		echo $conn->query("select last_insert_id()")->fetch_assoc()['last_insert_id()'];
+		// echo $conn->query("select last_insert_id()")->fetch_assoc()['last_insert_id()'];
+// 未完成
+		print_r($conn->query("select last_insert_id()"))/*->fetch_assoc()['last_insert_id()']*/;
+
 		else echo "0 results";
 	}
 
