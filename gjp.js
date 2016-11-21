@@ -74,6 +74,7 @@ var td = TRANSACTION_DOCUMENT = {
         "money_received" : 0,//Decimal(12,2),
         "comment" : '',//varchar(63)，描述区的备注
         "document_status" : "管理员编辑",  /*"成功", "管理员反冲", "管理员编辑", "用户提交（关）", "用户编辑", "用户开", "管理员取消", "用户取消"*/
+        "document_created_time": "2016-11-21 11:46:15",
         
         // "document_description": 
         "document_content_array": 
@@ -112,7 +113,7 @@ var td = TRANSACTION_DOCUMENT = {
     }
 
     var doc_type_caption = document.querySelector("*[my_invoice_id='"+invoice_id+"']").querySelector("a").innerHTML.replace(/^(销售|进货).*/,"$1"+"单");
-    section.innerHTML='    <!-- i 表示invoice -->    <table id="i" class="table table-bordered col-md-12">    <caption class="text-center lead">'+doc_type_caption+'</caption>    <!-- i_des 表示invoice_description-->    <thead id="i_des">      <tr>        <td>往来单位：</td>        <td name="trading_object" colspan="4" contenteditable></td>        <td name="invoice_id" invoice_id="'+invoice_id+'">单据编号：</td>        <td name="generated_id" colspan="3"></td>      </tr>      <tr>        <td>仓库：</td>        <td name="store_house" colspan="4"></td>        <td>备注：</td>        <td name="comment" colspan="3" contenteditable></td>      </tr>    </thead>    <!-- i_c表示invoice content -->    <tbody id="i_c">          </tbody>    <tfoot>      <tr>        <td>合计</td>        <td colspan=3 name="money_received_chinese"></td>        <td >数量</td>        <td name="total_amount"></td>        <td>金额</td>        <td colspan=2 name="money_received"></td>      </tr>      <tr>        <td>存为草稿</td>        <td>打印单据</td>        <td>单据过账</td>    ';
+    section.innerHTML='    <!-- i 表示invoice -->    <table id="i" class="table table-bordered col-md-12">    <caption class="text-center lead">'+doc_type_caption+'</caption>    <!-- i_des 表示invoice_description-->    <thead id="i_des">      <tr>        <td>往来单位：</td>        <td name="trading_object" colspan="4" contenteditable></td>        <td name="invoice_id" invoice_id="'+invoice_id+'">单据编号：</td>        <td name="generated_id" colspan="1"></td>   <td  >制单时间：</td> <td name="document_created_time" ></td>  </tr>      <tr>        <td>仓库：</td>        <td name="store_house" colspan="4"></td>        <td>备注：</td>        <td name="comment" colspan="3" contenteditable></td>      </tr>    </thead>    <!-- i_c表示invoice content -->    <tbody id="i_c">          </tbody>    <tfoot>      <tr>        <td>合计</td>        <td colspan=3 name="money_received_chinese"></td>        <td >数量</td>        <td name="total_amount"></td>        <td>金额</td>        <td colspan=2 name="money_received"></td>      </tr>      <tr>        <td>存为草稿</td>        <td>打印单据</td>        <td>单据过账</td>    ';
 
     document.querySelector("td[name='trading_object']").addEventListener("keypress", td.query_people);
 
@@ -131,6 +132,7 @@ var td = TRANSACTION_DOCUMENT = {
       des_td.innerHTML ="";
     //展示单据描述数据
     des.querySelector('td[name="generated_id"]').innerHTML = a.doc_type+"-"+invoice_id;
+    des.querySelector('td[name="document_created_time"]').innerHTML = a.document_created_time;
     des.querySelector('td[name="store_house"]').innerHTML = a.storehouse[1];
     var des_comment = des.querySelector('td[name="comment"]');
     des_comment.innerHTML = a.comment;
@@ -208,7 +210,8 @@ var td = TRANSACTION_DOCUMENT = {
       ajax_object.onreadystatechange = function(){
         if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200){
 
-          c_new_i = ajax_object.response;
+          var ajax_result = JSON.parse(ajax_object.response);
+          c_new_i = ajax_result.id;
 
           var invoice = "invoice_id"+c_new_i;
           td.document_lists[invoice] = {
@@ -218,6 +221,8 @@ var td = TRANSACTION_DOCUMENT = {
             "money_received" : 0,
             "comment" : "",
             "document_status" : "管理员编辑", 
+            "document_created_time": ajax_result.created_time,
+
             "document_content_array": []
           };
           var a = document.createElement("li");
@@ -800,7 +805,7 @@ var td = TRANSACTION_DOCUMENT = {
   "input_selected_des": function(event){
     if(event.keyCode ==13 || event.keyCode ==32 ||event.type=="dblclick" )
 
-     { var a = document.querySelector("#pop_up").getElementsByClassName("selected")[0];
+     { var a = document.querySelector("#pop_up").getElementsByClassName("info")[0];
            //获取视图中发票的id
            var id = document.querySelector("td[name='invoice_id']").getAttribute("invoice_id");
 
@@ -863,14 +868,19 @@ var td = TRANSACTION_DOCUMENT = {
             p.innerHTML = "";
 
             console.log("ajax");//test exec
-            $("#pop_up_modal").modal("show");
+            var modal = $("#pop_up_modal");
+                modal.modal("show");
+                modal.find(".modal-title").text("往来单位查询结果");
+                modal.find(".btn-primary").on("click",td.input_selected_des);
             //t is #pop_pu->table
             var t = p.appendChild(document.createElement("table"));
+            $(t).addClass("table table-bordered");
             var tb = t.appendChild(document.createElement("tbody"));
             for(var j=0;j<td.query_result.length;j++){
               var a = td.query_result[j];
               var new_tr = document.createElement("tr");
-              new_tr.addEventListener("mouseover", td.make_selection_single);
+              new_tr.addEventListener("mouseenter", td.make_selection_single);
+              new_tr.addEventListener("dblclick",td.input_selected_des);
               new_tr.innerHTML = 
               "<td>"+j+"</td>"+//j 行号
               "<td>"+a.id+"</td>"+
@@ -880,7 +890,6 @@ var td = TRANSACTION_DOCUMENT = {
               "<td>"+(a.phone?a.phone:"")+"</td>";
               tb.appendChild(new_tr);
               }
-            document.querySelector('#pop_up').addEventListener("dblclick",td.input_selected_des);
             document.querySelector('#pop_up').addEventListener("keypress",td.input_selected_des);
             }
             else alert("当前查询条件无结果");

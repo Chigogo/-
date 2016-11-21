@@ -13,16 +13,20 @@
 	//新建记录，返回新纪录id 的方法
 	//如果c_new_i标记存在，则创建新发票，并返回发票id
 	if (isset($_GET["c_new_i"])){
-		header('Content-Type: text/plain');
+		header('Content-Type: application/json');
 		$sql = 
 "insert into 
 transaction_documents_description(id,doc_type,trading_object,store_house) 
 values(null,'".($_GET["doc_type"]?$_GET["doc_type"]:'xs')."',1,1)";
 
-		if($conn->query($sql))
-		// echo $conn->query("select last_insert_id()")->fetch_assoc()['last_insert_id()'];
-// 未完成
-		print_r($conn->query("select last_insert_id()"))/*->fetch_assoc()['last_insert_id()']*/;
+		if($conn->query($sql)){
+			$last_id = $conn->query("select last_insert_id()")->fetch_assoc()['last_insert_id()'];
+			echo json_encode(
+				$conn->query("select id, created_time from transaction_documents_description where id = '".$last_id."'")->fetch_assoc()
+				);
+			
+			// print_r($conn->query("select last_insert_id() from transaction_documents_description where id = '".$last_id."'"));
+		}
 
 		else echo "0 results";
 	}
