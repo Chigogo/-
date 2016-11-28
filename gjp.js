@@ -113,7 +113,44 @@ var td = TRANSACTION_DOCUMENT = {
     }
 
     var doc_type_caption = document.querySelector("*[my_invoice_id='"+invoice_id+"']").querySelector("a").innerHTML.replace(/^(销售|进货).*/,"$1"+"单");
-    section.innerHTML='    <!-- i 表示invoice -->    <table id="i" class="table table-bordered col-md-12">    <caption class="text-center lead">'+doc_type_caption+'</caption>    <!-- i_des 表示invoice_description-->    <thead id="i_des">      <tr>        <td>往来单位：</td>        <td name="trading_object" colspan="4" contenteditable></td>        <td name="invoice_id" invoice_id="'+invoice_id+'">单据编号：</td>        <td name="generated_id" colspan="1"></td>   <td  >制单时间：</td> <td name="document_created_time" ></td>  </tr>      <tr>        <td>仓库：</td>        <td name="store_house" colspan="4"></td>        <td>备注：</td>        <td name="comment" colspan="3" contenteditable></td>      </tr>    </thead>    <!-- i_c表示invoice content -->    <tbody id="i_c">          </tbody>    <tfoot>      <tr>        <td>合计</td>        <td colspan=3 name="money_received_chinese"></td>        <td >数量</td>        <td name="total_amount"></td>        <td>金额</td>        <td colspan=2 name="money_received"></td>      </tr>      <tr>        <td>存为草稿</td>        <td>打印单据</td>        <td>单据过账</td>    ';
+    section.innerHTML=[
+'<!-- i 表示invoice -->',
+'<table id="i" class="table table-bordered col-md-12" >',
+'<caption class="text-center lead">'+doc_type_caption+'</caption>',
+'<!-- i_des 表示invoice_description-->',
+'<thead id="i_des">',
+'<tr>',
+'<td colspan=2>往来单位：</td>',
+'<td name="trading_object" colspan="3" contenteditable></td>',
+'<td name="invoice_id" invoice_id="'+invoice_id+'">单据编号：</td>',
+'<td name="generated_id" colspan="1"></td>',
+'<td>制单时间：</td> <td name="document_created_time" ></td>',
+'</tr>',
+'<tr>',
+'<td colspan=2>仓库：</td>',
+'<td name="store_house" colspan="3"></td>',
+'<td>备注：</td>',
+'<td name="comment" colspan="3" contenteditable></td>',
+'</tr>',
+'</thead>',
+'<!-- i_c表示invoice content -->',
+'<tbody id="i_c">',
+'</tbody>',
+'<tfoot>',
+'<tr>',
+'<td>合计</td>',
+'<td colspan=3 name="money_received_chinese"></td>',
+'<td >数量</td>',
+'<td name="total_amount"></td>',
+'<td>金额</td>',
+'<td colspan=2 name="money_received"></td>',
+'</tr>',
+'<tr>',
+'<td>存为草稿</td>',
+'<td>打印单据</td>',
+'<td>单据过账</td>',
+'</tr>',
+].join("\n");;
 
     document.querySelector("td[name='trading_object']").addEventListener("keypress", td.query_people);
 
@@ -145,7 +182,7 @@ var td = TRANSACTION_DOCUMENT = {
 
     var c = document.querySelector('#i_c');
     //清空，并初始化表格
-    c.innerHTML = '<tr> <th>行号</th> <th>id</th><th>商品编号</th><th>商品全名</th><th>规格</th><th>单位</th><th>数量</th><th>单价</th><th>金额</th><th>备注</th></tr>';
+    c.innerHTML = '<tr> <th style="width:46px">行号</th> <th>id</th><th>商品编号</th><th>商品全名</th><th>规格</th><th>单位</th><th>数量</th><th>单价</th><th>金额</th><th>备注</th></tr>';
 
     for (var i = 0; i < a.document_content_array.length; i++) {
       c.appendChild(td.builder.new_line_creator(a.document_content_array[i]));
@@ -616,7 +653,7 @@ var td = TRANSACTION_DOCUMENT = {
       
               p.modal("show");
               //t is #pop_pu->table
-              var t = $("<table class='table'></table>").appendTo(pop_up);
+              var t = $("<table class='table table-bordered'></table>").appendTo(pop_up);
               var tb = $("<tbody></tbody>").appendTo(t);
               for(var j=0;j<td.query_result.length;j++)
               {
@@ -631,8 +668,8 @@ var td = TRANSACTION_DOCUMENT = {
                 "<td>"+(j+1)+"</td>"+
                 "<td style='display:none;' name='product_id'>"+a.id+"</td>"+
                 "<td name='admin_defined_id'>"+(a.admin_defined_id?a.admin_defined_id:"")+"</td>"+
-                "<td name='full_name'>"+(a.full_name?a.full_name:"")+"</td>"+
-                "<td>"+(a.py_code?a.py_code:"")+"</td>"+
+                "<td name='full_name' class='text-left'>"+(a.full_name?a.full_name:"")+"</td>"+
+                "<td class='text-left'>"+(a.py_code?a.py_code:"")+"</td>"+
                 "<td name='another_unit_factor'>"+(a.admin_defined_unit_2_factor?"1*"+a.admin_defined_unit_2_factor:"")+"</td>"+
                 "<td>"+(a.hidden_toggle?a.hidden_toggle:"")+"</td>");
                 new_tr.appendTo(tb);
@@ -1130,7 +1167,7 @@ var ls = list = {
     }
     
     function p_display(){
-      for (var i = 0; i < ls.product_info[1].length; i++) {
+      for (var i = 0; i < ls.product_info[1].length; i++) {//外循环开始，遍历每一个商品
 
         var p_names = Object.getOwnPropertyNames(ls.product_info[1][i]);//所有属性组成的数组
         ls.product_info[2][i] = [];
@@ -1247,6 +1284,7 @@ var ls = list = {
 
 
       //给基础信息页面添加功能：新建商品、删除商品、保存更改、放弃更改（什么是更改？新建、删除、修改都是更改）
+      //f_list是 ul元素
       var ds = document.querySelector("#display_section");
       var f_container = document.createElement("div");
       var f_list = document.createElement("ul");
@@ -1307,8 +1345,6 @@ var ls = list = {
 
       ls.query("*","product_info","");
     }
-
-
   },
 
   "people": [],//people tag 加入
