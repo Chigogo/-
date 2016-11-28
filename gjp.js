@@ -102,55 +102,62 @@ var td = TRANSACTION_DOCUMENT = {
   // 5、更新发票对应的对象
   // 6、修改tab 状态
   "viewer": function(invoice_id){
-    var section = document.querySelector("#display_section"),
-        tab=$("#documents_tab");
-    tab.find(".active").removeClass("active");
-    tab.find("[my_invoice_id='"+invoice_id+"']").addClass("active");
-
     //当前视图如果存在单据,id=i，则先保存该单据
+    var section = document.querySelector("#display_section");
     if(section.querySelector("#i")){
         td.saver(document.querySelector("td[name=invoice_id]").getAttribute("invoice_id"));
     }
 
     var doc_type_caption = document.querySelector("*[my_invoice_id='"+invoice_id+"']").querySelector("a").innerHTML.replace(/^(销售|进货).*/,"$1"+"单");
     section.innerHTML=[
-'<!-- i 表示invoice -->',
-'<table id="i" class="table table-bordered col-md-12" >',
-'<caption class="text-center lead">'+doc_type_caption+'</caption>',
-'<!-- i_des 表示invoice_description-->',
-'<thead id="i_des">',
-'<tr>',
-'<td colspan=2>往来单位：</td>',
-'<td name="trading_object" colspan="3" contenteditable></td>',
-'<td name="invoice_id" invoice_id="'+invoice_id+'">单据编号：</td>',
-'<td name="generated_id" colspan="1"></td>',
-'<td>制单时间：</td> <td name="document_created_time" ></td>',
-'</tr>',
-'<tr>',
-'<td colspan=2>仓库：</td>',
-'<td name="store_house" colspan="3"></td>',
-'<td>备注：</td>',
-'<td name="comment" colspan="3" contenteditable></td>',
-'</tr>',
-'</thead>',
-'<!-- i_c表示invoice content -->',
-'<tbody id="i_c">',
-'</tbody>',
-'<tfoot>',
-'<tr>',
-'<td>合计</td>',
-'<td colspan=3 name="money_received_chinese"></td>',
-'<td >数量</td>',
-'<td name="total_amount"></td>',
-'<td>金额</td>',
-'<td colspan=2 name="money_received"></td>',
-'</tr>',
-'<tr>',
-'<td>存为草稿</td>',
-'<td>打印单据</td>',
-'<td>单据过账</td>',
-'</tr>',
-].join("\n");;
+      '<!-- i 表示invoice -->',
+      '<table id="i" class="table table-bordered col-md-12" >',
+      '<caption class="text-center lead">'+doc_type_caption+'</caption>',
+      '<!-- i_des 表示invoice_description-->',
+      '<thead id="i_des">',
+      '<tr>',
+      '<td colspan=2>往来单位：</td>',
+      '<td name="trading_object" colspan="3" contenteditable></td>',
+      '<td name="invoice_id" invoice_id="'+invoice_id+'">单据编号：</td>',
+      '<td name="generated_id" colspan="1"></td>',
+      '<td>制单时间：</td> <td name="document_created_time" ></td>',
+      '</tr>',
+      '<tr>',
+      '<td colspan=2>仓库：</td>',
+      '<td name="store_house" colspan="3"></td>',
+      '<td>备注：</td>',
+      '<td name="comment" colspan="3" contenteditable></td>',
+      '</tr>',
+      '</thead>',
+      '<!-- i_c表示invoice content -->',
+      '<tbody id="i_c">',
+      '</tbody>',
+      '<tfoot>',
+      '<tr>',
+      '<td>合计</td>',
+      '<td colspan=3 name="money_received_chinese"></td>',
+      '<td >数量</td>',
+      '<td name="total_amount"></td>',
+      '<td>金额</td>',
+      '<td colspan=2 name="money_received"></td>',
+      '</tr>',
+    ].join("\n");
+
+    var ls_fucntion_tab = $([
+      '<div id="ls_fucntion_tab" class="">',
+
+
+      '<button id="print_invoice" class="btn btn-default"><a href="#">打印单据</a></button>',
+      '<button id="save_as_draft" class="btn btn-default"><a href="#">存为草稿</a></button>',
+      '<button id="invoice_to_db" class="btn btn-default"><a href="#">单据过账</a></button>',
+
+
+      '</div>'
+      ].join("\n")
+      );
+    ls_fucntion_tab.find("#print_invoice").on("click", function(){window.print();});
+
+    $(section).append(ls_fucntion_tab);
 
     document.querySelector("td[name='trading_object']").addEventListener("keypress", td.query_people);
 
@@ -263,13 +270,17 @@ var td = TRANSACTION_DOCUMENT = {
             "document_content_array": []
           };
           var a = document.createElement("li");
+          //a 指的是tab中的li元素
           a.innerHTML="<a href='#'>"+doc_type_Chinese+"</a>";
           document.querySelector("#documents_tab>ul").appendChild(a);
           
 
           a.setAttribute("my_invoice_id",c_new_i);
-          a.setAttribute("tabType","invoice");
+          a.setAttribute("tab_content","invoice");
           a.addEventListener("click",function(){ td.viewer(this.getAttribute("my_invoice_id")); });
+          a.addEventListener("click",ls.checker.status.tab_active_check);
+          ls.checker.status.tab_active_check.call(a);
+
           //创建并添加到视图
           td.viewer(c_new_i);
         }
@@ -660,8 +671,7 @@ var td = TRANSACTION_DOCUMENT = {
                 var a = td.query_result[j];
                 var new_tr = $("<tr></tr>");
                 new_tr.on({
-                  // "dblclick": td.input_selected_products,
-                  "click keypress":  function(e){var that = this; td.selection_status(e, that,"select_one");}
+                  "click":  function(e){var that = this; td.selection_status(e, that,"select_one");},
                 });
 
                 new_tr.html(
@@ -677,6 +687,8 @@ var td = TRANSACTION_DOCUMENT = {
               pop_up.on("keypress",td.input_selected_products);
               p.find('.btn-primary').on("click", td.input_selected_products);
               p.find('.modal-content').on("click", function(e){var that = this; td.selection_status(e, that, "unselect_all");});
+
+                  
 
               ajax_object.response = 0;
 
@@ -840,36 +852,36 @@ var td = TRANSACTION_DOCUMENT = {
   },
 
   "input_selected_des": function(event){
-    if(event.keyCode ==13 || event.keyCode ==32 ||event.type=="dblclick" )
+    if(event.keyCode ==13 || event.keyCode ==32 ||event.type=="dblclick" ){
+      var a = document.querySelector("#pop_up").getElementsByClassName("info")[0];
+       //获取视图中发票的id
+      var id = document.querySelector("td[name='invoice_id']").getAttribute("invoice_id");
 
-     { var a = document.querySelector("#pop_up").getElementsByClassName("info")[0];
-           //获取视图中发票的id
-           var id = document.querySelector("td[name='invoice_id']").getAttribute("invoice_id");
+      //修改对象
+      // cl(a.childNodes[1].innerHTML);
+      td.document_lists["invoice_id"+id].trading_object = [a.childNodes[1].innerHTML,a.childNodes[2].innerHTML];
+      //在此修tab
+      var tab = document.querySelector("[my_invoice_id='"+id+"']");
+      tab.querySelector("a").innerHTML = tab.querySelector("a").innerHTML.replace(/^(销售给|进货从).*/,'$1'+a.childNodes[2].innerHTML);
 
-           //修改对象
-           td.document_lists["invoice_id"+id].trading_object = [a.childNodes[1].innerHTML,a.childNodes[2].innerHTML];
-           //在此修tab
-           var tab = document.querySelector("[my_invoice_id='"+id+"']");
-           tab.querySelector("a").innerHTML = tab.querySelector("a").innerHTML.replace(/^(销售给|进货从).*/,'$1'+a.childNodes[2].innerHTML);
+      //在此修td
+      var des_td = document.querySelector("#i_des").querySelector("td[name='trading_object']");
+      des_td.innerHTML=a.childNodes[2].innerHTML;
+      des_td.setAttribute("placeholder",a.childNodes[2].innerHTML);
+      // des_td.addEventListener("click",td.builder.cell_checker);
+      des_td.addEventListener("blur", 
+       function(){
+       if(this.innerHTML!=this.getAttribute("placeholder"))
+         this.innerHTML=this.getAttribute("placeholder");
+       }
+      );
 
-           //在此修td
-           var des_td = document.querySelector("#i_des").querySelector("td[name='trading_object']");
-           des_td.innerHTML=a.childNodes[2].innerHTML;
-           des_td.setAttribute("placeholder",a.childNodes[2].innerHTML);
-           // des_td.addEventListener("click",td.builder.cell_checker);
-           des_td.addEventListener("blur", 
-            function(){
-            if(this.innerHTML!=this.getAttribute("placeholder"))
-              this.innerHTML=this.getAttribute("placeholder");
-          }
-          );
-
-           event.preventDefault();
+      event.preventDefault();
      //关闭pop_up
      td.esc_display({keyCode:27});
      document.querySelector('#pop_up').removeEventListener("dblclick",td.input_selected_des);
      document.querySelector('#pop_up').removeEventListener("keypress",td.input_selected_des);
-     }
+    }
 
 
   },
@@ -1003,8 +1015,12 @@ var ls = list = {
     var ds = document.querySelector("#display_section");
     //条件语句，若当前窗口有未保存的修改，则不继续执行下列语句
     ds.innerHTML = "";
+    //ds 变为新建的table
     ds = ds.appendChild(document.createElement("table"));
-    var th = document.createElement("tr");//th是head_tr
+
+    var thead=document.createElement("thead"),th = document.createElement("tr");//th是head_tr
+    thead.appendChild(th);
+
     for (var i = 0; i < table_head.length; i++) {
       var td = document.createElement("th");
       for (var j = 0; j < table_head[i].length; j++) {
@@ -1016,8 +1032,13 @@ var ls = list = {
       };
       th.appendChild(td);
     };
+    $(ds).addClass('table table-bordered');
 
-    ds.appendChild(th);//表头字段写入页面
+    var tbody=document.createElement("tbody");
+    ds.appendChild(thead);//表头字段写入页面
+    ds.appendChild(tbody);
+
+
     for (var i = 0; i < table_data.length; i++) {//遍历每一个数组元素，创建对一个的tr，一个tr对应一个商品
       var tr = document.createElement("tr");
       tr.setAttribute("td_modify_count",0);
@@ -1049,12 +1070,12 @@ var ls = list = {
         }
         tr.appendChild(td);
       }
-      ds.appendChild(tr);
+      tbody.appendChild(tr);
     }
 
-    for (var i = 0; i < ds.children.length; i++) {
-      ds.children[i].insertBefore(document.createElement("td"),ds.children[i].children[0]);//td和th 在用一行？
-      ds.children[i].children[0].innerHTML = (ds.children[i] == ds.children[0])?"行号":i;
+    for (var i = 0; i < tbody.children.length; i++) {
+      tbody.children[i].insertBefore(document.createElement("td"),tbody.children[i].children[0]);//td和th 在用一行？
+      tbody.children[i].children[0].innerHTML = (tbody.children[i] == tbody.children[0])?"行号":i;
     };
   },
 
@@ -1087,8 +1108,13 @@ var ls = list = {
 
       },
 
-      tab_active_check: function(){
-
+      // 检测标签栏上的tab 的active 状态
+      // 更新此状态
+      // 此作为click 的listener，加在被单机的项目（tab）上
+      tab_active_check: function(event){
+        var  tab=$("#documents_tab");
+        tab.find(".active").removeClass("active");
+        $(this).addClass('active');
       },
 
 
@@ -1177,7 +1203,7 @@ var ls = list = {
             a.push({type:"a",value:['name','product_id']});
           else
             a.push({type:"a",value:['name',p_names[j]]});
-          //需要饱含的函数预定义
+          //需要包含的函数预定义
 
             
           var td_value = ls.product_info[1][i][p_names[j]];//原来的值
@@ -1310,12 +1336,17 @@ var ls = list = {
       f_container.appendChild(f_list);
       ds.appendChild(f_container);
 
-      if(!document.querySelector("#documents_tab>ul").querySelector('*[list_type="product_info"]')){
+      //tab_content表示本tab 的内容的类型
+      if(!document.querySelector("#documents_tab>ul").querySelector('*[list_content="product_info"]')){
         var a = document.createElement("li");
-        a.setAttribute("tab_type","list");
-        a.setAttribute("list_type","product_info");
-        a.innerHTML="商品信息";
+        // a.setAttribute("class","active");
+        a.setAttribute("tab_content","list");
+        //list_content表示 本
+        a.setAttribute("list_content","product_info");
+        a.innerHTML='<a href="#">商品信息</a>';
         a.addEventListener("click", ls.pr_q_d);
+        a.addEventListener("click", ls.checker.status.tab_active_check);
+        ls.checker.status.tab_active_check.apply(a);
         document.querySelector("#documents_tab>ul").appendChild(a);
       }
     }

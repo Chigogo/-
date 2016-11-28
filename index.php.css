@@ -114,3 +114,11 @@ td[modify_status="true"]{
 /*.product_item{
   background-color: rgba(0,0,0, 0.9);
 }*/
+
+@media only print {
+    nav, #documents_tab, #ls_fucntion_tab{
+      display: none;
+    }
+
+     
+}
