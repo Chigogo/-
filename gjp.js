@@ -995,7 +995,27 @@ function window_close_check (e) {
   e.preventDefault();
 }
 
+//ls,list 是与“列表”相关的对象，该对象主要实现以下功能：
+  // 查询可以列表的信息，并以列表的形式展示信息（商品信息、客户信息、价格信息、经营历程之类）
+  // 要求部分列表具有筛选功能
+  // 对这些信息进行修改
+// 主要列表的对象
+//   product_info
+//   people
+//   specific_price_specific_person
+//   invoice_list
+//     history_invoice
+//     draft_invoice
+// 主要方法
+//   display
+//   query
+//   filter
 
+//   pr_q_d
+//   pe_q_d
+
+//   edit类方法
+//   saver类方法
 var ls = list = {
   "display": function(table_head, table_data){
     //table_head 是一个数组，[[{}...{}]...[{}...{}]],每一个元素对应一个td
@@ -1080,13 +1100,14 @@ var ls = list = {
   },
 
   "product_info": [1,[],[],[1,[]]],
-  //products_tag 加入,第一个元素表状态，0表示没有基础信息变动，无需从服务区抓取数据，1表示基础信息已有变动，需要更新;
+  //products_tag 加入,第一个元素表状态，
+    // -1表示没有数据，需要从服务器抓取数据
+    // 0表示没有基础信息变动，无需从服务器抓取数据
+    // 1表示基础信息已有变动，需要更新到服务器
   // 第二个元素表示抓取的原始数据，
   // 第三个元素表示处理过，用于展示的数据
-  // 第四个数据是一个包含两个元素的数组,该数组用语更新商品信息，第一个元素表示更新状态，1表示需要更新（还未更新），0表示不需要更新(已经更新)；
-
-  generator: {
-  },
+  // 第四个数据是一个包含两个元素的数组,该数组用语更新商品信息
+    // 第一个元素表示更新状态，1表示需要更新（还未更新），0表示不需要更新(已经更新)；
 
 
 
@@ -1195,7 +1216,9 @@ var ls = list = {
     function p_display(){
       for (var i = 0; i < ls.product_info[1].length; i++) {//外循环开始，遍历每一个商品
 
-        var p_names = Object.getOwnPropertyNames(ls.product_info[1][i]);//所有属性组成的数组
+        //所有属性组成的数组
+        var p_names = Object.getOwnPropertyNames(ls.product_info[1][i]);
+
         ls.product_info[2][i] = [];
         for (var j = 0; j < p_names.length; j++) {
           var a = ls.product_info[2][i][j] =[]; 
@@ -1351,6 +1374,11 @@ var ls = list = {
       }
     }
 
+    //检查ls.product_info[0]的值
+      // -1表示没有数据，需要从服务器抓取数据
+      // 0表示没有基础信息变动，无需从服务器抓取数据，直接显示商品
+      // 1表示基础信息已有变动，需要更新到服务器
+
     if(ls.product_info[0]==0) p_display();
     else {
       // for (var i = 0; i < ls.product_info[1].length; i++) {
@@ -1360,7 +1388,9 @@ var ls = list = {
       //   ls.product_info[2][i]=ls.product_info[1][i];
 
       // };
-      ajax_object.onreadystatechange = function(){//在invoice.js中已经定义
+
+      // 文件头声明的文件
+      ajax_object.onreadystatechange = function(){
         if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200){
           if(Number(ajax_object.response) != 0){
             ls["product_info"][1] = JSON.parse(ajax_object.response);//查询的结果数组立即作为数组存储
@@ -1384,7 +1414,9 @@ var ls = list = {
   "specific_price_specific_person": [],
   "specific_price_specific_person_for_update": [],
 
+  // ls.query
   "query": function(queried_columns, table, q_condition_value){
+    // 文件头声明的文件
     ajax_object.open("GET", "query.php?query_multiple&q_columns_name="+queried_columns+"&q_table="+table+"&q_condition_value="+q_condition_value, true);
     ajax_object.send();
   },
