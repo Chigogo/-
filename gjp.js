@@ -1001,7 +1001,7 @@ function window_close_check (e) {
   // 对这些信息进行修改
 // 主要列表的对象
 //   product_info
-//   people
+//   people_info
 //   specific_price_specific_person
 //   invoice_list
 //     history_invoice
@@ -1062,6 +1062,7 @@ var ls = list = {
     for (var i = 0; i < table_data.length; i++) {//遍历每一个数组元素，创建对一个的tr，一个tr对应一个商品
       var tr = document.createElement("tr");
       tr.setAttribute("td_modify_count",0);
+      $(tr).append($("<th>"+(i+1) +"</th>"));
       for (var j = 0; j < th.children.length; j++) {//遍历head_tr的每一个td，也就是每一列
         td = document.createElement("td");
         for (var k = 0, k_useful = false; k < table_data[i].length; k++) {//遍历单个商品数组的每一个元素，每个元素数组对应一个td
@@ -1080,7 +1081,7 @@ var ls = list = {
                   case "i": td.innerHTML= table_data[i][k][l].value;break;
                 }
               }
-              break;
+              break;0
             }
           }
           if(k_useful){
@@ -1093,153 +1094,101 @@ var ls = list = {
       tbody.appendChild(tr);
     }
 
-    for (var i = 0; i < tbody.children.length; i++) {
-      tbody.children[i].insertBefore(document.createElement("td"),tbody.children[i].children[0]);//td和th 在用一行？
-      tbody.children[i].children[0].innerHTML = (tbody.children[i] == tbody.children[0])?"行号":i;
-    };
   },
 
-  "product_info": [1,[],[],[1,[]]],
-  //products_tag 加入,第一个元素表状态，
-    // -1表示没有数据，需要从服务器抓取数据
-    // 0表示没有基础信息变动，无需从服务器抓取数据
-    // 1表示基础信息已有变动，需要更新到服务器
-  // 第二个元素表示抓取的原始数据，
-  // 第三个元素表示处理过，用于展示的数据
-  // 第四个数据是一个包含两个元素的数组,该数组用语更新商品信息
-    // 第一个元素表示更新状态，1表示需要更新（还未更新），0表示不需要更新(已经更新)；
-
-
-
-  "checker": {
-    //status对象开始，
-    //用于标记各种状态，用于检查各种状态，用于修改各种状态
-    status: {
-      //normal_check, 用来进行整体的check，防止用户在保存修改前就进入其他页面
-      normal_check: function(){
-        // 检查单机的目标，如果用户未保存修改，则不允许用户进入其他界面
-        var srcE=event.target.tagName.toLowerCase();
-
-        // console.log(srcE);
-        if(srcE=="td"||srcE=="th"||srcE=="table"||srcE=="html"){}
-          else if(ls.checker.status.whether_table_modified()) {
-            alert("请保存或者放弃修改！");
-            event.stopPropagation();
-          }
-
-      },
-
-      // 检测标签栏上的tab 的active 状态
-      // 更新此状态
-      // 此作为click 的listener，加在被单机的项目（tab）上
-      tab_active_check: function(event){
-        var  tab=$("#documents_tab");
-        tab.find(".active").removeClass("active");
-        $(this).addClass('active');
-      },
-
-
-      whether_td_modified : function(){
-        if(this.innerHTML!=this.getAttribute("placeholder")){
-          if(this.innerHTML.replace(/ |　|&nbsp;/g,"")=="") {
-            this.innerHTML = this.getAttribute("placeholder");
-            if(this.getAttribute("modify_status")=="true"){
-              this.parentNode.setAttribute("td_modify_count", Number(this.parentNode.getAttribute("td_modify_count"))-1);
-            }
-            this.setAttribute("modify_status",false);
-          }
-          else {
-            if(this.getAttribute("modify_status")=="false"){
-            this.setAttribute("modify_status",true);
-            this.parentNode.setAttribute("td_modify_count", 1+Number(this.parentNode.getAttribute("td_modify_count")));
-            }
-          }
-        }
-        else{
-          if(this.getAttribute("modify_status")=="true"){
-            this.parentNode.setAttribute("td_modify_count", Number(this.parentNode.getAttribute("td_modify_count"))-1);
-          }
-          this.setAttribute("modify_status",false);
-        }
-        if(Number(this.parentNode.getAttribute("td_modify_count"))>0){
-          this.parentNode.setAttribute("td_modified","");
-        }
-        else{
-          this.parentNode.removeAttribute("td_modified");
-        }
-
-
-      },
-
-      whether_table_modified : function(){
-        var ds = document.querySelector("#display_section");
-        var ds_t = ds.querySelector("table");
-        if(ds_t)
-        {
-          var t_tr = ds_t.querySelectorAll("tr");
-          for (var i = 0; i < t_tr.length; i++) {
-            if(Number(t_tr[i].getAttribute("td_modify_count"))!=0){
-              return true;
-            }
-          };
-          return false;
-        }
-      }//whether_table_modified函数结束
-
-    },//status 对象结束
-
-    "number_check_when_input": function (e){
-      if(e.keyCode >= 48 && e.keyCode<=57 || e.keyCode==46);
-      else e.preventDefault();
-    },
-
-    "word_check_when_input": function (e){
-      if(e.keyCode == 13) e.preventDefault();
-    },
-
-    "number_check_after_input": function(){
-      if(this.innerHTML=="NaN") this.innerHTML = 0;
-      if(this.innerHTML=="undefined") this.innerHTML = 0;
-      if(this.innerHTML!="")
-      this.innerHTML= Number(Number(this.innerHTML).toFixed(5));
-      
-    }
-
+  // 用于list查询
+  //   商品列表的信息
+  //   客户信息
+  //   单据信息
+  //   价格信息
+  "query": function(queried_columns, table, q_condition_value){
+    // 文件头声明的文件
+    ajax_object.open("GET", "query.php?query_multiple&q_columns_name="+queried_columns+"&q_table="+table+"&q_condition_value="+q_condition_value, true);
+    ajax_object.send();
   },
 
-  "pr_q_d": function(e){//product query and display，用于商品信息的查询event listener
+  "pr_q_d": function(e){
+    //product query and display，用于商品信息的查询event listener
+    // 在展示商品信息之前检查状态，如果有修改则提示用户保存修改
+    // 创建p_display函数，这个函数用来展示商品信息
     if(ls.checker.status.whether_table_modified()) {
           alert("请保存或者放弃修改！");
           return;
     }
+
+    // tab_content表示本tab 的内容的类型
+    // 展示前，检查tab 内显示标签
+    if(!document.querySelector("#documents_tab>ul").querySelector('*[list_content="product_info"]')){
+      var a = document.createElement("li");
+      // a.setAttribute("class","active");
+      a.setAttribute("tab_content","list");
+      //list_content表示 本
+      a.setAttribute("list_content","product_info");
+      a.innerHTML='<a href="#">商品信息</a>';
+      a.addEventListener("click", ls.pr_q_d);
+      a.addEventListener("click", ls.checker.status.tab_active_check);
+      document.querySelector("#documents_tab>ul").appendChild(a);
+    }
+    
+    ls.checker.status.tab_active_check.apply($('li[list_content="product_info"]').get(0));
     
     function p_display(){
+
       for (var i = 0; i < ls.product_info[1].length; i++) {//外循环开始，遍历每一个商品
 
-        //所有属性组成的数组
+        //所有商品属性名组成的数组
         var p_names = Object.getOwnPropertyNames(ls.product_info[1][i]);
+        p_names.push(
+          "admin_defined_unit_1",
+          "admin_defined_unit_1_factor",
+          "admin_defined_unit_2",
+          "admin_defined_unit_2_factor",
+          "price_base",
+          "price_for_manufacturer",
+          "price_for_dealer",
+          "price_for_bigger",
+          "price_for_big",
+          "price_for_Medium",
+          "price_for_small",
+          "price_for_smaller",
+          "price_for_smallest",
+          "manufacturer",
+          "simple_name",
+          "hidden_toggle",
+          "user_comment",
+          "admin_defined_id"
+        );
 
+        // 把每一个服务器的商品转化成易于展示的格式，存储到ls.product_info[2]数组中
         ls.product_info[2][i] = [];
+
+        // ls.product_info[2][i][j]中存储的是
+            // 第i个商品的
+              // 第j个属性
+                // 每个商品属性都由数组描述，该数组每一个元素决定了商品属性的展示方式，实际上是商品属性的html<元素>的属性
         for (var j = 0; j < p_names.length; j++) {
-          var a = ls.product_info[2][i][j] =[]; 
+          // 该循环遍历每一个属性名称
+          // a是第j个商品属性的html元素属性数组
+          var a = ls.product_info[2][i][j] = []; 
           if(p_names[j]=="id")
             a.push({type:"a",value:['name','product_id']});
           else
             a.push({type:"a",value:['name',p_names[j]]});
-          //需要包含的函数预定义
 
             
           var td_value = ls.product_info[1][i][p_names[j]];//原来的值
 
+          // 定义一些需要使用的元素属性的值
           var c_e = ["contenteditable","true"];
           var nc_w = ["keypress",ls.checker.number_check_when_input];
           var nc_a = ["blur",ls.checker.number_check_after_input];
           var text_s = ["click", ls.edit.click_select_text];
           var origin = td_value?td_value.toString():"";//td的原始值
 
+          //需要包含的函数预定义
           function editable(){
             a.push({type: "a", value: c_e}); 
-            a.push({type: "a", value: ["modify_status", false]});
+            a.push({type: "a", value: ["td_modify_status", false]});
             a.push({type: "a", value: ["placeholder", origin]});//把原来的值存入placeholder 属性中，便于后来的状态检查
             a.push({type: "e", value: ["blur",ls.checker.status.whether_td_modified]});
             
@@ -1247,7 +1196,7 @@ var ls = list = {
             a.push({type: "e", value: text_s});
           }
           function e_num(){//add event listener for num tds
-            a.push({type: "a", value: ["modify_status", false]});
+            a.push({type: "a", value: ["td_modify_status", false]});
             a.push({type: "a", value: ["placeholder", origin]});//把原来的值存入placeholder 属性中，便于后来的状态检查
             a.push({type: "e", value: ["blur",ls.checker.status.whether_td_modified]});
 
@@ -1296,6 +1245,7 @@ var ls = list = {
           }
 
           if(td_value!=null && td_value!="null" && td_value!=undefined && td_value!="undefined")
+            // i代表 innerHtml
             a.push({type:"i",value: td_value});
           else
             a.push({type:"i",value:""});
@@ -1329,49 +1279,39 @@ var ls = list = {
       ];
 
       ls.display(table_head,ls.product_info[2]);
+
+      //显示完成，将状态置0
       ls.product_info[0]=0;
 
 
       //给基础信息页面添加功能：新建商品、删除商品、保存更改、放弃更改（什么是更改？新建、删除、修改都是更改）
       //f_list是 ul元素
-      var ds = document.querySelector("#display_section");
-      var f_container = document.createElement("div");
-      var f_list = document.createElement("ul");
-      f_list.setAttribute("name","f_list");
-      var f_list_1 = document.createElement("li");
-      f_list_1.setAttribute("name","createNewItem");
-      f_list_1.innerHTML="新建商品";
-      var f_list_2 = document.createElement("li");
-      f_list_2.setAttribute("name","deleteItem");
-      f_list_2.innerHTML="删除选中商品";
-      var f_list_3 = document.createElement("li");
-      f_list_3.setAttribute("name","saveChange");
-      f_list_3.innerHTML="保存修改";
-      var f_list_4 = document.createElement("li");
-      f_list_4.setAttribute("name","abortChange");
-      f_list_4.innerHTML="放弃修改";
+      var ds = $("#display_section");
+      var f_container = $("<div></div>",{
+        class: "container"
+      }).appendTo(ds);
 
-      f_list.appendChild(f_list_1);
-      f_list.appendChild(f_list_2);
-      f_list.appendChild(f_list_3);
-      f_list.appendChild(f_list_4);
+      var f_list = $("<ul></ul>",{
+        name: "f_list"
+      }).appendTo(f_container);
 
-      f_container.appendChild(f_list);
-      ds.appendChild(f_container);
+      var f_list_1 = $("<li></li>",{
+        "name":"createNewItem"
+      }).append("<a href='#'>新建商品</a>");
 
-      //tab_content表示本tab 的内容的类型
-      if(!document.querySelector("#documents_tab>ul").querySelector('*[list_content="product_info"]')){
-        var a = document.createElement("li");
-        // a.setAttribute("class","active");
-        a.setAttribute("tab_content","list");
-        //list_content表示 本
-        a.setAttribute("list_content","product_info");
-        a.innerHTML='<a href="#">商品信息</a>';
-        a.addEventListener("click", ls.pr_q_d);
-        a.addEventListener("click", ls.checker.status.tab_active_check);
-        ls.checker.status.tab_active_check.apply(a);
-        document.querySelector("#documents_tab>ul").appendChild(a);
-      }
+      var f_list_2 = $("<li></li>",{
+        "name":"deleteItem"
+      }).append("<a href='#'>删除选中商品</a>");
+
+      var f_list_3 = $("<li></li>",{
+        "name":"saveChange"
+      }).append("<a href='#'>保存修改</a>");
+
+      var f_list_4 = $("<li></li>",{
+        "name":"abortChange"
+      }).append("<a href='#'>放弃修改并退出</a>");
+
+      f_list.append(f_list_1, f_list_2, f_list_3, f_list_4);
     }
 
     //检查ls.product_info[0]的值
@@ -1408,23 +1348,131 @@ var ls = list = {
     }
   },
 
-  "people": [],//people tag 加入
-  "people_for_update": [],
+  "product_info": [-1,[],[],[1,[]]],
+  //products_tag 加入,第一个元素表状态，
+    // -1表示没有数据，需要从服务器抓取数据
+    // 0表示没有基础信息变动，无需从服务器抓取数据，需要置0的情况：
+      // 展示完成后
+      // 更新过修改后
+    // 1表示基础信息已有变动，需要更新到服务器
+  // 第二个元素表示抓取的原始数据，
+  // 第三个元素表示处理过，用于展示的数据
+  // 第四个数据是一个包含两个元素的数组,该数组用语更新商品信息
+    // 第一个元素表示更新状态，1表示需要更新（还未更新），0表示不需要更新(已经更新)；
 
+  "people_info": [1,[],[],[1,[]]],
   "specific_price_specific_person": [],
-  "specific_price_specific_person_for_update": [],
 
-  // ls.query
-  "query": function(queried_columns, table, q_condition_value){
-    // 文件头声明的文件
-    ajax_object.open("GET", "query.php?query_multiple&q_columns_name="+queried_columns+"&q_table="+table+"&q_condition_value="+q_condition_value, true);
-    ajax_object.send();
+
+
+  "checker": {
+    //status对象开始，
+    //用于标记各种状态，用于检查各种状态，用于修改各种状态
+    status: {
+      //normal_check, 用来进行整体的check，防止用户在保存修改前就进入其他页面
+      normal_check: function(){
+        // 检查单机的目标，如果用户未保存修改，则不允许用户进入其他界面
+        var srcE=event.target.tagName.toLowerCase();
+
+        // console.log(srcE);
+        if(srcE=="td"||srcE=="th"||srcE=="table"||srcE=="html"){}
+          else if(ls.checker.status.whether_table_modified()) {
+            alert("请保存或者放弃修改！");
+            event.stopPropagation();
+          }
+
+      },
+
+      // 检测标签栏上的tab 的active 状态
+      // 更新此状态
+      // 此作为click 的listener，加在被单机的项目（tab）上
+      tab_active_check: function(event){
+        var  tab=$("#documents_tab");
+        tab.find(".active").removeClass("active");
+        $(this).addClass('active');
+      },
+
+
+      whether_td_modified : function(){
+      //这个函数用来检测td 的数据是否有改动
+      // 第一步检测td的值是否和placeholder一致，placeholder是原始值，检测的方法是删除空白进行检测
+        // 如果不同，则检查是否是空白
+          // 如果是空白，则改成初始值，然后检查td 的修改状态。检查后，把修改状态变为假
+            // 如果修改是真则td 的父元素td_modify_count计数-1
+        if(this.innerHTML!=this.getAttribute("placeholder")){
+          if(this.innerHTML.replace(/^( |　|&nbsp;)*|( |　|&nbsp;)*$/g,"")=="") {
+            this.innerHTML = this.getAttribute("placeholder");
+            if(this.getAttribute("td_modify_status")=="true"){
+              this.parentNode.setAttribute("td_modify_count", Number(this.parentNode.getAttribute("td_modify_count"))-1);
+            }
+            this.setAttribute("td_modify_status",false);
+          }
+          else {
+            if(this.getAttribute("td_modify_status")=="false"){
+            this.setAttribute("td_modify_status",true);
+            this.parentNode.setAttribute("td_modify_count", 1+Number(this.parentNode.getAttribute("td_modify_count")));
+            }
+          }
+        }
+        else{
+          if(this.getAttribute("td_modify_status")=="true"){
+            this.parentNode.setAttribute("td_modify_count", Number(this.parentNode.getAttribute("td_modify_count"))-1);
+          }
+          this.setAttribute("td_modify_status",false);
+        }
+        if(Number(this.parentNode.getAttribute("td_modify_count"))>0){
+          this.parentNode.setAttribute("td_modified","");
+        }
+        else{
+          this.parentNode.removeAttribute("td_modified");
+        }
+
+
+      },
+
+      whether_table_modified : function(){
+        var ds = document.querySelector("#display_section");
+        var ds_t = ds.querySelector("table");
+        if(ds_t)
+        {
+          var t_tr = ds_t.querySelectorAll("tr");
+          for (var i = 0; i < t_tr.length; i++) {
+            if(Number(t_tr[i].getAttribute("td_modify_count"))!=0){
+              return true;
+            }
+          };
+          return false;
+        }
+      }//whether_table_modified函数结束
+
+    },//status 对象结束
+
+    "number_check_when_input": function (e){
+      if(e.keyCode >= 48 && e.keyCode<=57 || e.keyCode==46);
+      else e.preventDefault();
+    },
+
+    "word_check_when_input": function (e){
+      if(e.keyCode == 13) e.preventDefault();
+    },
+
+    "number_check_after_input": function(){
+      if(this.innerHTML=="NaN") this.innerHTML = 0;
+      if(this.innerHTML=="undefined") this.innerHTML = 0;
+      if(this.innerHTML!="")
+      this.innerHTML= Number(Number(this.innerHTML).toFixed(5));
+      
+    }
+
   },
 
+
+
   "history_invoice": [],
-  "craft_invoice": [],
+  "draft_invoice": [],
 
   "edit": {
+    //点击后自动选择表格内容，用于td
     "click_select_text": function(e){
       if(e.type=="click"){
         if (document.selection) {

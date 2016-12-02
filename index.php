@@ -4,12 +4,12 @@
 	<meta charset="utf-8">
 	<title>Welcome to gjp_web!</title>
 	<meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 
 	<!-- Bootstrap 此CDN未必值得信任-->
-  <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" > <!-- integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous" -->
+  	<link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" > <!-- integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous" -->
 	<link href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" rel="stylesheet">
 	
 	<link rel="stylesheet" href="index.php.css">
@@ -72,10 +72,10 @@
 
 
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-  <script src="//cdn.bootcss.com/jquery/1.12.4/jquery.js"></script>
-  <!-- Include all compiled plugins (below), or include individual files as needed -->
-  <script src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.js"></script>
-  <!-- 管家婆的js -->
+  	<script src="//cdn.bootcss.com/jquery/1.12.4/jquery.js"></script>
+  	<!-- Include all compiled plugins (below), or include individual files as needed -->
+  	<script src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.js"></script>
+  	<!-- 管家婆的js -->
 	<script type="text/javascript" src="gjp.js"></script>
 
 
