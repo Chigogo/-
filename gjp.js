@@ -1081,7 +1081,7 @@ var ls = list = {
                   case "i": td.innerHTML= table_data[i][k][l].value;break;
                 }
               }
-              break;0
+              break;
             }
           }
           if(k_useful){
@@ -1168,7 +1168,7 @@ var ls = list = {
                 // 每个商品属性都由数组描述，该数组每一个元素决定了商品属性的展示方式，实际上是商品属性的html<元素>的属性
         for (var j = 0; j < p_names.length; j++) {
           // 该循环遍历每一个属性名称
-          // a是第j个商品属性的html元素属性数组
+          // a是第j个商品的商品属性（比如名称）的html元素的描述数组（这些属性包括html 元素属性a,事件监听器e,内部html,i）
           var a = ls.product_info[2][i][j] = []; 
           if(p_names[j]=="id")
             a.push({type:"a",value:['name','product_id']});
@@ -1209,9 +1209,19 @@ var ls = list = {
           switch(p_names[j]){
             case "id" : 
             break;
-            case "py_code" : break;
-            case "admin_defined_id" : editable(); break;
-            case "full_name" : editable(); break;
+            case "py_code" : 
+                a.push({type: "a", value: ["td_modify_status", false]});
+                a.push({type: "a", value: ["placeholder", origin]});//把原来的值存入placeholder 属性中，便于后来的状态检查
+                break;
+
+            case "admin_defined_id" : 
+                editable();
+                break;
+
+            case "full_name" : 
+                editable();
+                a.push({type: "e", value: ["blur", ls.edit.py_code_editor]});
+                break;
             case "manufacturer" : editable(); break;
             case "simple_name" : editable(); break;
 
@@ -1420,6 +1430,7 @@ var ls = list = {
           }
           this.setAttribute("td_modify_status",false);
         }
+
         if(Number(this.parentNode.getAttribute("td_modify_count"))>0){
           this.parentNode.setAttribute("td_modified","");
         }
@@ -1485,6 +1496,33 @@ var ls = list = {
             window.getSelection().addRange(range);
         } 
       }
+    },
+
+    py_code_editor: function(){
+      var that = this;
+      var py_code = $(that).parent().find('*[name="py_code"]');
+      function input_Pinyin(string){
+        py_code.text(string);
+        ls.checker.status.whether_td_modified.apply(py_code.get(0));
+      }
+      if($(this).attr("td_modify_status")=="true"){
+        if(!$("script[name='Chinese_to_pinyin.js']").get(0)) {
+          $.ajax({
+            url: "js/Chinese_to_pinyin.js",
+            type: "get",
+            success: function(result){
+              cl("正在加载汉字转拼音脚本");
+              $("<script name='Chinese_to_pinyin.js'></script>").appendTo($("head")).text(result);
+              input_Pinyin((pinyin.getCamelChars(that.innerHTML)).toLowerCase());
+
+            }
+          });
+        }
+        else
+          input_Pinyin((pinyin.getCamelChars(that.innerHTML)).toLowerCase());
+      } 
+      else
+        input_Pinyin(" ");
     },
     
     "edit_event": function(){},

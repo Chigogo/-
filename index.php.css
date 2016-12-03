@@ -96,13 +96,16 @@ p {
   color: white;
 }
 
-tr[td_modified]{
-  background-color: lightblue;  
+tr[td_modified]::after {
+   content: "<- 此条目已被修改";
+   color: red;
 }
 
-td[modify_status="true"]{
-  color: white;
+td[td_modify_status="true"]{
+  color: #D0104C;
+  font-weight: bold;
 }
+
 *[name="f_list"] {
   position: fixed;
   bottom: 20px;
@@ -114,6 +117,8 @@ td[modify_status="true"]{
 /*.product_item{
   background-color: rgba(0,0,0, 0.9);
 }*/
+
+
 
 @media only print {
     nav, #documents_tab, #ls_fucntion_tab{
