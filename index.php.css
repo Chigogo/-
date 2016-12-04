@@ -106,6 +106,10 @@ td[td_modify_status="true"]{
   font-weight: bold;
 }
 
+*[name="product_id"]{
+  display: none;
+}
+
 *[name="f_list"] {
   position: fixed;
   bottom: 20px;

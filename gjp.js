@@ -334,6 +334,7 @@ var td = TRANSACTION_DOCUMENT = {
                                             fn_td.setAttribute("name","full_name");
                                             fn_td.setAttribute("placeholder",a.full_name);//用于checker
                                             fn_td.setAttribute("contenteditable","true");
+                                            fn_td.addEventListener("keydown", ls.edit.arrow_key_control);
       md_td = document.createElement("td"); md_td.setAttribute("name","another_unit_factor");
       un_td = document.createElement("td");
       am_td = document.createElement("td"); am_td.setAttribute("name",'amount'); 
@@ -342,21 +343,25 @@ var td = TRANSACTION_DOCUMENT = {
                                             am_td.addEventListener("blur",td.builder.amount_or_price_affect_received);
                                             am_td.addEventListener("keypress", td.builder.number_check_when_input);
                                             am_td.setAttribute("contenteditable","true");
+                                            am_td.addEventListener("keydown", ls.edit.arrow_key_control);
       pr_td = document.createElement("td"); pr_td.setAttribute("name",'price_base_on_unit');
                                             pr_td.addEventListener("blur",td.builder.number_check_after_input);
                                             pr_td.addEventListener("blur",td.builder.amount_or_price_affect_received);
                                             pr_td.addEventListener("click", td.builder.cell_checker);
                                             pr_td.addEventListener("keypress", td.builder.number_check_when_input);
                                             pr_td.setAttribute("contenteditable","true");
+                                            pr_td.addEventListener("keydown", ls.edit.arrow_key_control);
       gn_td = document.createElement("td"); gn_td.setAttribute("name",'amount_multiply_by_unit');
                                             gn_td.addEventListener("blur",td.builder.number_check_after_input);
                                             gn_td.addEventListener("blur",td.builder.receive_affects_price);
                                             gn_td.addEventListener("click", td.builder.cell_checker);
                                             gn_td.addEventListener("keypress", td.builder.number_check_when_input);
                                             gn_td.setAttribute("contenteditable","true");
+                                            gn_td.addEventListener("keydown", ls.edit.arrow_key_control);
       cm_td = document.createElement("td"); cm_td.setAttribute("name",'comment_for_item');
                                             cm_td.addEventListener("click", td.builder.cell_checker);
                                             cm_td.setAttribute("contenteditable","true");
+                                            cm_td.addEventListener("keydown", ls.edit.arrow_key_control);
 
       ln_td.innerHTML ="";
       id_td.innerHTML =a.id;
@@ -402,6 +407,8 @@ var td = TRANSACTION_DOCUMENT = {
       return new_tr;
     },
 
+    // 两个功能，如果是click和focus，则选中表格内容
+    // 如果是blur，则检查输入结果是否为空
     "cell_checker": function(e){
       if(e.type=="click" || e.type=="focus"){
         if (document.selection) {
@@ -417,13 +424,12 @@ var td = TRANSACTION_DOCUMENT = {
 
       if(e.type=="blur"){
           // console.log(this.innerHTML.replace(/ /g,"").replace(/　/g,""));
-        if(this.innerHTML.replace(/ /g,"").replace(/　/g,"").replace(/&nbsp;/g,"")==""){//正则表达式
+        if(this.innerHTML.replace(/ |　|&nbsp;/g,"")==""){//正则表达式
           console.log(this.parentNode);
           td.builder.line_deleter(this.parentNode);
         }else 
-        if(this.innerHTML != this.getAttribute("placeholder"))
+        if(this.hasAttribute("placeholder") && this.innerHTML != this.getAttribute("placeholder"))
           this.innerHTML=this.getAttribute("placeholder");
-
       }
     },
 
@@ -582,7 +588,7 @@ var td = TRANSACTION_DOCUMENT = {
     },
 
     "number_check_when_input": function (e){
-      if(e.keyCode >= 48 && e.keyCode<=57 || e.keyCode==46);
+      if(e.keyCode >= 48 && e.keyCode<=57 || e.keyCode==46 || e.keyCode==32 || e.keyCode >= 37 && e.keyCode<=40 )cl(e.keyCode);
       else e.preventDefault();
     },
 
@@ -1139,6 +1145,12 @@ var ls = list = {
         //所有商品属性名组成的数组
         var p_names = Object.getOwnPropertyNames(ls.product_info[1][i]);
         p_names.push(
+          "id",
+          "manufacturer",
+          "admin_defined_id",
+          "full_name",
+          "simple_name",
+          "unit_1",
           "admin_defined_unit_1",
           "admin_defined_unit_1_factor",
           "admin_defined_unit_2",
@@ -1152,11 +1164,13 @@ var ls = list = {
           "price_for_small",
           "price_for_smaller",
           "price_for_smallest",
-          "manufacturer",
-          "simple_name",
+          "py_code",
+          // "size_id",
+          "created_at",
+          "changed_at",
           "hidden_toggle",
           "user_comment",
-          "admin_defined_id"
+          "system_log"
         );
 
         // 把每一个服务器的商品转化成易于展示的格式，存储到ls.product_info[2]数组中
@@ -1170,6 +1184,8 @@ var ls = list = {
           // 该循环遍历每一个属性名称
           // a是第j个商品的商品属性（比如名称）的html元素的描述数组（这些属性包括html 元素属性a,事件监听器e,内部html,i）
           var a = ls.product_info[2][i][j] = []; 
+
+          // 每一个商品属性对应的html元素都需要拥有name 属性
           if(p_names[j]=="id")
             a.push({type:"a",value:['name','product_id']});
           else
@@ -1180,7 +1196,7 @@ var ls = list = {
 
           // 定义一些需要使用的元素属性的值
           var c_e = ["contenteditable","true"];
-          var nc_w = ["keypress",ls.checker.number_check_when_input];
+          var nc_w = ["keypress",td.builder.number_check_when_input];
           var nc_a = ["blur",ls.checker.number_check_after_input];
           var text_s = ["click", ls.edit.click_select_text];
           var origin = td_value?td_value.toString():"";//td的原始值
@@ -1193,12 +1209,14 @@ var ls = list = {
             a.push({type: "e", value: ["blur",ls.checker.status.whether_td_modified]});
             
             a.push({type: "e", value: ["keypress", ls.checker.word_check_when_input]});
+            a.push({type: "e", value: ["keydown", ls.edit.arrow_key_control]});
             a.push({type: "e", value: text_s});
           }
           function e_num(){//add event listener for num tds
             a.push({type: "a", value: ["td_modify_status", false]});
             a.push({type: "a", value: ["placeholder", origin]});//把原来的值存入placeholder 属性中，便于后来的状态检查
             a.push({type: "e", value: ["blur",ls.checker.status.whether_td_modified]});
+            a.push({type: "e", value: ["keydown", ls.edit.arrow_key_control]});
 
             a.push({type: "a", value: c_e}); 
             a.push({type: "e", value: nc_w});
@@ -1209,28 +1227,22 @@ var ls = list = {
           switch(p_names[j]){
             case "id" : 
             break;
-            case "py_code" : 
-                a.push({type: "a", value: ["td_modify_status", false]});
-                a.push({type: "a", value: ["placeholder", origin]});//把原来的值存入placeholder 属性中，便于后来的状态检查
-                break;
-
+            case "manufacturer" : editable(); break;
             case "admin_defined_id" : 
                 editable();
                 break;
-
             case "full_name" : 
                 editable();
                 a.push({type: "e", value: ["blur", ls.edit.py_code_editor]});
                 break;
-            case "manufacturer" : editable(); break;
             case "simple_name" : editable(); break;
 
             case "unit_1" : editable(); break;
 
             case "admin_defined_unit_1" : editable(); break;
-            case "admin_defined_unit_1_factor" :editable(); break;
+            case "admin_defined_unit_1_factor" :e_num(); break;
             case "admin_defined_unit_2" :editable(); break;
-            case "admin_defined_unit_2_factor" :editable(); break;
+            case "admin_defined_unit_2_factor" :e_num(); break;
             case "price_base" :e_num();
             case "price_for_manufacturer" :e_num();
             case "price_for_dealer" :e_num();
@@ -1241,14 +1253,17 @@ var ls = list = {
             case "price_for_smaller" :e_num();
             case "price_for_smallest" :e_num();
             break;
+            case "py_code" : 
+                a.push({type: "a", value: ["td_modify_status", false]});
+                a.push({type: "a", value: ["placeholder", origin]});//把原来的值存入placeholder 属性中，便于后来的状态检查
+                break;
 
-            case "size_id" :editable(); break;
-
+            // case "size_id" :editable(); break;
             case "created_at" :;break;
             case "changed_at" :;break;
+            case "hidden_toggle" :editable(); break;
             case "user_comment" :editable(); break;
             case "system_log" :;break;
-            case "hidden_toggle" :editable(); break;
             default:
 
             break;
@@ -1263,8 +1278,10 @@ var ls = list = {
       }//外循环结束
 
       var table_head = [
-        [{type: "a",value:["name","product_id"]},{type: "i",value:"id"}],
-        [{type: "a",value:["name","admin_defined_id"]},{type: "i",value:"商品编号"}],
+        [{type: "a",value:["name","line_number"]},{type: "i",value:"行号"}],
+        [{type: "a",value:["name","product_id"]},{type: "i",value:"商品编号"}],
+        [{type: "a",value:["name","manufacturer"]},{type: "i",value:"生产厂家"}],
+        [{type: "a",value:["name","admin_defined_id"]},{type: "i",value:"用户编号"}],
         [{type: "a",value:["name","full_name"]},{type: "i",value:"商品全名"}],
         [{type: "a",value:["name","simple_name"]},{type: "i",value:"简名"}],
         [{type: "a",value:["name","admin_defined_unit_1"]},{type: "i",value:"辅助单位1"}],
@@ -1280,7 +1297,6 @@ var ls = list = {
         [{type: "a",value:["name","price_for_small"]},{type: "i",value:"小户价"}],
         [{type: "a",value:["name","price_for_smaller"]},{type: "i",value:"个人价"}],
         [{type: "a",value:["name","price_for_smallest"]},{type: "i",value:"零售价"}],
-        [{type: "a",value:["name","manufacturer"]},{type: "i",value:"生产厂家"}],
         [{type: "a",value:["name","py_code"]},{type: "i",value:"拼音码"}],
         [{type: "a",value:["name","created_at"]},{type: "i",value:"创建时间"}],
         [{type: "a",value:["name","changed_at"]},{type: "i",value:"上次修改时间"}],
@@ -1458,23 +1474,18 @@ var ls = list = {
 
     },//status 对象结束
 
-    "number_check_when_input": function (e){
-      if(e.keyCode >= 48 && e.keyCode<=57 || e.keyCode==46);
-      else e.preventDefault();
-    },
-
     "word_check_when_input": function (e){
       if(e.keyCode == 13) e.preventDefault();
     },
 
     "number_check_after_input": function(){
-      if(this.innerHTML=="NaN") this.innerHTML = 0;
-      if(this.innerHTML=="undefined") this.innerHTML = 0;
-      if(this.innerHTML!="")
-      this.innerHTML= Number(Number(this.innerHTML).toFixed(5));
+      if(this.innerHTML!=""){
+        var a = Number(this.innerHTML.replace(/ |　|&nbsp;/g,""));
+        if(a=="NaN"|| a=="undefined") a = "";
+        this.innerHTML= Number(a.toFixed(5));
+      }
       
     }
-
   },
 
 
@@ -1523,6 +1534,49 @@ var ls = list = {
       } 
       else
         input_Pinyin(" ");
+    },
+
+    arrow_key_control: function(e){
+      if(e.keyCode >= 37 && e.keyCode<=40 ){
+        cl(e.keyCode);
+        switch(e.keyCode){
+          //←
+          case 37: 
+              var prev_editable_td = $(this).prevAll('[contenteditable="true"]')[0];
+              if(prev_editable_td){
+                $(prev_editable_td).focus().click();
+              }
+
+              break;
+          //↑
+          case 38:
+              var this_name = $(this).attr("name");
+              var prev_editable_td = $(this).parent().prev().find("td[name='"+this_name+"']")[0];
+              if(prev_editable_td){
+                $(prev_editable_td).focus().click();
+              }
+              break;
+          //→
+          case 39:
+              var next_editable_td = $(this).nextAll('[contenteditable="true"]')[0];
+              if(next_editable_td){
+                $(next_editable_td).focus().click();
+              }
+
+              break;
+          //↓
+          case 40:
+              var this_name = $(this).attr("name");
+              var next_editable_td = $(this).parent().next().find("td[name='"+this_name+"']")[0];
+              if(next_editable_td){
+                $(next_editable_td).focus().click();
+              }
+              break;
+          default:
+              break;
+        }
+        e.preventDefault();
+      }
     },
     
     "edit_event": function(){},
