@@ -300,7 +300,7 @@ var td = TRANSACTION_DOCUMENT = {
   },
 
   "creator_jh": function(){
-    td.creator("jh")
+    td.creator("jh");
   },
   /*
   如果该方法由viewer 唤起，则为相应td 元素添加事件处理器；
@@ -589,7 +589,7 @@ var td = TRANSACTION_DOCUMENT = {
     },
 
     "number_check_when_input": function (e){
-      if(e.keyCode >= 48 && e.keyCode<=57 || e.keyCode==46 || e.keyCode==32 || e.keyCode >= 37 && e.keyCode<=40 )cl(e.keyCode);
+      if(e.keyCode >= 48 && e.keyCode<=57 || e.keyCode==46 || e.keyCode==32 || e.keyCode >= 37 && e.keyCode<=40 );
       else e.preventDefault();
     },
 
@@ -771,14 +771,13 @@ var td = TRANSACTION_DOCUMENT = {
 
   //使用info来进行选中高亮、选中标记
   "selection_status": function(e, that, type){
-    cl(type);
     if(type){
       if (type=="select_one") {
           document.querySelector('#pop_up').focus();
           if(that.className!=="info"){
             that.className="info";
           }
-          else that.className="";cl(716);
+          else that.className="";
           e.stopPropagation();
         };
     
@@ -1005,7 +1004,7 @@ function window_close_check (e) {
 //ls,list 是与“列表”相关的对象，该对象主要实现以下功能：
   // 查询可以列表的信息，并以列表的形式展示信息（商品信息、客户信息、价格信息、经营历程之类）
   // 要求部分列表具有筛选功能
-  // 对这些信息进行修改
+  // 对这些信息进行增添、修改、删除
 // 主要列表的对象
 //   product_info
 //   people_info
@@ -1069,40 +1068,50 @@ var ls = list = {
 
 
     for (var i = 0; i < table_data.length; i++) {//遍历每一个数组元素，创建对一个的tr，一个tr对应一个商品
-      var tr = document.createElement("tr");
-      tr.setAttribute("td_modify_count",0);
-      $(tr).append($("<th>"+(i+1) +"</th>"));
-      for (var j = 0; j < th.children.length; j++) {//遍历head_tr的每一个td，也就是每一列
-        td = document.createElement("td");
-        for (var k = 0, k_useful = false; k < table_data[i].length; k++) {//遍历单个商品数组的每一个元素，每个元素数组对应一个td
-          for (var l = 0; l < table_data[i][k].length; l++) {//td对应tr数组的一个元素，遍历td元素的元素，
-            if(table_data[i][k][l].type == "a" && table_data[i][k][l].value[0]=="name" && table_data[i][k][l].value[1]== th.children[j].getAttribute("name")) 
-            {  
-              k_useful = true; 
-            }
-            if(k_useful)
-            {
-              for (var l = 0; l < table_data[i][k].length; l++) {
-                //console.log(table_data);
-                switch(table_data[i][k][l].type){
-                  case "a": td.setAttribute(table_data[i][k][l].value[0],table_data[i][k][l].value[1]);break;
-                  case "e": td.addEventListener(table_data[i][k][l].value[0],table_data[i][k][l].value[1]);break;
-                  case "i": td.innerHTML= table_data[i][k][l].value;break;
-                }
-              }
-              break;
-            }
+      tbody.appendChild(ls.create_list_line(table_data[i]));
+    }
+
+    ls.checker.list_row_number_checker();
+
+  },
+
+  create_list_line: function(table_data_i){
+    //当前视图的表格中的thead 的 tr行
+    var tr_in_thead = $("thead tr").get(0);
+    var tr = document.createElement("tr");
+    tr.setAttribute("td_modify_count",0);
+    for (var j = 0; j < tr_in_thead.children.length; j++) {//遍历head_tr的每一个td，也就是每一列
+      var td = document.createElement("td");
+      for (var k = 0, k_useful = false; k < table_data_i.length; k++) {//遍历单个商品数组的每一个元素，每个元素数组对应一个td
+        for (var l = 0; l < table_data_i[k].length; l++) {//td对应tr数组的一个元素，遍历td元素的元素，
+          if(table_data_i[k][l].type == "a" && table_data_i[k][l].value[0]=="name" && table_data_i[k][l].value[1]== tr_in_thead.children[j].getAttribute("name")) 
+          {  
+            k_useful = true; 
           }
-          if(k_useful){
-            k_useful = false;
+          if(k_useful)
+          {
+            for (var l = 0; l < table_data_i[k].length; l++) {
+              //console.log(table_data);
+              switch(table_data_i[k][l].type){
+                case "a": td.setAttribute(table_data_i[k][l].value[0],table_data_i[k][l].value[1]);break;
+                case "e": td.addEventListener(table_data_i[k][l].value[0],table_data_i[k][l].value[1]);break;
+                case "i": 
+                    cl(table_data_i[k][l]);
+                    td.innerHTML= table_data_i[k][l].value;
+                    cl(td);
+                    break;
+              }
+            }
             break;
           }
         }
-        tr.appendChild(td);
+        if(k_useful){
+          break;
+        }
       }
-      tbody.appendChild(tr);
+      tr.appendChild(td);
     }
-
+    return tr;
   },
 
   // 用于list查询
@@ -1142,41 +1151,313 @@ var ls = list = {
     ls.checker.status.tab_active_check.apply($('li[list_content="product_info"]').get(0));
     
     function p_display(){
-      var p_names=[
-          "id",
-          "manufacturer",
-          "admin_defined_id",
-          "full_name",
-          "simple_name",
-          "unit_1",
-          "admin_defined_unit_1",
-          "admin_defined_unit_1_factor",
-          "admin_defined_unit_2",
-          "admin_defined_unit_2_factor",
-          "price_base",
-          "price_for_manufacturer",
-          "price_for_dealer",
-          "price_for_bigger",
-          "price_for_big",
-          "price_for_Medium",
-          "price_for_small",
-          "price_for_smaller",
-          "price_for_smallest",
-          "py_code",
-          // "size_id",
-          "created_at",
-          "changed_at",
-          "hidden_toggle",
-          "user_comment",
-          "system_log"
-        ];
+      var p_names = ls.product_info[4];
+      ls.edit.data_convert_JSON_to_array(ls.product_info[1], ls.product_info[2], p_names);
+
+      //表头和表内容的表格
+      ls.display(ls.product_info[5],ls.product_info[2]);
+
+      //显示完成，将状态置0
+      ls.product_info[0]=0;
+
+
+      //给基础信息页面添加功能：新建商品、删除商品、保存更改、放弃更改（什么是更改？新建、删除、修改都是更改）
+      //f_list是 ul元素
+      var ds = $("#display_section");
+      var f_container = $("<div></div>"/*,{
+        class: "container"
+      }*/).appendTo(ds);
+
+      var f_list = $('<div></div>',{
+        'name': 'f_list',
+        class: "btn-group", 
+        role:"group"
+      }).appendTo(f_container);
+
+      var f_list_1 = $('<button ></button>',{
+        "name": "createNewItem",
+        type: "button", 
+        class: "btn btn-default"
+      }).text("新建商品").on("click", ls.edit.item_creator);
+
+      var f_list_2 = $('<button ></button>',{
+        "name": "deleteItem",
+        type: "button", 
+        class: "btn btn-default"
+      }).text("停用商品");
+
+      var f_list_3 = $('<button ></button>',{
+        "name": "saveChange",
+        type: "button", 
+        class: "btn btn-default"
+      }).text("保存修改");
+
+      var f_list_4 = $('<button ></button>',{
+        "name": "abortChange",
+        type: "button", 
+        class: "btn btn-default"
+      }).text("放弃并退出");
+
+      f_list.append(f_list_1, f_list_2, f_list_3, f_list_4);
+    }
+
+    //检查ls.product_info[0]的值
+      // -1表示没有数据，需要从服务器抓取数据
+      // 0表示没有基础信息变动，无需从服务器抓取数据，直接显示商品
+      // 1表示基础信息已有变动，需要更新到服务器
+
+    if(ls.product_info[0]==0) p_display();
+    else {
+
+      // 文件头声明的文件
+      ajax_object.onreadystatechange = function(){
+        if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200){
+          if(Number(ajax_object.response) != 0){
+            ls["product_info"][1] = JSON.parse(ajax_object.response);//查询的结果数组立即作为数组存储
+            ls["product_info"][0] = 0;
+            p_display();
+          }//内if结束
+          else {
+            alert("当前查询条件无结果");
+            return;
+          }
+        }//外if 结束
+      };
+
+      ls.query("*","product_info","");
+    }
+  },
+
+  "product_info": [
+    -1,
+    [],
+    [],
+    [1,[]],
+    [
+      "id",
+      "manufacturer",
+      "admin_defined_order",
+      "full_name",
+      "simple_name",
+      "unit_1",
+      "admin_defined_unit_1",
+      "admin_defined_unit_1_factor",
+      "admin_defined_unit_2",
+      "admin_defined_unit_2_factor",
+      "price_base",
+      "price_for_manufacturer",
+      "price_for_dealer",
+      "price_for_bigger",
+      "price_for_big",
+      "price_for_Medium",
+      "price_for_small",
+      "price_for_smaller",
+      "price_for_smallest",
+      "py_code",
+      // "size_id",
+      "created_at",
+      "changed_at",
+      "hidden_toggle",
+      "user_comment",
+      "system_log"
+    ],
+    [
+      [{type: "a",value:["name","line_number"]},{type: "i",value:"行号"}],
+      [{type: "a",value:["name","product_id"]},{type: "i",value:"商品编号"}],
+      [{type: "a",value:["name","manufacturer"]},{type: "i",value:"生产厂家"}],
+      [{type: "a",value:["name","admin_defined_order"]},{type: "i",value:"用户排序"}],
+      [{type: "a",value:["name","full_name"]},{type: "i",value:"商品全名"}],
+      [{type: "a",value:["name","simple_name"]},{type: "i",value:"简名"}],
+      [{type: "a",value:["name","admin_defined_unit_1"]},{type: "i",value:"辅助单位1"}],
+      [{type: "a",value:["name","admin_defined_unit_1_factor"]},{type: "i",value:"辅助单位1系数"}],//辅助单位需要有alt 弹出提示吗？
+      [{type: "a",value:["name","admin_defined_unit_2"]},{type: "i",value:"辅助单位2"}],
+      [{type: "a",value:["name","admin_defined_unit_2_factor"]},{type: "i",value:"辅助单位2系数"}],//辅助单位需要有alt 弹出提示吗？
+      [{type: "a",value:["name","price_base"]},{type: "i",value:"基准价"}],
+      [{type: "a",value:["name","price_for_manufacturer"]},{type: "i",value:"厂商价"}],
+      [{type: "a",value:["name","price_for_dealer"]},{type: "i",value:"经销商价"}],
+      [{type: "a",value:["name","price_for_bigger"]},{type: "i",value:"特大户价"}],
+      [{type: "a",value:["name","price_for_big"]},{type: "i",value:"大户价"}],
+      [{type: "a",value:["name","price_for_Medium"]},{type: "i",value:"中户价"}],
+      [{type: "a",value:["name","price_for_small"]},{type: "i",value:"小户价"}],
+      [{type: "a",value:["name","price_for_smaller"]},{type: "i",value:"个人价"}],
+      [{type: "a",value:["name","price_for_smallest"]},{type: "i",value:"零售价"}],
+      [{type: "a",value:["name","py_code"]},{type: "i",value:"拼音码"}],
+      [{type: "a",value:["name","created_at"]},{type: "i",value:"创建时间"}],
+      [{type: "a",value:["name","changed_at"]},{type: "i",value:"上次修改时间"}],
+      [{type: "a",value:["name","hidden_toggle"]},{type: "i",value:"是否停用"}],
+      [{type: "a",value:["name","user_comment"]},{type: "i",value:"用户备注"}]
+    ]
+  ],
+  //products_tag 加入,第一个元素表状态，
+    // -1表示没有数据，需要从服务器抓取数据
+    // 0表示没有基础信息变动，无需从服务器抓取数据，需要置0的情况：
+      // 展示完成后
+      // 更新过修改后
+    // 1表示基础信息已有变动，需要更新到服务器
+  // 第二个元素表示抓取的原始数据，
+  // 第三个元素表示处理过，用于展示的数据
+  // 第四个元素是一个包含两个元素的数组,该数组用语更新商品信息
+    // 第一个元素表示更新状态，1表示需要更新（还未更新），0表示不需要更新(已经更新)
+    // 第二个元素是数组，表示需要更新的商品，其格式：
+      // [{},{}.....],每一个元素都是一个对象，对象格式：
+      // 操作类型t：h表示隐藏（删除），a表示添加，u表示更新（修改）
+      // id：如果是删除或者更新，则指明id，否则id 为0
+        // {
+        //   t,:"d",
+        //   id: 0,
+        //   content: {
+        //     name: value,
+        //     ...
+        //   }
+        // }
+  // 第五个元素是一个数组,该数组用于描述商品的属性
+  // 第六个元素是一个数组,该数组用于描述展示商品的列表的表头属性
+
+  "people_info": [1,[],[],[1,[]]],
+  "specific_price_specific_person": [],
+
+
+
+  "checker": {
+    //status对象开始，
+    //用于标记各种状态，用于检查各种状态，用于修改各种状态
+    status: {
+      //normal_check, 用来进行整体的check，防止用户在保存修改前就进入其他页面
+      normal_check: function(){
+        // 检查单机的目标，如果用户未保存修改，则不允许用户进入其他界面
+        var srcE=event.target.tagName.toLowerCase();
+
+        // console.log(srcE);
+        if(srcE=="td"||
+          srcE=="th"||
+          srcE=="table"||
+          srcE=="html"||
+          event.target.parentElement.getAttribute("name")=="f_list"
+          ){}
+        else 
+          if(ls.checker.status.whether_table_modified()) {
+            alert("请保存或者放弃修改！");
+            event.stopPropagation();
+          }
+
+      },
+      
+      "row_checker": function(e){
+        $(this).find("tr.info").removeClass("info");
+        if(e.target.tagName.toLowerCase()=="td" && e.target.hasAttribute("contenteditable")){
+          var a = $(e.target).parent();
+        }
+        $(a).addClass("info");
+        // .addClass("info");
+      },
+
+      // 检测标签栏上的tab 的active 状态
+      // 更新此状态
+      // 此作为click 的listener，加在被单机的项目（tab）上
+      tab_active_check: function(event){
+        var  tab=$("#documents_tab");
+        tab.find(".active").removeClass("active");
+        $(this).addClass('active');
+      },
+
+
+      whether_td_modified : function(){
+      //这个函数用来检测td 的数据是否有改动
+      // 第一步检测td的值是否和placeholder一致，placeholder是原始值，检测的方法是删除空白进行检测
+        // 如果不同，则检查是否是空白
+          // 如果是空白，则改成初始值，然后检查td 的修改状态。检查后，把修改状态变为假
+            // 如果修改是真则td 的父元素td_modify_count计数-1
+
+        if(this.innerHTML!=this.getAttribute("placeholder")){
+          if(this.innerHTML.replace(removeSpaceInBeginEnd,"")=="") {
+            this.innerHTML = this.getAttribute("placeholder");
+            if(this.getAttribute("td_modify_status")=="true"){
+              this.parentNode.setAttribute("td_modify_count", Number(this.parentNode.getAttribute("td_modify_count"))-1);
+            }
+            this.setAttribute("td_modify_status",false);
+          }
+          else {
+            if(this.getAttribute("td_modify_status")=="false"){
+            this.setAttribute("td_modify_status",true);
+            this.parentNode.setAttribute("td_modify_count", 1+Number(this.parentNode.getAttribute("td_modify_count")));
+            }
+          }
+        }
+        else{
+          if(this.getAttribute("td_modify_status")=="true"){
+            this.parentNode.setAttribute("td_modify_count", Number(this.parentNode.getAttribute("td_modify_count"))-1);
+          }
+          this.setAttribute("td_modify_status",false);
+        }
+
+        if(Number(this.parentNode.getAttribute("td_modify_count"))>0){
+          this.parentNode.setAttribute("td_modified","");
+        }
+        else{
+          this.parentNode.removeAttribute("td_modified");
+        }
+        
+      ls.checker.status.whether_table_modified();
+      },
+
+      whether_table_modified : function(){
+        var ds = document.querySelector("#display_section");
+        var ds_t = ds.querySelector("table");
+        if(ds_t)
+        {
+          var t_tr = ds_t.querySelectorAll("tr");
+          for (var i = 0; i < t_tr.length; i++) {
+            if(Number(t_tr[i].getAttribute("td_modify_count"))!=0){
+              $('[name="saveChange"]').addClass('btn-primary');
+              $('[name="abortChange"]').addClass('btn-danger');
+              return true;
+            }
+          };
+          $('[name="saveChange"]').removeClass('btn-primary');
+          $('[name="abortChange"]').removeClass('btn-danger');
+          return false;
+        }
+      }//whether_table_modified函数结束
+
+    },//status 对象结束
+
+    list_row_number_checker: function(){
+      var rows = document.querySelectorAll("tbody tr");
+      for (var i = 0;i < rows.length; ++i) {
+        rows[i].querySelector("td").innerHTML=1+i;
+      }
+
+    },
+
+    "word_check_when_input": function (e){
+      if(e.keyCode == 13) e.preventDefault();
+    },
+
+    "number_check_after_input": function(){
+      if(this.innerHTML!=""){
+        var a = Number(this.innerHTML.replace(/ |　|&nbsp;/g,""));
+        if(a=="NaN"|| a=="undefined") a = "";
+        this.innerHTML= Number(a.toFixed(5));
+      }
+      
+    }
+  },
+
+
+
+  "history_invoice": [],
+  "draft_invoice": [],
+
+  "edit": {
+    data_convert_JSON_to_array: function(JSON_array, storeArray, p_names){
+    //参数是数组，数组的元素是JSON 对象
       // 定义一些需要使用的元素属性的值
       var c_e = ["contenteditable","true"];
       var nc_w = ["keypress",td.builder.number_check_when_input];
       var nc_a = ["blur",ls.checker.number_check_after_input];
       var text_s = ["click", td.builder.cell_checker];
 
-      for (var i = 0; i < ls.product_info[1].length; i++) {
+      for (var i = 0; i < JSON_array.length; i++) {
       //外循环开始，遍历每一个商品
 
         //所有商品属性名组成的数组
@@ -1184,7 +1465,7 @@ var ls = list = {
         
 
         // 把每一个服务器的商品转化成易于展示的格式，存储到ls.product_info[2]数组中
-        ls.product_info[2][i] = [];
+        storeArray[i] = [];
 
         // ls.product_info[2][i][j]中存储的是
             // 第i个商品的
@@ -1193,14 +1474,15 @@ var ls = list = {
         for (var j = 0; j < p_names.length; j++) {
           // 该循环遍历每一个属性名称
           // a是第j个商品的商品属性（比如名称）的html元素的描述数组（这些属性包括html 元素属性a,事件监听器e,内部html,i）
-          var a = ls.product_info[2][i][j] = []; 
+          var a = storeArray[i][j] = []; 
 
           // 每一个商品属性对应的html元素都需要拥有name 属性
           if(p_names[j]=="id")
+            // 需要修改
             a.push({type:"a",value:['name','product_id']});
           else
             a.push({type:"a",value:['name',p_names[j]]});   
-          var td_value = ls.product_info[1][i][p_names[j]];//原来的值
+          var td_value = JSON_array[i][p_names[j]];//原来的值
           var origin = td_value?td_value.toString():"";//td的原始值
 
           //需要包含的函数预定义
@@ -1230,7 +1512,7 @@ var ls = list = {
             case "id" : 
             break;
             case "manufacturer" : editable(); break;
-            case "admin_defined_id" : 
+            case "admin_defined_order" : 
                 editable();
                 break;
             case "full_name" : 
@@ -1245,16 +1527,17 @@ var ls = list = {
             case "admin_defined_unit_1_factor" :e_num(); break;
             case "admin_defined_unit_2" :editable(); break;
             case "admin_defined_unit_2_factor" :e_num(); break;
-            case "price_base" :e_num();
-            case "price_for_manufacturer" :e_num();
-            case "price_for_dealer" :e_num();
-            case "price_for_bigger" :e_num();
-            case "price_for_big" :e_num();
-            case "price_for_Medium" :e_num();
-            case "price_for_small" :e_num();
-            case "price_for_smaller" :e_num();
-            case "price_for_smallest" :e_num();
-            break;
+
+            case "price_base" :
+            case "price_for_manufacturer" :
+            case "price_for_dealer" :
+            case "price_for_bigger" :
+            case "price_for_big" :
+            case "price_for_Medium" :
+            case "price_for_small" :
+            case "price_for_smaller" :
+            case "price_for_smallest" :e_num();break;
+            
             case "py_code" : 
                 a.push({type: "a", value: ["td_modify_status", false]});
                 a.push({type: "a", value: ["placeholder", origin]});//把原来的值存入placeholder 属性中，便于后来的状态检查
@@ -1263,7 +1546,10 @@ var ls = list = {
             // case "size_id" :editable(); break;
             case "created_at" :;break;
             case "changed_at" :;break;
-            case "hidden_toggle" :editable(); break;
+            case "hidden_toggle" :
+                editable(); 
+                a.push({type: "i", value: '<input type="radio" />'});
+                break;
             case "user_comment" :editable(); break;
             case "system_log" :;break;
             default:
@@ -1274,249 +1560,34 @@ var ls = list = {
           if(td_value!=null && td_value!="null" && td_value!=undefined && td_value!="undefined")
             // i代表 innerHtml
             a.push({type:"i",value: td_value});
-          else
-            a.push({type:"i",value:""});
+          // else
+            // a.push({type:"i",value:""});
         }//内循环结束
       }//外循环结束
 
-      var table_head = [
-        [{type: "a",value:["name","line_number"]},{type: "i",value:"行号"}],
-        [{type: "a",value:["name","product_id"]},{type: "i",value:"商品编号"}],
-        [{type: "a",value:["name","manufacturer"]},{type: "i",value:"生产厂家"}],
-        [{type: "a",value:["name","admin_defined_id"]},{type: "i",value:"用户编号"}],
-        [{type: "a",value:["name","full_name"]},{type: "i",value:"商品全名"}],
-        [{type: "a",value:["name","simple_name"]},{type: "i",value:"简名"}],
-        [{type: "a",value:["name","admin_defined_unit_1"]},{type: "i",value:"辅助单位1"}],
-        [{type: "a",value:["name","admin_defined_unit_1_factor"]},{type: "i",value:"辅助单位1系数"}],//辅助单位需要有alt 弹出提示吗？
-        [{type: "a",value:["name","admin_defined_unit_2"]},{type: "i",value:"辅助单位2"}],
-        [{type: "a",value:["name","admin_defined_unit_2_factor"]},{type: "i",value:"辅助单位2系数"}],//辅助单位需要有alt 弹出提示吗？
-        [{type: "a",value:["name","price_base"]},{type: "i",value:"基准价"}],
-        [{type: "a",value:["name","price_for_manufacturer"]},{type: "i",value:"厂商价"}],
-        [{type: "a",value:["name","price_for_dealer"]},{type: "i",value:"经销商价"}],
-        [{type: "a",value:["name","price_for_bigger"]},{type: "i",value:"特大户价"}],
-        [{type: "a",value:["name","price_for_big"]},{type: "i",value:"大户价"}],
-        [{type: "a",value:["name","price_for_Medium"]},{type: "i",value:"中户价"}],
-        [{type: "a",value:["name","price_for_small"]},{type: "i",value:"小户价"}],
-        [{type: "a",value:["name","price_for_smaller"]},{type: "i",value:"个人价"}],
-        [{type: "a",value:["name","price_for_smallest"]},{type: "i",value:"零售价"}],
-        [{type: "a",value:["name","py_code"]},{type: "i",value:"拼音码"}],
-        [{type: "a",value:["name","created_at"]},{type: "i",value:"创建时间"}],
-        [{type: "a",value:["name","changed_at"]},{type: "i",value:"上次修改时间"}],
-        [{type: "a",value:["name","hidden_toggle"]},{type: "i",value:"是否停用"}],
-        [{type: "a",value:["name","user_comment"]},{type: "i",value:"用户备注"}]
-      ];
-
-      ls.display(table_head,ls.product_info[2]);
-
-      //显示完成，将状态置0
-      ls.product_info[0]=0;
-
-
-      //给基础信息页面添加功能：新建商品、删除商品、保存更改、放弃更改（什么是更改？新建、删除、修改都是更改）
-      //f_list是 ul元素
-      var ds = $("#display_section");
-      var f_container = $("<div></div>"/*,{
-        class: "container"
-      }*/).appendTo(ds);
-
-      var f_list = $('<div></div>',{
-        'name': 'f_list',
-        class: "btn-group", 
-        role:"group"
-      }).appendTo(f_container);
-
-      var f_list_1 = $('<button ></button>',{
-        "name": "createNewItem",
-        type: "button", 
-        class: "btn btn-default"
-      }).html("<a href='#'>新建商品</a>");
-
-      var f_list_2 = $('<button ></button>',{
-        "name": "deleteItem",
-        type: "button", 
-        class: "btn btn-default"
-      }).html("<a href='#'>删除选中商品</a>");
-
-      var f_list_3 = $('<button ></button>',{
-        "name": "saveChange",
-        type: "button", 
-        class: "btn btn-default"
-      }).html("<a href='#'>保存修改</a>");
-
-      var f_list_4 = $('<button ></button>',{
-        "name": "abortChange",
-        type: "button", 
-        class: "btn btn-default"
-      }).html("<a href='#'>放弃修改并退出</a>");
-
-      f_list.append(f_list_1, f_list_2, f_list_3, f_list_4);
-    }
-
-    //检查ls.product_info[0]的值
-      // -1表示没有数据，需要从服务器抓取数据
-      // 0表示没有基础信息变动，无需从服务器抓取数据，直接显示商品
-      // 1表示基础信息已有变动，需要更新到服务器
-
-    if(ls.product_info[0]==0) p_display();
-    else {
-      // for (var i = 0; i < ls.product_info[1].length; i++) {
-      //   for (var i = 0; i < ls.product_info[1].length; i++) {
-      //     Things[i]
-      //   };
-      //   ls.product_info[2][i]=ls.product_info[1][i];
-
-      // };
-
-      // 文件头声明的文件
-      ajax_object.onreadystatechange = function(){
-        if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200){
-          if(Number(ajax_object.response) != 0){
-            ls["product_info"][1] = JSON.parse(ajax_object.response);//查询的结果数组立即作为数组存储
-            ls["product_info"][0] = 0;
-            p_display();
-          }//内if结束
-          else {
-            alert("当前查询条件无结果");
-            return;
-          }
-        }//外if 结束
-      };
-
-      ls.query("*","product_info","");
-    }
-  },
-
-  "product_info": [-1,[],[],[1,[]]],
-  //products_tag 加入,第一个元素表状态，
-    // -1表示没有数据，需要从服务器抓取数据
-    // 0表示没有基础信息变动，无需从服务器抓取数据，需要置0的情况：
-      // 展示完成后
-      // 更新过修改后
-    // 1表示基础信息已有变动，需要更新到服务器
-  // 第二个元素表示抓取的原始数据，
-  // 第三个元素表示处理过，用于展示的数据
-  // 第四个数据是一个包含两个元素的数组,该数组用语更新商品信息
-    // 第一个元素表示更新状态，1表示需要更新（还未更新），0表示不需要更新(已经更新)；
-
-  "people_info": [1,[],[],[1,[]]],
-  "specific_price_specific_person": [],
-
-
-
-  "checker": {
-    //status对象开始，
-    //用于标记各种状态，用于检查各种状态，用于修改各种状态
-    status: {
-      //normal_check, 用来进行整体的check，防止用户在保存修改前就进入其他页面
-      normal_check: function(){
-        // 检查单机的目标，如果用户未保存修改，则不允许用户进入其他界面
-        var srcE=event.target.tagName.toLowerCase();
-        cl(srcE);
-
-        // console.log(srcE);
-        if(srcE=="td"||srcE=="th"||srcE=="table"||srcE=="html"){}
-        else 
-          if(ls.checker.status.whether_table_modified()) {
-            alert("请保存或者放弃修改！");
-            event.stopPropagation();
-          }
-
-      },
-      
-      "row_checker": function(e){
-        $(this).find("tr.info").removeClass("info");cl(e.target.hasAttribute("contenteditable"));
-        if(e.target.tagName.toLowerCase()=="td" && e.target.hasAttribute("contenteditable")){
-          var a = $(e.target).parent();
-        }
-        $(a).addClass("info");
-        // .addClass("info");
-      },
-
-      // 检测标签栏上的tab 的active 状态
-      // 更新此状态
-      // 此作为click 的listener，加在被单机的项目（tab）上
-      tab_active_check: function(event){
-        var  tab=$("#documents_tab");
-        tab.find(".active").removeClass("active");
-        $(this).addClass('active');
-      },
-
-
-      whether_td_modified : function(){
-      //这个函数用来检测td 的数据是否有改动
-      // 第一步检测td的值是否和placeholder一致，placeholder是原始值，检测的方法是删除空白进行检测
-        // 如果不同，则检查是否是空白
-          // 如果是空白，则改成初始值，然后检查td 的修改状态。检查后，把修改状态变为假
-            // 如果修改是真则td 的父元素td_modify_count计数-1
-        if(this.innerHTML!=this.getAttribute("placeholder")){
-          if(this.innerHTML.replace(removeSpaceInBeginEnd,"")=="") {
-            this.innerHTML = this.getAttribute("placeholder");
-            if(this.getAttribute("td_modify_status")=="true"){
-              this.parentNode.setAttribute("td_modify_count", Number(this.parentNode.getAttribute("td_modify_count"))-1);
-            }
-            this.setAttribute("td_modify_status",false);
-          }
-          else {
-            if(this.getAttribute("td_modify_status")=="false"){
-            this.setAttribute("td_modify_status",true);
-            this.parentNode.setAttribute("td_modify_count", 1+Number(this.parentNode.getAttribute("td_modify_count")));
-            }
-          }
-        }
-        else{
-          if(this.getAttribute("td_modify_status")=="true"){
-            this.parentNode.setAttribute("td_modify_count", Number(this.parentNode.getAttribute("td_modify_count"))-1);
-          }
-          this.setAttribute("td_modify_status",false);
-        }
-
-        if(Number(this.parentNode.getAttribute("td_modify_count"))>0){
-          this.parentNode.setAttribute("td_modified","");
-        }
-        else{
-          this.parentNode.removeAttribute("td_modified");
-        }
-
-
-      },
-
-      whether_table_modified : function(){
-        var ds = document.querySelector("#display_section");
-        var ds_t = ds.querySelector("table");
-        if(ds_t)
-        {
-          var t_tr = ds_t.querySelectorAll("tr");
-          for (var i = 0; i < t_tr.length; i++) {
-            if(Number(t_tr[i].getAttribute("td_modify_count"))!=0){
-              return true;
-            }
-          };
-          return false;
-        }
-      }//whether_table_modified函数结束
-
-    },//status 对象结束
-
-    "word_check_when_input": function (e){
-      if(e.keyCode == 13) e.preventDefault();
     },
 
-    "number_check_after_input": function(){
-      if(this.innerHTML!=""){
-        var a = Number(this.innerHTML.replace(/ |　|&nbsp;/g,""));
-        if(a=="NaN"|| a=="undefined") a = "";
-        this.innerHTML= Number(a.toFixed(5));
-      }
+
+    item_creator: function(){
+    // 创建客户或者商品
+      var o={},
+          a=[],
+          tbody = $("tbody"),
+          start = $("tr.info");
       
-    }
-  },
+      for(var i=0; i < ls.product_info[4].length;++i){
+        o[ls.product_info[4][i]]="";
+      }
+      ls.edit.data_convert_JSON_to_array([o],a,ls.product_info[4]);
+      
+      var new_tr = $(ls.create_list_line(a[0]));
+      if(!start.get(0)) new_tr.prependTo(tbody);
+      else start.after(new_tr);
 
+      ls.checker.list_row_number_checker();
 
+    },
 
-  "history_invoice": [],
-  "draft_invoice": [],
-
-  "edit": {
     py_code_editor: function(){
       var that = this;
 

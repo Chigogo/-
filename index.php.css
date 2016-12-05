@@ -71,11 +71,6 @@ thead *{
 	border:none;
 }
 
-tbody tr *:nth-child(2){
-	display:none;
-}
-
-
 
 p {
 	border: 1px solid black;
