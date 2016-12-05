@@ -1,5 +1,6 @@
-var ajax_object;
-var cl=console.log;
+var ajax_object,
+    cl=console.log,
+    removeSpaceInBeginEnd = /^( |　|&nbsp;)*|( |　|&nbsp;)*$/g;
 if (window.XMLHttpRequest) ajax_object = new XMLHttpRequest();
 else {/*code for IE6, IE5*/ajax_object = new ActiveXObject("Microsoft.XMLHTTP");}
 
@@ -410,6 +411,7 @@ var td = TRANSACTION_DOCUMENT = {
     // 两个功能，如果是click和focus，则选中表格内容
     // 如果是blur，则检查输入结果是否为空
     "cell_checker": function(e){
+      //点击后自动选择表格内容，用于td
       if(e.type=="click" || e.type=="focus"){
         if (document.selection) {
             var range = document.body.createTextRange();
@@ -424,7 +426,7 @@ var td = TRANSACTION_DOCUMENT = {
 
       if(e.type=="blur"){
           // console.log(this.innerHTML.replace(/ /g,"").replace(/　/g,""));
-        if(this.innerHTML.replace(/ |　|&nbsp;/g,"")==""){//正则表达式
+        if(this.innerHTML.replace(removeSpaceInBeginEnd,"")==""){//正则表达式
           console.log(this.parentNode);
           td.builder.line_deleter(this.parentNode);
         }else 
@@ -437,7 +439,6 @@ var td = TRANSACTION_DOCUMENT = {
       tr_node.parentNode.removeChild(tr_node);
       td.builder.sum_refresher();
       td.builder.line_number_refresher(document.querySelector("#i_c"));
-
     },
 
     "line_number_refresher": function(tbody){
@@ -1043,6 +1044,8 @@ var ls = list = {
     ds.innerHTML = "";
     //ds 变为新建的table
     ds = ds.appendChild(document.createElement("table"));
+    ds.addEventListener("click", ls.checker.status.row_checker);
+    $(ds).addClass("table-condensed");
 
     var thead=document.createElement("thead"),th = document.createElement("tr");//th是head_tr
     thead.appendChild(th);
@@ -1139,12 +1142,7 @@ var ls = list = {
     ls.checker.status.tab_active_check.apply($('li[list_content="product_info"]').get(0));
     
     function p_display(){
-
-      for (var i = 0; i < ls.product_info[1].length; i++) {//外循环开始，遍历每一个商品
-
-        //所有商品属性名组成的数组
-        var p_names = Object.getOwnPropertyNames(ls.product_info[1][i]);
-        p_names.push(
+      var p_names=[
           "id",
           "manufacturer",
           "admin_defined_id",
@@ -1171,7 +1169,19 @@ var ls = list = {
           "hidden_toggle",
           "user_comment",
           "system_log"
-        );
+        ];
+      // 定义一些需要使用的元素属性的值
+      var c_e = ["contenteditable","true"];
+      var nc_w = ["keypress",td.builder.number_check_when_input];
+      var nc_a = ["blur",ls.checker.number_check_after_input];
+      var text_s = ["click", td.builder.cell_checker];
+
+      for (var i = 0; i < ls.product_info[1].length; i++) {
+      //外循环开始，遍历每一个商品
+
+        //所有商品属性名组成的数组
+        // var p_names = p_names.push(Object.getOwnPropertyNames(ls.product_info[1][i]));
+        
 
         // 把每一个服务器的商品转化成易于展示的格式，存储到ls.product_info[2]数组中
         ls.product_info[2][i] = [];
@@ -1189,16 +1199,8 @@ var ls = list = {
           if(p_names[j]=="id")
             a.push({type:"a",value:['name','product_id']});
           else
-            a.push({type:"a",value:['name',p_names[j]]});
-
-            
+            a.push({type:"a",value:['name',p_names[j]]});   
           var td_value = ls.product_info[1][i][p_names[j]];//原来的值
-
-          // 定义一些需要使用的元素属性的值
-          var c_e = ["contenteditable","true"];
-          var nc_w = ["keypress",td.builder.number_check_when_input];
-          var nc_a = ["blur",ls.checker.number_check_after_input];
-          var text_s = ["click", ls.edit.click_select_text];
           var origin = td_value?td_value.toString():"";//td的原始值
 
           //需要包含的函数预定义
@@ -1313,29 +1315,39 @@ var ls = list = {
       //给基础信息页面添加功能：新建商品、删除商品、保存更改、放弃更改（什么是更改？新建、删除、修改都是更改）
       //f_list是 ul元素
       var ds = $("#display_section");
-      var f_container = $("<div></div>",{
+      var f_container = $("<div></div>"/*,{
         class: "container"
-      }).appendTo(ds);
+      }*/).appendTo(ds);
 
-      var f_list = $("<ul></ul>",{
-        name: "f_list"
+      var f_list = $('<div></div>',{
+        'name': 'f_list',
+        class: "btn-group", 
+        role:"group"
       }).appendTo(f_container);
 
-      var f_list_1 = $("<li></li>",{
-        "name":"createNewItem"
-      }).append("<a href='#'>新建商品</a>");
+      var f_list_1 = $('<button ></button>',{
+        "name": "createNewItem",
+        type: "button", 
+        class: "btn btn-default"
+      }).html("<a href='#'>新建商品</a>");
 
-      var f_list_2 = $("<li></li>",{
-        "name":"deleteItem"
-      }).append("<a href='#'>删除选中商品</a>");
+      var f_list_2 = $('<button ></button>',{
+        "name": "deleteItem",
+        type: "button", 
+        class: "btn btn-default"
+      }).html("<a href='#'>删除选中商品</a>");
 
-      var f_list_3 = $("<li></li>",{
-        "name":"saveChange"
-      }).append("<a href='#'>保存修改</a>");
+      var f_list_3 = $('<button ></button>',{
+        "name": "saveChange",
+        type: "button", 
+        class: "btn btn-default"
+      }).html("<a href='#'>保存修改</a>");
 
-      var f_list_4 = $("<li></li>",{
-        "name":"abortChange"
-      }).append("<a href='#'>放弃修改并退出</a>");
+      var f_list_4 = $('<button ></button>',{
+        "name": "abortChange",
+        type: "button", 
+        class: "btn btn-default"
+      }).html("<a href='#'>放弃修改并退出</a>");
 
       f_list.append(f_list_1, f_list_2, f_list_3, f_list_4);
     }
@@ -1399,14 +1411,25 @@ var ls = list = {
       normal_check: function(){
         // 检查单机的目标，如果用户未保存修改，则不允许用户进入其他界面
         var srcE=event.target.tagName.toLowerCase();
+        cl(srcE);
 
         // console.log(srcE);
         if(srcE=="td"||srcE=="th"||srcE=="table"||srcE=="html"){}
-          else if(ls.checker.status.whether_table_modified()) {
+        else 
+          if(ls.checker.status.whether_table_modified()) {
             alert("请保存或者放弃修改！");
             event.stopPropagation();
           }
 
+      },
+      
+      "row_checker": function(e){
+        $(this).find("tr.info").removeClass("info");cl(e.target.hasAttribute("contenteditable"));
+        if(e.target.tagName.toLowerCase()=="td" && e.target.hasAttribute("contenteditable")){
+          var a = $(e.target).parent();
+        }
+        $(a).addClass("info");
+        // .addClass("info");
       },
 
       // 检测标签栏上的tab 的active 状态
@@ -1426,7 +1449,7 @@ var ls = list = {
           // 如果是空白，则改成初始值，然后检查td 的修改状态。检查后，把修改状态变为假
             // 如果修改是真则td 的父元素td_modify_count计数-1
         if(this.innerHTML!=this.getAttribute("placeholder")){
-          if(this.innerHTML.replace(/^( |　|&nbsp;)*|( |　|&nbsp;)*$/g,"")=="") {
+          if(this.innerHTML.replace(removeSpaceInBeginEnd,"")=="") {
             this.innerHTML = this.getAttribute("placeholder");
             if(this.getAttribute("td_modify_status")=="true"){
               this.parentNode.setAttribute("td_modify_count", Number(this.parentNode.getAttribute("td_modify_count"))-1);
@@ -1494,23 +1517,11 @@ var ls = list = {
   "draft_invoice": [],
 
   "edit": {
-    //点击后自动选择表格内容，用于td
-    "click_select_text": function(e){
-      if(e.type=="click"){
-        if (document.selection) {
-            var range = document.body.createTextRange();
-            range.moveToElementText(this);
-            range.select();
-        } else if (window.getSelection) {
-            var range = document.createRange();
-            range.selectNodeContents(this);
-            window.getSelection().addRange(range);
-        } 
-      }
-    },
-
     py_code_editor: function(){
       var that = this;
+
+      that.innerHTML=that.innerHTML.replace(removeSpaceInBeginEnd,"");
+
       var py_code = $(that).parent().find('*[name="py_code"]');
       function input_Pinyin(string){
         py_code.text(string);
