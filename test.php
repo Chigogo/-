@@ -1,5 +1,5 @@
 <?php
 	header("Content-Type: text/html");
-	echo print_r($_GET);
+	var_dump($_GET);
 	echo "<br>".$_SERVER["SERVER_PROTOCOL"];
 ?>

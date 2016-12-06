@@ -10,8 +10,57 @@
     	die("Connection failed: " . $conn->connect_error);
 	}
 
-	echo file_get_contents('php://input');
 	$data = json_decode(file_get_contents('php://input'), true);
-	echo print_r($data);
 
+	// print_r($data);
+	// print_r($_GET);
+	$id;
+	$t;
+	$sql;
+
+	foreach ($data as $item_key => $item) {
+		foreach ($item as $item_property => $item_value) {
+			switch ($item_property) {
+				case 'id': 
+					$id = $data[$item_key][$item_property];
+					if($id==0){
+						$sql = "insert into ".$_GET["table"]."(id,full_name,manufacturer,unit_1) values(null, '缺省', '缺省', '箱');";
+						echo $sql;
+						if($conn->query($sql)){
+							$id = $conn->query("select last_insert_id()")->fetch_assoc()['last_insert_id()'];
+						}
+					}
+					break;
+				case 'content': 
+
+					break;
+				default:
+					break;
+			}
+		}
+		foreach ($item as $item_property => $item_value) {
+			switch ($item_property) {
+				case 'content': 
+					if($id){
+						foreach ($item_value as $key => $value) {
+							$sql="update ".$_GET["table"]." set ".$key." = '".$value."' Where id='".$id."';";
+							// echo $sql;
+
+						if($conn->query($sql)){
+							echo $key."=".$value.", operation success!\n";
+						}
+						}
+
+					}
+					break;
+				default:
+					break;
+			}
+		}
+
+	}
+
+
+	//end the connection
+	$conn->close();
 ?>

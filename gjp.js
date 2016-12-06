@@ -190,7 +190,7 @@ var td = TRANSACTION_DOCUMENT = {
 
     var c = document.querySelector('#i_c');
     //清空，并初始化表格
-    c.innerHTML = '<tr> <th style="width:46px">行号</th> <th>id</th><th>商品编号</th><th>商品全名</th><th>规格</th><th>单位</th><th>数量</th><th>单价</th><th>金额</th><th>备注</th></tr>';
+    c.innerHTML = '<tr> <th style="width:46px">行号</th><th>厂家</th><th>商品全名</th><th>规格</th><th>单位</th><th>数量</th><th>单价</th><th>金额</th><th>备注</th></tr>';
 
     for (var i = 0; i < a.document_content_array.length; i++) {
       c.appendChild(td.builder.new_line_creator(a.document_content_array[i]));
@@ -198,12 +198,14 @@ var td = TRANSACTION_DOCUMENT = {
     var last_line = document.createElement("tr")
 
     //new line 模版
-    last_line.innerHTML='<tr class="product_item" ><td name="line_number">1</td> <td>001</td><td name="admin_defined_id" ></td><td name="full_name" input_end_point></td><td></td><td>箱</td><td name="amount"></td><td name="price_base_on_unit"></td><td name="amount_multiply_by_unit"></td><td name="comment_for_item"></td></tr>';
+    last_line.innerHTML='<tr class="product_item" ><td name="line_number">1</td><td name="manufacturer" ></td><td name="full_name" input_end_point></td><td></td><td>箱</td><td name="amount"></td><td name="price_base_on_unit"></td><td name="amount_multiply_by_unit"></td><td name="comment_for_item"></td></tr>';
     c.appendChild(last_line);
+
     for (var i = 1; i < c.childNodes.length; i++) {
       td.builder.make_td_contenteditable.call(c.childNodes[i],"tr");
-      c.childNodes[i].childNodes[4].addEventListener("keypress",td.builder.query_products);
+      c.childNodes[i].querySelector('[name="full_name"]').addEventListener("keypress",td.builder.query_products);
     }
+
     td.builder.line_number_refresher(c);
     td.builder.sum_refresher();
   },
@@ -310,13 +312,13 @@ var td = TRANSACTION_DOCUMENT = {
   */
   "builder": {
     new_line_creator: function (a){//a是document_content_array的item
-      var new_tr, ln_td, id_td, adid_td, fn_td, md_td, un_td, am_td, pr_td, gn_td, cm_td;
+      var new_tr, ln_td, id_td, mf_td, fn_td, md_td, un_td, am_td, pr_td, gn_td, cm_td;
 
       new_tr = document.createElement("tr"); new_tr.addEventListener("blur", td.builder.cell_checker);//失去焦点，立即更新对应的对象
 
       ln_td = document.createElement("td"); ln_td.setAttribute("name","line_number");
       id_td = document.createElement("td"); id_td.setAttribute("name",'product_id');
-      adid_td = document.createElement("td"); adid_td.setAttribute("name",'admin_defined_id');
+      mf_td = document.createElement("td"); mf_td.setAttribute("name",'manufacturer');
       fn_td = document.createElement("td"); fn_td.addEventListener("keypress",td.builder.query_products);
                                             fn_td.addEventListener("blur", td.builder.cell_checker);
                                             fn_td.addEventListener("click", td.builder.cell_checker);
@@ -366,7 +368,7 @@ var td = TRANSACTION_DOCUMENT = {
 
       ln_td.innerHTML ="";
       id_td.innerHTML =a.id;
-      adid_td.innerHTML = a.admin_defined_id;
+      mf_td.innerHTML = a.manufacturer;
       fn_td.innerHTML =a.full_name;
       md_td.innerHTML =a.another_unit_factor?"1*"+a.another_unit_factor:"1*";
       un_td.innerHTML =a.un;
@@ -384,7 +386,7 @@ var td = TRANSACTION_DOCUMENT = {
 
       new_tr.appendChild(ln_td);
       new_tr.appendChild(id_td);
-      new_tr.appendChild(adid_td);
+      new_tr.appendChild(mf_td);
       new_tr.appendChild(fn_td);
       new_tr.appendChild(md_td);
       new_tr.appendChild(un_td);
@@ -782,7 +784,7 @@ var td = TRANSACTION_DOCUMENT = {
         };
     
       if(type == 'unselect_all'){
-          $(that).find(".info").removeClass('info');cl(720);
+          $(that).find(".info").removeClass('info');
         }
     
       // e.stopPropagation();
@@ -1284,7 +1286,7 @@ var ls = list = {
     // 0表示没有基础信息变动，无需从服务器抓取数据，需要置0的情况：
       // 展示完成后
       // 更新过修改后
-    // 1表示基础信息已有变动，需要更新到服务器
+    // 1表示基础信息已有变动，需要更新到服务器;或者需要从服务器刷新数据
   // 第二个元素表示抓取的原始数据，
   // 第三个元素表示处理过，用于展示的数据
   // 第四个元素是一个包含两个元素的数组,该数组用语更新商品信息
@@ -1391,6 +1393,36 @@ var ls = list = {
       ls.checker.status.whether_table_modified();
       },
 
+      whether_td_modified_allow_space : function(){
+      //这个函数用来检测td 的数据是否有改动
+      // 第一步检测td的值是否和placeholder一致，placeholder是原始值，检测的方法是删除空白进行检测
+        // 如果不同，则检查是否是空白
+          // 如果是空白，则改成初始值，然后检查td 的修改状态。检查后，把修改状态变为假
+            // 如果修改是真则td 的父元素td_modify_count计数-1
+
+        if(this.innerHTML!=this.getAttribute("placeholder")){
+          if(this.getAttribute("td_modify_status")=="false"){
+            this.setAttribute("td_modify_status",true);
+            this.parentNode.setAttribute("td_modify_count", 1+Number(this.parentNode.getAttribute("td_modify_count")));
+          }
+        }
+        else{
+          if(this.getAttribute("td_modify_status")=="true"){
+            this.parentNode.setAttribute("td_modify_count", Number(this.parentNode.getAttribute("td_modify_count"))-1);
+          }
+          this.setAttribute("td_modify_status",false);
+        }
+
+        if(Number(this.parentNode.getAttribute("td_modify_count"))>0){
+          this.parentNode.setAttribute("tr_modified","");
+        }
+        else{
+          this.parentNode.removeAttribute("tr_modified");
+        }
+        
+      ls.checker.status.whether_table_modified();
+      },
+
       whether_table_modified : function(){
         var ds = document.querySelector("#display_section");
         var ds_t = ds.querySelector("table");
@@ -1426,17 +1458,10 @@ var ls = list = {
 
     //用于标注基本信息是否隐藏
     hidden_toggle: function(e){
-      if(e.keyCode == 32||e.type=="click"){
-        var a = ls.checker.true_or_false("trueFalseToggle", this.innerHTML, "Boolean");
-        if(a){
-          this.innerHTML=ls.checker.true_or_false("toAnotherValueType", a, "√");
-
-
-        }
-        else{
-          this.innerHTML=ls.checker.true_or_false("toAnotherValueType", a, "√");
-        }
-        ls.checker.status.whether_td_modified.call(this);
+      if(e.type=="click"||e.keyCode == 32){
+        var a = ls.checker.true_or_false("trueFalseToggle", this.innerHTML, "Boolean");cl(a);
+        this.innerHTML=ls.checker.true_or_false("toAnotherValueType", a, "√");
+        ls.checker.status.whether_td_modified_allow_space.call(this);
       }
     },
 
@@ -1476,7 +1501,7 @@ var ls = list = {
 
       switch(type){
         case "toBoolean" :return Boolean(value);break;
-        case "trueFalseToggle":return ls.checker.true_or_false("toAnotherValueType", value?false:true, valueType);break;
+        case "trueFalseToggle":return ls.checker.true_or_false("toAnotherValueType", value?false:true, returnType);break;
         case "toAnotherValueType": 
             switch(returnType){
               case "Boolean": return value?true:false;break;
@@ -1667,6 +1692,10 @@ var ls = list = {
 
         for (var i = 0; i < tds.length; i++) {
           var td = $(tds[i]);
+          if(td.attr("name")=="hidden_toggle"){
+            o.content[td.attr("name")]=td.text()=="√"?1:2;
+          }
+          else
           o.content[td.attr("name")]=td.text();
         };
         return o;
@@ -1681,13 +1710,17 @@ var ls = list = {
       ls.product_info[3][0]=1;
       cl(ls.product_info[3][1]);
       $.ajax({
-        url: "update.php",
+        url: "update.php?table=product_info",
         method: "POST",
         contentType: "application/json",
-        data: ls.product_info[3][1],
+        data: JSON.stringify(ls.product_info[3][1]),
         success: function(data, status, XMLHttpRequest_object){
-          cl( data);
-
+          cl(data);
+          ls.product_info[0]=1;
+          $('[td_modify_status="true"]').attr("td_modify_status",false);
+          $("tr[td_modify_count]").attr("td_modify_count",0);
+          $("tr[tr_modified]").removeAttr("tr_modified");
+          ls.checker.status.whether_table_modified();
         }
       });
 
@@ -1725,7 +1758,6 @@ var ls = list = {
 
     arrow_key_control: function(e){
       if(e.keyCode >= 37 && e.keyCode<=40 ){
-        cl(e.keyCode);
         switch(e.keyCode){
           //←
           case 37: 
