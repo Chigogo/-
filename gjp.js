@@ -1068,45 +1068,36 @@ var ls = list = {
 
 
     for (var i = 0; i < table_data.length; i++) {//遍历每一个数组元素，创建对一个的tr，一个tr对应一个商品
-      tbody.appendChild(ls.create_list_line(table_data[i]));
+      tbody.appendChild(ls.create_list_line(table_data[i], th));
     }
 
     ls.checker.list_row_number_checker();
 
   },
 
-  create_list_line: function(table_data_i){
-    //当前视图的表格中的thead 的 tr行
-    var tr_in_thead = $("thead tr").get(0);
+  create_list_line: function(table_data_i, tr_in_thead){
+    //tr_in_thead 当前视图的表格中的thead 的 tr行
     var tr = document.createElement("tr");
     tr.setAttribute("td_modify_count",0);
     for (var j = 0; j < tr_in_thead.children.length; j++) {//遍历head_tr的每一个td，也就是每一列
       var td = document.createElement("td");
-      for (var k = 0, k_useful = false; k < table_data_i.length; k++) {//遍历单个商品数组的每一个元素，每个元素数组对应一个td
+      for (var k = 0; k < table_data_i.length; k++) {//遍历单个商品数组的每一个元素，每个元素数组对应一个td
         for (var l = 0; l < table_data_i[k].length; l++) {//td对应tr数组的一个元素，遍历td元素的元素，
           if(table_data_i[k][l].type == "a" && table_data_i[k][l].value[0]=="name" && table_data_i[k][l].value[1]== tr_in_thead.children[j].getAttribute("name")) 
-          {  
-            k_useful = true; 
-          }
-          if(k_useful)
-          {
+          { 
             for (var l = 0; l < table_data_i[k].length; l++) {
               //console.log(table_data);
               switch(table_data_i[k][l].type){
                 case "a": td.setAttribute(table_data_i[k][l].value[0],table_data_i[k][l].value[1]);break;
                 case "e": td.addEventListener(table_data_i[k][l].value[0],table_data_i[k][l].value[1]);break;
                 case "i": 
-                    cl(table_data_i[k][l]);
                     td.innerHTML= table_data_i[k][l].value;
-                    cl(td);
                     break;
               }
+              // break;
             }
-            break;
+            break;break;
           }
-        }
-        if(k_useful){
-          break;
         }
       }
       tr.appendChild(td);
@@ -1190,7 +1181,7 @@ var ls = list = {
         "name": "saveChange",
         type: "button", 
         class: "btn btn-default"
-      }).text("保存修改");
+      }).text("保存修改").on("click", ls.edit.items_saver);
 
       var f_list_4 = $('<button ></button>',{
         "name": "abortChange",
@@ -1300,10 +1291,10 @@ var ls = list = {
     // 第一个元素表示更新状态，1表示需要更新（还未更新），0表示不需要更新(已经更新)
     // 第二个元素是数组，表示需要更新的商品，其格式：
       // [{},{}.....],每一个元素都是一个对象，对象格式：
-      // 操作类型t：h表示隐藏（删除），a表示添加，u表示更新（修改）
+      // 操作类型t：a表示添加，u表示更新（修改）
       // id：如果是删除或者更新，则指明id，否则id 为0
         // {
-        //   t,:"d",
+        //   t:"u",
         //   id: 0,
         //   content: {
         //     name: value,
@@ -1391,10 +1382,10 @@ var ls = list = {
         }
 
         if(Number(this.parentNode.getAttribute("td_modify_count"))>0){
-          this.parentNode.setAttribute("td_modified","");
+          this.parentNode.setAttribute("tr_modified","");
         }
         else{
-          this.parentNode.removeAttribute("td_modified");
+          this.parentNode.removeAttribute("tr_modified");
         }
         
       ls.checker.status.whether_table_modified();
@@ -1431,6 +1422,71 @@ var ls = list = {
 
     "word_check_when_input": function (e){
       if(e.keyCode == 13) e.preventDefault();
+    },
+
+    //用于标注基本信息是否隐藏
+    hidden_toggle: function(e){
+      if(e.keyCode == 32||e.type=="click"){
+        var a = ls.checker.true_or_false("trueFalseToggle", this.innerHTML, "Boolean");
+        if(a){
+          this.innerHTML=ls.checker.true_or_false("toAnotherValueType", a, "√");
+
+
+        }
+        else{
+          this.innerHTML=ls.checker.true_or_false("toAnotherValueType", a, "√");
+        }
+        ls.checker.status.whether_td_modified.call(this);
+      }
+    },
+
+    "true_or_false": function(type, inputValue, returnType){
+    //type 指明toBoolean, trueFalseToggle, toAnotherValueType
+      var value, valueType;
+      switch(inputValue){
+        case true:
+        case "true":
+        case "真":
+        case "√":
+        case 1: value = true;break;
+
+        case false:
+        case undefined:
+        case "false":
+        case "":
+        case "假":
+        case 0: value = false;break;
+      }
+
+      switch(inputValue){
+        case true: valueType="Boolean";break;
+        case "true": valueType="String";break;
+        case "真":  valueType="Chinese";break;
+        case "√":  valueType="√";break;
+        case 1: valueType="Number";break;
+
+        case false: valueType="Boolean";break;
+        case undefined: valueType="Boolean";break;
+        case "false":valueType="String";break;
+        case "": valueType="√";break;
+        case "假": valueType="Chinese";break;
+        case 0: valueType="Number";break;
+      }
+
+
+      switch(type){
+        case "toBoolean" :return Boolean(value);break;
+        case "trueFalseToggle":return ls.checker.true_or_false("toAnotherValueType", value?false:true, valueType);break;
+        case "toAnotherValueType": 
+            switch(returnType){
+              case "Boolean": return value?true:false;break;
+              case "String": return value?"true":"false";break;
+              case "Chinese": return value?"真":"假";break;
+              case "√": return value?"√":"";break;
+              case "Number": return value?1:0;break;
+            };
+        break;
+      }
     },
 
     "number_check_after_input": function(){
@@ -1483,13 +1539,17 @@ var ls = list = {
           else
             a.push({type:"a",value:['name',p_names[j]]});   
           var td_value = JSON_array[i][p_names[j]];//原来的值
-          var origin = td_value?td_value.toString():"";//td的原始值
+          var placeholder = td_value?td_value.toString():"";
+
+          if(td_value && td_value!="null" && td_value!="undefined")
+            // i代表 innerHtml
+            a.push({type:"i",value: td_value});
 
           //需要包含的函数预定义
           function editable(){
             a.push({type: "a", value: c_e}); 
             a.push({type: "a", value: ["td_modify_status", false]});
-            a.push({type: "a", value: ["placeholder", origin]});//把原来的值存入placeholder 属性中，便于后来的状态检查
+            a.push({type: "a", value: ["placeholder", placeholder]});//把原来的值存入placeholder 属性中，便于后来的状态检查
             a.push({type: "e", value: ["blur",ls.checker.status.whether_td_modified]});
             
             a.push({type: "e", value: ["keypress", ls.checker.word_check_when_input]});
@@ -1498,7 +1558,7 @@ var ls = list = {
           }
           function e_num(){//add event listener for num tds
             a.push({type: "a", value: ["td_modify_status", false]});
-            a.push({type: "a", value: ["placeholder", origin]});//把原来的值存入placeholder 属性中，便于后来的状态检查
+            a.push({type: "a", value: ["placeholder", placeholder]});//把原来的值存入placeholder 属性中，便于后来的状态检查
             a.push({type: "e", value: ["blur",ls.checker.status.whether_td_modified]});
             a.push({type: "e", value: ["keydown", ls.edit.arrow_key_control]});
 
@@ -1540,15 +1600,23 @@ var ls = list = {
             
             case "py_code" : 
                 a.push({type: "a", value: ["td_modify_status", false]});
-                a.push({type: "a", value: ["placeholder", origin]});//把原来的值存入placeholder 属性中，便于后来的状态检查
+                a.push({type: "a", value: ["placeholder", placeholder]});//把原来的值存入placeholder 属性中，便于后来的状态检查
                 break;
 
             // case "size_id" :editable(); break;
             case "created_at" :;break;
             case "changed_at" :;break;
             case "hidden_toggle" :
-                editable(); 
-                a.push({type: "i", value: '<input type="radio" />'});
+                a.push(
+                {type: "a", value: ["td_modify_status", false]},
+                {type: "a", value: ["placeholder", ls.checker.true_or_false("toAnotherValueType", td_value=="off"||td_value==undefined?false:true, "√")]},//把原来的值存入placeholder 属性中，便于后来的状态检查
+                {type: "e", value: ["click",ls.checker.hidden_toggle]},
+                {type: "e", value: ["keypress",ls.checker.hidden_toggle]},
+                {type: "e", value: ["blur",ls.checker.status.whether_td_modified]},
+                {
+                  type: "i",  value: ls.checker.true_or_false("toAnotherValueType", td_value=="off"||td_value==undefined?false:true, "√")
+                }
+                );
                 break;
             case "user_comment" :editable(); break;
             case "system_log" :;break;
@@ -1557,11 +1625,6 @@ var ls = list = {
             break;
           }
 
-          if(td_value!=null && td_value!="null" && td_value!=undefined && td_value!="undefined")
-            // i代表 innerHtml
-            a.push({type:"i",value: td_value});
-          // else
-            // a.push({type:"i",value:""});
         }//内循环结束
       }//外循环结束
 
@@ -1580,11 +1643,54 @@ var ls = list = {
       }
       ls.edit.data_convert_JSON_to_array([o],a,ls.product_info[4]);
       
-      var new_tr = $(ls.create_list_line(a[0]));
+      var new_tr = $(ls.create_list_line(a[0], $("thead tr").get(0)));
       if(!start.get(0)) new_tr.prependTo(tbody);
       else start.after(new_tr);
 
       ls.checker.list_row_number_checker();
+
+    },
+
+    items_saver: function(){
+      var trs = $("tr[tr_modified]");
+      var o_array=[];
+
+      function Item(tr){
+        var o={},
+            a = $(tr).find('[name="product_id"]'),
+            tds = $(tr).find('[td_modify_status="true"]'); 
+            
+            o.content = {};
+
+        o.id=a.text() == ""?0:a.text();
+        o.t=a.text() == ""?"a":"u";
+
+        for (var i = 0; i < tds.length; i++) {
+          var td = $(tds[i]);
+          o.content[td.attr("name")]=td.text();
+        };
+        return o;
+      }
+
+
+      for (var i = 0; i < trs.length; i++) {
+        ls.product_info[3][1][i] = Item(trs[i]);
+      };
+
+      //状态
+      ls.product_info[3][0]=1;
+      cl(ls.product_info[3][1]);
+      $.ajax({
+        url: "update.php",
+        method: "POST",
+        contentType: "application/json",
+        data: ls.product_info[3][1],
+        success: function(data, status, XMLHttpRequest_object){
+          cl( data);
+
+        }
+      });
+
 
     },
 
@@ -1607,7 +1713,6 @@ var ls = list = {
               cl("正在加载汉字转拼音脚本");
               $("<script name='Chinese_to_pinyin.js'></script>").appendTo($("head")).text(result);
               input_Pinyin((pinyin.getCamelChars(that.innerHTML)).toLowerCase());
-
             }
           });
         }

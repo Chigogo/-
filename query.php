@@ -8,7 +8,7 @@
 	if ($conn->connect_error) {
 		header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
     	die("Connection failed: " . $conn->connect_error);
-} 
+	} 
 
 	//新建记录，返回新纪录id 的方法
 	//如果c_new_i标记存在，则创建新发票，并返回发票id

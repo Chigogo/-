@@ -91,9 +91,13 @@ p {
   color: white;
 }
 
-tr[td_modified]::after {
-   content: "<- 此条目已被修改";
-   color: red;
+tr[tr_modified]::after {
+  background-image: url('img/huaji.jpg');
+  display: inline-block;
+  background-size: 28px 28px;
+  width: 28px; 
+  height: 28px;
+  content:"";
 }
 
 td[td_modify_status="true"]{
