@@ -1072,7 +1072,6 @@ var ls = list = {
 
     var thead=document.createElement("thead"),th = document.createElement("tr");//th是head_tr
     thead.appendChild(th);
-
     for (var i = 0; i < table_head.length; i++) {
       var td = document.createElement("th");
       for (var j = 0; j < table_head[i].length; j++) {
@@ -1166,7 +1165,7 @@ var ls = list = {
     
     function p_display(){
       var p_names = ls.product_info[4];
-      ls.edit.data_convert_JSON_to_array(ls.product_info[1], ls.product_info[2], p_names);
+      ls.edit.data_convert_JSON_to_array(ls.product_info[1], ls.product_info[2], p_names, "product");
 
       //表头和表内容的表格
       ls.display(ls.product_info[5],ls.product_info[2]);
@@ -1192,7 +1191,9 @@ var ls = list = {
         "name": "createNewItem",
         type: "button", 
         class: "btn btn-default"
-      }).text("新建商品").on("click", ls.edit.item_creator);
+      }).text("新建商品").on("click", function(){
+        ls.edit.item_creator("product");
+      });
 
       var f_list_2 = $('<button ></button>',{
         "name": "deleteItem",
@@ -1206,7 +1207,9 @@ var ls = list = {
         "name": "saveChange",
         type: "button", 
         class: "btn btn-default"
-      }).text("保存修改").on("click", ls.edit.items_saver);
+      }).text("保存修改").on("click", function(){
+        ls.edit.items_saver("product");
+      });
 
       var f_list_4 = $('<button ></button>',{
         "name": "abortChange",
@@ -1328,6 +1331,114 @@ var ls = list = {
         // }
   // 第五个元素是一个数组,该数组用于描述商品的属性
   // 第六个元素是一个数组,该数组用于描述展示商品的列表的表头属性
+  
+  "pe_q_d": function(e){
+    // people query and display，用于用户信息的查询event listener
+    // 在展示客户信息之前检查状态，如果有修改则提示用户保存修改
+    // 创建p_display函数，这个函数用来展示客户信息
+    if(ls.checker.status.whether_table_modified()) {
+          alert("请保存或者放弃修改！");
+          return;
+    }
+
+    // tab_content表示本tab 的内容的类型
+    // 展示前，检查tab 内显示标签
+    if(!document.querySelector("#documents_tab>ul").querySelector('*[list_content="people_info"]')){
+      var a = document.createElement("li");
+      // a.setAttribute("class","active");
+      a.setAttribute("tab_content","list");
+      //list_content表示 本
+      a.setAttribute("list_content","people_info");
+      a.innerHTML='<a href="#">客户信息</a>';
+      a.addEventListener("click", ls.pe_q_d);
+      a.addEventListener("click", ls.checker.status.tab_active_check);
+      document.querySelector("#documents_tab>ul").appendChild(a);
+    }
+    
+    ls.checker.status.tab_active_check.apply($('li[list_content="people_info"]').get(0));
+    
+    function p_display(){
+      var p_names = ls.people_info[4];
+      ls.edit.data_convert_JSON_to_array(ls.people_info[1], ls.people_info[2], p_names, "people");
+
+      //展示表头、表内容
+      ls.display(ls.people_info[5],ls.people_info[2]);
+
+      //显示完成，将状态置0
+      ls.people_info[0]=0;
+
+
+      //给基础信息页面添加功能：新建商品、删除商品、保存更改、放弃更改（什么是更改？新建、删除、修改都是更改）
+      //f_list是 ul元素
+      var ds = $("#display_section");
+      var f_container = $("<div></div>"/*,{
+        class: "container"
+      }*/).appendTo(ds);
+
+      var f_list = $('<div></div>',{
+        'name': 'f_list',
+        class: "btn-group", 
+        role:"group"
+      }).appendTo(f_container);
+
+      var f_list_1 = $('<button ></button>',{
+        "name": "createNewItem",
+        type: "button", 
+        class: "btn btn-default"
+      }).text("新建客户").on("click", function(){
+        ls.edit.item_creator("people");}
+      );
+
+      var f_list_2 = $('<button ></button>',{
+        "name": "deleteItem",
+        type: "button", 
+        class: "btn btn-default"
+      }).text("删除客户").on("click", function(){
+        ls.checker.hidden_toggle.call($("tbody tr.info").find("[name='hidden_toggle']").get(0),{"type":"click"});
+      });
+
+      var f_list_3 = $('<button ></button>',{
+        "name": "saveChange",
+        type: "button", 
+        class: "btn btn-default"
+      }).text("保存修改").on("click", function(){
+        ls.edit.items_saver("people");
+      });
+
+      var f_list_4 = $('<button ></button>',{
+        "name": "abortChange",
+        type: "button", 
+        class: "btn btn-default"
+      }).text("放弃并退出");
+
+      f_list.append(f_list_1, f_list_2, f_list_3, f_list_4);
+    }
+
+    //检查ls.people_info[0]的值
+      // -1表示没有数据，需要从服务器抓取数据
+      // 0表示没有基础信息变动，无需从服务器抓取数据，直接显示商品
+      // 1表示基础信息已有变动，需要更新到服务器
+
+    if(ls.people_info[0]==0) p_display();
+    else {
+
+      // 文件头声明的文件
+      ajax_object.onreadystatechange = function(){
+        if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200){
+          if(Number(ajax_object.response) != 0){
+            ls["people_info"][1] = JSON.parse(ajax_object.response);//查询的结果数组立即作为数组存储
+            ls["people_info"][0] = 0;
+            p_display();
+          }//内if结束
+          else {
+            ls.checker.status.pop_up_creator("客户查询结果",$("<p>当前条件无客户</p>").get(0));
+            return;
+          }
+        }//外if 结束
+      };
+      ls.query("*","people","");
+    }
+  },
 
   "people_info": [
     -1,
@@ -1335,45 +1446,49 @@ var ls = list = {
     [],
     [1,[]],
     [
-      "id"
-      "full_name"
-      "simple_name"
-      "person_in_charge"
-      "tel"
-      "phone"
-      "Address"
-      "role"
-      "py_code"
-      "password"
-      "loyalty"
-      "complexity"
+      "id",
+      "admin_defined_order",
+      "full_name",
+      "simple_name",
+      "person_in_charge",
+      "tel",
+      "phone",
+      "Address",
+      "role",
+      "py_code",
+      "password",
+      "loyalty",
+      "complexity",
+      "hidden_toggle"
     ],
     [
       [{type: "a",value:["name","line_number"]},{type: "i",value:"行号"}],
       [{type: "a",value:["name","people_id"]},{type: "i",value:"客户编号"}],
       [{type: "a",value:["name","admin_defined_order"]},{type: "i",value:"用户排序"}],
-      [{type: "a",value:["name","full_name"]},{type: "i",value:"商品全名"}],
+      [{type: "a",value:["name","full_name"]},{type: "i",value:"客户全名"}],
       [{type: "a",value:["name","simple_name"]},{type: "i",value:"简名"}],
+      [{type: "a",value:["name","person_in_charge"]},{type: "i",value:"负责人"}],
       [{type: "a",value:["name","py_code"]},{type: "i",value:"拼音码"}],
       [{type: "a",value:["name","tel"]},{type: "i",value:"电话"}],
       [{type: "a",value:["name","phone"]},{type: "i",value:"手机"}],
       [{type: "a",value:["name","Address"]},{type: "i",value:"地址"}],
-      [{type: "a",value:["name","role"]},{type: "i",value:"角色"}]
+      [{type: "a",value:["name","role"]},{type: "i",value:"角色"}],
       [{type: "a",value:["name","loyalty"]},{type: "i",value:"忠诚度"}],
-      [{type: "a",value:["name","complexity"]},{type: "i",value:"复杂度"}]
+      [{type: "a",value:["name","complexity"]},{type: "i",value:"复杂度"}],
+      [{type: "a",value:["name","hidden_toggle"]},{type: "i",value:"是否删除"}]
     ]
   ],
-  //products_tag 加入,第一个元素表状态，
+  //people_tag 加入,第一个元素表状态，
     // -1表示没有数据，需要从服务器抓取数据
     // 0表示没有基础信息变动，无需从服务器抓取数据，需要置0的情况：
       // 展示完成后
       // 更新过修改后
     // 1表示基础信息已有变动，需要更新到服务器;或者需要从服务器刷新数据
-  // 第二个元素表示抓取的原始数据，
+  // 第二个元素表示抓取的原始数据
   // 第三个元素表示处理过，用于展示的数据
-  // 第四个元素是一个包含两个元素的数组,该数组用语更新商品信息
+  // 第四个元素是一个包含两个元素的数组,该数组用于更新客户信息（到服务器
     // 第一个元素表示更新状态，1表示需要更新（还未更新），0表示不需要更新(已经更新)
-    // 第二个元素是数组，表示需要更新的商品，其格式：
+    // 第二个元素是数组，表示需要更新的客户，其格式：
       // [{},{}.....],每一个元素都是一个对象，对象格式：
       // 操作类型t：a表示添加，u表示更新（修改）,d表示删除
       // id：如果是删除或者更新，则指明id，否则id 为0
@@ -1385,8 +1500,9 @@ var ls = list = {
         //     ...
         //   }
         // }
-  // 第五个元素是一个数组,该数组用于描述商品的属性
-  // 第六个元素是一个数组,该数组用于描述展示商品的列表的表头属性
+  // 第五个元素是一个数组,该数组用于描述客户的属性
+  // 第六个元素是一个数组,该数组用于描述展示客户的列表的表头属性
+
   "specific_price_specific_person": [],
 
 
@@ -1435,7 +1551,7 @@ var ls = list = {
 
       // 检测标签栏上的tab 的active 状态
       // 更新此状态
-      // 此作为click 的listener，加在被单机的项目（tab）上
+      // 此作为click 的listener，加在被单击的项目（tab）上
       tab_active_check: function(event){
         var  tab=$("#documents_tab");
         tab.find(".active").removeClass("active");
@@ -1626,22 +1742,12 @@ var ls = list = {
   "draft_invoice": [],
 
   "edit": {
-    data_convert_JSON_to_array: function(JSON_array, storeArray, p_names){
+    data_convert_JSON_to_array: function(JSON_array, storeArray, p_names, JSON_array_content_type){
     //参数是数组，数组的元素是JSON 对象
-      // 定义一些需要使用的元素属性的值
-      var c_e = ["contenteditable","true"];
-      var nc_w = ["keypress",td.builder.number_check_when_input];
-      var nc_a = ["blur",ls.checker.number_check_after_input];
-      var text_s = ["click", td.builder.cell_checker];
-
+      var switch_function = ls.edit.specific_property_specific_attribute(JSON_array_content_type);
       for (var i = 0; i < JSON_array.length; i++) {
-      //外循环开始，遍历每一个商品
-
-        //所有商品属性名组成的数组
-        // var p_names = p_names.push(Object.getOwnPropertyNames(ls.product_info[1][i]));
-        
-
-        // 把每一个服务器的商品转化成易于展示的格式，存储到ls.product_info[2]数组中
+      //外循环开始，遍历每一个item,比如商品或者用户
+      // 把每一个服务器的item转化成易于展示的格式，存储到ls.**_info[2]数组中
         storeArray[i] = [];
 
         // ls.product_info[2][i][j]中存储的是
@@ -1652,118 +1758,168 @@ var ls = list = {
           // 该循环遍历每一个属性名称
           // a是第j个商品的商品属性（比如名称）的html元素的描述数组（这些属性包括html 元素属性a,事件监听器e,内部html,i）
           var a = storeArray[i][j] = []; 
-
           // 每一个商品属性对应的html元素都需要拥有name 属性
           if(p_names[j]=="id")
             // 需要修改
-            a.push({type:"a",value:['name','product_id']});
+            a.push({type:"a",value:['name',JSON_array_content_type+'_id']});
           else
             a.push({type:"a",value:['name',p_names[j]]});   
           var td_value = JSON_array[i][p_names[j]];//原来的值
           var placeholder = td_value?td_value.toString():"";
+          a.push({type: "a", value: ["placeholder", placeholder]});//把原来的值存入placeholder 属性中，便于后来的状态检查
 
-          if(td_value && td_value!="null" && td_value!="undefined")
+          if(placeholder && placeholder!="null" && placeholder!="undefined")
             // i代表 innerHtml
-            a.push({type:"i",value: td_value});
-
-          //需要包含的函数预定义
-          function editable(){
-            a.push({type: "a", value: c_e}); 
-            a.push({type: "a", value: ["td_modify_status", false]});
-            a.push({type: "a", value: ["placeholder", placeholder]});//把原来的值存入placeholder 属性中，便于后来的状态检查
-            a.push({type: "e", value: ["blur",ls.checker.status.whether_td_modified]});
-            
-            a.push({type: "e", value: ["keypress", ls.checker.word_check_when_input]});
-            a.push({type: "e", value: ["keydown", ls.edit.arrow_key_control]});
-            a.push({type: "e", value: text_s});
-          }
-          function e_num(){//add event listener for num tds
-            a.push({type: "a", value: ["td_modify_status", false]});
-            a.push({type: "a", value: ["placeholder", placeholder]});//把原来的值存入placeholder 属性中，便于后来的状态检查
-            a.push({type: "e", value: ["blur",ls.checker.status.whether_td_modified]});
-            a.push({type: "e", value: ["keydown", ls.edit.arrow_key_control]});
-
-            a.push({type: "a", value: c_e}); 
-            a.push({type: "e", value: nc_w});
-            a.push({type: "e", value: nc_a});
-            a.push({type: "e", value: text_s});
-          }
-
-          switch(p_names[j]){
-            case "id" : 
-            break;
-            case "manufacturer" : editable(); break;
-            case "admin_defined_order" : 
-                editable();
-                break;
-            case "full_name" : 
-                editable();
-                a.push({type: "e", value: ["blur", ls.edit.py_code_editor]});
-                break;
-            case "simple_name" : editable(); break;
-
-            case "unit_1" : editable(); break;
-
-            case "admin_defined_unit_1" : editable(); break;
-            case "admin_defined_unit_1_factor" :e_num(); break;
-            case "admin_defined_unit_2" :editable(); break;
-            case "admin_defined_unit_2_factor" :e_num(); break;
-
-            case "price_base" :
-            case "price_for_manufacturer" :
-            case "price_for_dealer" :
-            case "price_for_bigger" :
-            case "price_for_big" :
-            case "price_for_Medium" :
-            case "price_for_small" :
-            case "price_for_smaller" :
-            case "price_for_smallest" :e_num();break;
-            
-            case "py_code" : 
-                a.push({type: "a", value: ["td_modify_status", false]});
-                a.push({type: "a", value: ["placeholder", placeholder]});//把原来的值存入placeholder 属性中，便于后来的状态检查
-                break;
-
-            // case "size_id" :editable(); break;
-            case "created_at" :;break;
-            case "changed_at" :;break;
-            case "hidden_toggle" :
-                var hidden_toggle_value = ls.checker.true_or_false("toAnotherValueType", td_value==""||td_value=="off"||td_value==undefined?false:true, "√");
-                a.push(
-                {type: "a", value: ["td_modify_status", false]},
-                {type: "a", value: ["placeholder", hidden_toggle_value]},//把原来的值存入placeholder 属性中，便于后来的状态检查
-                {type: "e", value: ["click",ls.checker.hidden_toggle]},
-                {type: "e", value: ["keypress",ls.checker.hidden_toggle]},
-                {type: "e", value: ["blur",ls.checker.status.whether_td_modified]},
-                {
-                  type: "i",  value: hidden_toggle_value
-                }
-                );
-                break;
-            case "user_comment" :editable(); break;
-            case "system_log" :;break;
-            default:
-
-            break;
-          }
-
+            a.push({type:"i",value: placeholder});
+          switch_function(a,p_names[j],placeholder);
         }//内循环结束
       }//外循环结束
 
     },
 
+    specific_property_specific_attribute: function(JSON_array_content_type){
+      //是product 还是其他？
 
-    item_creator: function(){
+      // 定义一些需要使用的元素属性的值
+      var c_e = ["contenteditable","true"];
+      var nc_w = ["keypress",td.builder.number_check_when_input];
+      var nc_a = ["blur",ls.checker.number_check_after_input];
+      var text_s = ["click", td.builder.cell_checker];
+      //需要包含的函数预定义
+      function editable(a){
+        a.push(
+          {type: "a", value: c_e}, 
+          {type: "a", value: ["td_modify_status", false]},
+          {type: "e", value: ["blur",ls.checker.status.whether_td_modified]},
+          {type: "e", value: ["keypress", ls.checker.word_check_when_input]},
+          {type: "e", value: ["keydown", ls.edit.arrow_key_control]},
+          {type: "e", value: text_s}
+        );
+      }
+      function e_num(a){//add event listener for num tds
+        a.push(
+          {type: "a", value: ["td_modify_status", false]},
+          {type: "e", value: ["blur",ls.checker.status.whether_td_modified]},
+          {type: "e", value: ["keydown", ls.edit.arrow_key_control]},
+          {type: "a", value: c_e}, 
+          {type: "e", value: nc_w},
+          {type: "e", value: nc_a},
+          {type: "e", value: text_s}
+          );
+      }
+
+      if(JSON_array_content_type=="product") return function(a, p_name, placeholder){
+        switch(p_name){
+          case "id" : 
+          break;
+          case "manufacturer" : editable(a); break;
+          case "admin_defined_order" : 
+              editable(a);
+              break;
+          case "full_name" : 
+              editable(a);
+              a.push({type: "e", value: ["blur", ls.edit.py_code_editor]});
+              break;
+          case "simple_name" : editable(a); break;
+
+          case "unit_1" : editable(a); break;
+
+          case "admin_defined_unit_1" : editable(a); break;
+          case "admin_defined_unit_1_factor" :e_num(a); break;
+          case "admin_defined_unit_2" :editable(a); break;
+          case "admin_defined_unit_2_factor" :e_num(a); break;
+
+          case "price_base" :
+          case "price_for_manufacturer" :
+          case "price_for_dealer" :
+          case "price_for_bigger" :
+          case "price_for_big" :
+          case "price_for_Medium" :
+          case "price_for_small" :
+          case "price_for_smaller" :
+          case "price_for_smallest" :e_num(a);break;
+          
+          case "py_code" : 
+              a.push({type: "a", value: ["td_modify_status", false]});
+              break;
+
+          // case "size_id" :editable(a); break;
+          case "created_at" :;break;
+          case "changed_at" :;break;
+          case "hidden_toggle" :
+              var placeholder = ls.checker.true_or_false("toAnotherValueType", placeholder==""||placeholder=="off"||placeholder==undefined?false:true, "√");
+              a.push(
+              {type: "a", value: ["td_modify_status", false]},
+              {type: "a", value: ["placeholder", placeholder]},//把原来的值存入placeholder 属性中，便于后来的状态检查
+              {type: "e", value: ["click",ls.checker.hidden_toggle]},
+              {type: "e", value: ["keypress",ls.checker.hidden_toggle]},
+              {type: "e", value: ["blur",ls.checker.status.whether_td_modified]},
+              {type: "i",  value: placeholder}
+              );
+              break;
+          case "user_comment" :editable(a); break;
+          case "system_log" :;break;
+          default:
+            break;
+        }
+      };
+      if(JSON_array_content_type=="people") return function(a, p_name, placeholder){
+        switch(p_name){
+          case "id" : 
+          break;
+          case "admin_defined_order" : 
+              editable(a);
+              break;
+          case "full_name" : 
+              editable(a);
+              a.push({type: "e", value: ["blur", ls.edit.py_code_editor]});
+              break;
+          case "simple_name" : editable(a); break;
+
+          case "person_in_charge" : editable(a); break;
+          case "tel" :
+          case "loyalty":
+          case "complexity":
+          case "phone" : editable(a);break;
+          case "Address" : editable(a); break;
+
+          case "py_code" : 
+              a.push({type: "a", value: ["td_modify_status", false]});
+              break;
+
+          // case "size_id" :editable(a); break;
+          case "role" :;break;
+          case "password" :;break;
+          case "hidden_toggle" :
+              var placeholder = ls.checker.true_or_false("toAnotherValueType", placeholder==""||placeholder=="off"||placeholder==undefined?false:true, "√");
+              a.push(
+              {type: "a", value: ["td_modify_status", false]},
+              {type: "a", value: ["placeholder", placeholder]},//把原来的值存入placeholder 属性中，便于后来的状态检查
+              {type: "e", value: ["click",ls.checker.hidden_toggle]},
+              {type: "e", value: ["keypress",ls.checker.hidden_toggle]},
+              {type: "e", value: ["blur",ls.checker.status.whether_td_modified]},
+              {type: "i",  value: placeholder}
+              );
+              break;
+          case "user_comment" :editable(a); break;
+          default:
+            break;
+        }
+      };
+    },
+
+
+    item_creator: function(type){
     // 创建客户或者商品
       var o={},
           a=[],
           tbody = $("tbody"),
           start = $("tr.info");
       
-      for(var i=0; i < ls.product_info[4].length;++i){
-        o[ls.product_info[4][i]]="";
+      for(var i=0; i < ls[type+"_info"][4].length;++i){
+        o[ls[type+"_info"][4][i]]="";
       }
-      ls.edit.data_convert_JSON_to_array([o],a,ls.product_info[4]);
+      ls.edit.data_convert_JSON_to_array([o],a,ls[type+"_info"][4],type);
       
       var new_tr = $(ls.create_list_line(a[0], $("thead tr").get(0)));
       if(!start.get(0)) new_tr.prependTo(tbody);
@@ -1774,14 +1930,14 @@ var ls = list = {
 
     },
 
-    items_saver: function(){
+    items_saver: function(type){
       var trs = $("tr[tr_modified]");
       if(trs.get(0)){
       var o_array=[];
 
       function Item(tr){
         var o={},
-            a = $(tr).find('[name="product_id"]'),
+            a = $(tr).find('[name="'+type+'_id"]'),
             tds = $(tr).find('[td_modify_status="true"]'); 
             
             o.content = {};
@@ -1803,23 +1959,41 @@ var ls = list = {
 
 
       for (var i = 0; i < trs.length; i++) {
-        ls.product_info[3][1][i] = Item(trs[i]);
+        ls[type+"_info"][3][1][i] = Item(trs[i]);
       };
 
       //状态
-      ls.product_info[3][0]=1;
+      var table_name;
+      switch(type){
+        case "product":
+            table_name = "product_info";break;
+        case "people":
+            table_name = "people";break;
+        default: break;
+      }
+      ls[type+"_info"][3][0]=1;
       $.ajax({
-        url: "update.php?table=product_info",
+        url: "update.php?table="+table_name,
         method: "POST",
         contentType: "application/json",
-        data: JSON.stringify(ls.product_info[3][1]),
+        data: JSON.stringify(ls[type+"_info"][3][1]),
         success: function(data, status, XMLHttpRequest_object){
           cl(data);
-          ls.product_info[0]=1;
+          ls[type+"_info"][0]=1;
           $('[td_modify_status="true"]').attr("td_modify_status",false);
           $("tr[td_modify_count]").attr("td_modify_count",0);
           $("tr[tr_modified]").removeAttr("tr_modified");
+          var delete_items = $("[name='hidden_toggle']");
+          for (var i = 0; i < delete_items.length; i++) {
+            var a = $(delete_items[i]);
+            if(a.text()=="√"){
+              a.parent().remove();
+            }
+          };
+          ls.checker.list_row_number_checker();
           ls.checker.status.whether_table_modified();
+          ls[type+"_info"][3][0]=0;
+          ls[type+"_info"][3][1]=[];
         }
       });
     }
@@ -1918,6 +2092,7 @@ var ls = list = {
 $(".dropdown-menu li").addClass("btn");
 
 document.querySelector("#checkout_product_info").addEventListener("click", ls.pr_q_d);
+document.querySelector("#checkout_people_info").addEventListener("click", ls.pe_q_d);
 document.addEventListener("click",ls.checker.status.normal_check, true);
 
 document.querySelector("#creator_xs").addEventListener("click", td.creator_xs);
