@@ -67,32 +67,52 @@ var td = TRANSACTION_DOCUMENT = {
   //文件列表时一个数组，数组的元素是单独的发票
   //单个发票的构成：发票描述、发票内容
   "document_lists": {
-        "invoice_id1": 
-        {////INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
-        "trading_object": [1,"系统"],
-        "doc_type" : "xs",//set('xs','jh','cg','db','dd'),销售，进货，草稿，调拨，用户订单
-        "storehouse" : [1,"仓库1"],//[01,"仓库1"],
-        "money_received" : 0,//Decimal(12,2),
-        "comment" : '',//varchar(63)，描述区的备注
-        "document_status" : "管理员编辑",  /*"成功", "管理员反冲", "管理员编辑", "用户提交（关）", "用户编辑", "用户开", "管理员取消", "用户取消"*/
-        "document_created_time": "2016-11-21 11:46:15",
-        
-        // "document_description": 
-        "document_content_array": 
-          [
-          {
-            "id": 123,
-            "admin_defined_id": "昌裕003",
-            "full_name": "小脆筒",
-            "another_unit_factor": 0,//from another_unit
-            "another_unit": "只",
-            "un": "箱",//标注用户所选用的计算规格的方式
-            "amount_on_unit_1": 0,
-            "item_money_received": 0,
-            "comment": ""
-          }
-          ]
-      }
+    invoice_content_head_description_array: [
+      [{t: "a",v:["name","line_number"]},{t: "i",v:"行号"}],
+      [{t: "a",v:["name","product_id"]},{t: "i",v:"商品id"}],
+      [{t: "a",v:["name","manufacturer"]},{t: "i",v:"厂家"}],
+      [{t: "a",v:["name","full_name"]},{t: "i",v:"商品全名"}],
+      [{t: "a",v:["name","admin_defined_unit"]},{t: "i",v:"规格"}],
+      [{t: "a",v:["name","unit_1"]},{t: "i",v:"单位"}],
+      [{t: "a",v:["name","amount_on_unit_1"]},{t: "i",v:"数量"}],
+      [{t: "a",v:["name","price_base_on_unit"]},{t: "i",v:"单价"}],
+      [{t: "a",v:["name","item_money_received"]},{t: "i",v:"金额"}],
+      [{t: "a",v:["name","comment_for_item"]},{t: "i",v:"备注"}]
+    ],
+
+
+    "invoice_id1": {
+        ////INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+      "trading_object": [1,"系统"],
+      "doc_type" : "xs",//set('xs','jh','cg','db','dd'),销售，进货，草稿，调拨，用户订单
+      "storehouse" : [1,"仓库1"],//[01,"仓库1"],
+      "money_received" : 0,//Decimal(12,2),
+      "comment" : '',//varchar(63)，描述区的备注
+      "document_status" : "管理员编辑",  /*"成功", "管理员反冲", "管理员编辑", "用户提交（关）", "用户编辑", "用户开", "管理员取消", "用户取消"*/
+      "document_created_time": "2016-11-21 11:46:15",
+      
+      // "document_description": 
+      "document_content_array": [{
+        "product_id": 123,
+        "full_name": "小脆筒",
+        "another_unit_factor": 0,//from another_unit
+        "another_unit": "只",
+        "un": "箱",//标注用户所选用的计算规格的方式
+        "amount_on_unit_1": 0,
+        "item_money_received": 0,
+        "comment": ""
+       },{
+        "product_id":"",
+        "manufacturer":"",
+        "full_name":"",
+        "admin_defined_unit":"",
+        "unit_1":"",
+        "amount_on_unit_1":"",
+        "price_base_on_unit":"",
+        "item_money_received":"",
+        "comment_for_item":""
+       }]
+    }
   },
 
   //方法————单据对象的查看，查看之前需先保存当前显示的销售单
@@ -131,8 +151,10 @@ var td = TRANSACTION_DOCUMENT = {
       '</tr>',
       '</thead>',
       '<!-- i_c表示invoice content -->',
+
       '<tbody id="i_c">',
       '</tbody>',
+
       '<tfoot>',
       '<tr>',
       '<td>合计</td>',
@@ -156,6 +178,7 @@ var td = TRANSACTION_DOCUMENT = {
       '</div>'
       ].join("\n")
       );
+
     ls_fucntion_tab.find("#print_invoice").on("click", function(){window.print();});
 
     $(section).append(ls_fucntion_tab);
@@ -175,6 +198,7 @@ var td = TRANSACTION_DOCUMENT = {
       des_td.innerHTML = a.trading_object[1];
     else
       des_td.innerHTML ="";
+
     //展示单据描述数据
     des.querySelector('td[name="generated_id"]').innerHTML = a.doc_type+"-"+invoice_id;
     des.querySelector('td[name="document_created_time"]').innerHTML = a.document_created_time;
@@ -188,21 +212,23 @@ var td = TRANSACTION_DOCUMENT = {
     if(a.money_received)
     document.querySelector('td[name="money_received"]').innerHTML = a.money_received;
 
+
     var c = document.querySelector('#i_c');
-    //清空，并初始化表格
-    c.innerHTML = '<tr> <th style="width:46px">行号</th><th>厂家</th><th>商品全名</th><th>规格</th><th>单位</th><th>数量</th><th>单价</th><th>金额</th><th>备注</th></tr>';
+    var table_head_fields_description_array = td.document_lists.invoice_content_head_description_array;
+    //初始化表格头
+    c.appendChild(td.builder.new_line_creat("th",table_head_fields_description_array));
 
     for (var i = 0; i < a.document_content_array.length; i++) {
-      c.appendChild(td.builder.new_line_creator(a.document_content_array[i]));
+      c.appendChild(td.builder.new_line_creat_from_o_and_thead(a.document_content_array[i],table_head_fields_description_array));
     };
-    var last_line = document.createElement("tr")
 
-    //new line 模版
-    last_line.innerHTML='<tr class="product_item" ><td name="line_number">1</td><td name="manufacturer" ></td><td name="full_name" input_end_point></td><td></td><td>箱</td><td name="amount"></td><td name="price_base_on_unit"></td><td name="amount_multiply_by_unit"></td><td name="comment_for_item"></td></tr>';
+    //last line
+    var last_line = td.builder.new_line_creat_from_o_and_thead("td",table_head_fields_description_array);
+    var full_name_td = last_line.querySelector("[name='full_name']");
+    full_name_td.removeEventListener("blur", td.builder.cell_checker);
     c.appendChild(last_line);
 
     for (var i = 1; i < c.childNodes.length; i++) {
-      td.builder.make_td_contenteditable.call(c.childNodes[i],"tr");
       c.childNodes[i].querySelector('[name="full_name"]').addEventListener("keypress",td.builder.query_products);
     }
 
@@ -216,14 +242,15 @@ var td = TRANSACTION_DOCUMENT = {
     d_a.splice(0,d_a.length);// 思考为什么不能用d_a=[];
     for (var i = 1; i < a.length-1; i++) {
       var o = {
-      "id": Number(a[i].querySelector('*[name="product_id"]').innerHTML),
-      "admin_defined_id": a[i].querySelector('*[name="admin_defined_id"]').innerHTML,
+      "product_id": Number(a[i].querySelector('*[name="product_id"]').innerHTML),
+      "manufacturer": a[i].querySelector('*[name="manufacturer"]').innerHTML,
       "full_name": a[i].querySelector('*[name="full_name"]').innerHTML,
-      "another_unit_factor": Number(a[i].querySelector('*[name="another_unit_factor"]').innerHTML.replace("1*","")),
-      "un": "箱",//标注用户所选用的计算规格的方式
-      "amount_on_unit_1": Number(a[i].querySelector('*[name="amount"]').innerHTML),
-      "item_money_received": Number(a[i].querySelector('*[name="amount_multiply_by_unit"]').innerHTML),
-      "comment": a[i].querySelector('*[name="comment_for_item"]').innerHTML
+      "admin_defined_unit": Number(a[i].querySelector('*[name="admin_defined_unit"]')),
+      "unit_1": "箱",//标注用户所选用的计算规格的方式
+      "price_base_on_unit": Number(a[i].querySelector('*[name="price_base_on_unit"]').innerHTML),
+      "amount_on_unit_1": Number(a[i].querySelector('*[name="amount_on_unit_1"]').innerHTML),
+      "item_money_received": Number(a[i].querySelector('*[name="item_money_received"]').innerHTML),
+      "comment_for_item": a[i].querySelector('*[name="comment_for_item"]').innerHTML
       };
 
       d_a.push(o);
@@ -311,103 +338,116 @@ var td = TRANSACTION_DOCUMENT = {
     当用户选中某几个条目时，将条目写入发票中，写入td的lists 中
   */
   "builder": {
-    new_line_creator: function (a){//a是document_content_array的item
-      var new_tr, ln_td, id_td, mf_td, fn_td, md_td, un_td, am_td, pr_td, gn_td, cm_td;
+    new_line_creat: function(tag_name_within_line_tr, fields_description_array){
+      var tr=document.createElement("tr");
+      for (var i = 0; i < fields_description_array.length; i++) {
+        tr.appendChild(td.builder.new_element_creat(tag_name_within_line_tr, fields_description_array[i]));
+      };
+      return tr;
 
-      new_tr = document.createElement("tr"); new_tr.addEventListener("blur", td.builder.cell_checker);//失去焦点，立即更新对应的对象
+    },
 
-      ln_td = document.createElement("td"); ln_td.setAttribute("name","line_number");
-      id_td = document.createElement("td"); id_td.setAttribute("name",'product_id');
-      mf_td = document.createElement("td"); mf_td.setAttribute("name",'manufacturer');
-      fn_td = document.createElement("td"); fn_td.addEventListener("keypress",td.builder.query_products);
-                                            fn_td.addEventListener("blur", td.builder.cell_checker);
-                                            fn_td.addEventListener("click", td.builder.cell_checker);
-                                            fn_td.addEventListener("click", 
-                                              function(){
-                                                var a = document.querySelector("*[input_start_point]");
-                                                if(a)a.removeAttribute("input_start_point");
+    new_element_creat: function(tag_name, field_description_array){
+      var element = document.createElement(tag_name);
+      for (var i = 0; i < field_description_array.length; i++) {
+        switch(field_description_array[i].t){
+          case "a":
+              element.setAttribute(field_description_array[i].v[0],field_description_array[i].v[1]);
+              break;
+          case "i":
+              element.innerHTML = field_description_array[i].v;
+              break;
+          case "e":
+              element.addEventListener(field_description_array[i].v[0],field_description_array[i].v[1]);
+              break;
+        }
+      };
+      return element;
+    },
 
-                                                var b = document.querySelector("*[input_end_point]");
-                                                if(b && b.parentNode!=b.parentNode.parentNode.lastChild)b.removeAttribute("input_end_point");
+    new_line_creat_from_o_and_thead: function (a, table_head_fields_description_array){//a是document_content_array的item
+      var tr_fileds_description=[]
+      for (var i = 0; i < table_head_fields_description_array.length; i++) {
+        tr_fileds_description[i] = [table_head_fields_description_array[i][0]];
+      };
 
-                                                this.setAttribute("input_start_point","");
-                                                this.parentNode.nextElementSibling.querySelector("[name='full_name']").setAttribute("input_end_point","");
-                                              }
-                                              );
-                                            fn_td.setAttribute("name","full_name");
-                                            fn_td.setAttribute("placeholder",a.full_name);//用于checker
-                                            fn_td.setAttribute("contenteditable","true");
-                                            fn_td.addEventListener("keydown", ls.edit.arrow_key_control);
-      md_td = document.createElement("td"); md_td.setAttribute("name","another_unit_factor");
-      un_td = document.createElement("td");
-      am_td = document.createElement("td"); am_td.setAttribute("name",'amount'); 
-                                            am_td.addEventListener("blur",td.builder.number_check_after_input);
-                                            am_td.addEventListener("click", td.builder.cell_checker);
-                                            am_td.addEventListener("blur",td.builder.amount_or_price_affect_received);
-                                            am_td.addEventListener("keypress", td.builder.number_check_when_input);
-                                            am_td.setAttribute("contenteditable","true");
-                                            am_td.addEventListener("keydown", ls.edit.arrow_key_control);
-      pr_td = document.createElement("td"); pr_td.setAttribute("name",'price_base_on_unit');
-                                            pr_td.addEventListener("blur",td.builder.number_check_after_input);
-                                            pr_td.addEventListener("blur",td.builder.amount_or_price_affect_received);
-                                            pr_td.addEventListener("click", td.builder.cell_checker);
-                                            pr_td.addEventListener("keypress", td.builder.number_check_when_input);
-                                            pr_td.setAttribute("contenteditable","true");
-                                            pr_td.addEventListener("keydown", ls.edit.arrow_key_control);
-      gn_td = document.createElement("td"); gn_td.setAttribute("name",'amount_multiply_by_unit');
-                                            gn_td.addEventListener("blur",td.builder.number_check_after_input);
-                                            gn_td.addEventListener("blur",td.builder.receive_affects_price);
-                                            gn_td.addEventListener("click", td.builder.cell_checker);
-                                            gn_td.addEventListener("keypress", td.builder.number_check_when_input);
-                                            gn_td.setAttribute("contenteditable","true");
-                                            gn_td.addEventListener("keydown", ls.edit.arrow_key_control);
-      cm_td = document.createElement("td"); cm_td.setAttribute("name",'comment_for_item');
-                                            cm_td.addEventListener("click", td.builder.cell_checker);
-                                            cm_td.setAttribute("contenteditable","true");
-                                            cm_td.addEventListener("keydown", ls.edit.arrow_key_control);
+      for (var i = 0; i < tr_fileds_description.length; i++) {
+        //innerHTML
+        var td_des = tr_fileds_description[i];
+        if(a[tr_fileds_description[i][0]["v"][1]])
+        tr_fileds_description[i].push({t:"i",v:a[tr_fileds_description[i][0]["v"][1]]});
 
-      ln_td.innerHTML ="";
-      id_td.innerHTML =a.id;
-      mf_td.innerHTML = a.manufacturer;
-      fn_td.innerHTML =a.full_name;
-      md_td.innerHTML =a.another_unit_factor?"1*"+a.another_unit_factor:"1*";
-      un_td.innerHTML =a.un;
-      am_td.innerHTML =a.amount_on_unit_1?a.amount_on_unit_1:0;
-      
-      var price;
-      if (a.price==undefined || a.price.toString()!="NaN")
-      price = 0;
-      if (a.item_money_received)
-      price = Number((a.item_money_received*100/Number(am_td.innerHTML)/100).toFixed(5));
+        switch(tr_fileds_description[i][0]["v"][1]){
+          case "line_number":
+              break;
+          case "product_id":
+              break;
+          case "manufacturer":
+              break;
+          case "full_name":
+              td_des.push(
+                {t:"e",v:["name","line_number"]},
+                {t:"e",v:["keypress",td.builder.query_products]},
+                {t:"e",v:["blur", td.builder.cell_checker]},
+                {t:"e",v:["click", td.builder.cell_checker]},
+                {t:"e",v:["keydown", ls.edit.arrow_key_control]},
+                {t:"e",v:["click", 
+                  function(){
+                    $("[input_end_point]").removeAttr("input_end_point");
+                    $(this).parent().attr("input_end_point","");
+                  }
+                  ]},
+                {t:"a", v:["placeholder",a.full_name]},//用于checker
+                {t:"a", v:["contenteditable","true"]}
+                );
+              break;
+          case "admin_defined_unit":
+              break;
+          case "unit_1":
+              break;
+          case "amount_on_unit_1":
+              td_des.push(
+                {t:"e",v:["click", td.builder.cell_checker]},
+                {t:"e",v:["blur",td.builder.number_check_after_input]},
+                {t:"e",v:["blur",td.builder.amount_or_price_affect_received]},
+                {t:"e",v:["keydown", ls.edit.arrow_key_control]},
+                {t:"e",v:["keypress", td.builder.number_check_when_input]},
+                {t:"a",v:["contenteditable","true"]}
 
-      pr_td.innerHTML = price;
-      gn_td.innerHTML =a.item_money_received?a.item_money_received:0;
-      cm_td.innerHTML =a.comment?a.comment:""; 
+              );
+              break;
+          case "price_base_on_unit":
+              td_des.push(
+                {t:"e",v:["click", td.builder.cell_checker]},
+                {t:"e",v:["blur",td.builder.number_check_after_input]},
+                {t:"e",v:["blur",td.builder.amount_or_price_affect_received]},
+                {t:"e",v:["keydown", ls.edit.arrow_key_control]},
+                {t:"e",v:["keypress", td.builder.number_check_when_input]},
+                {t:"a",v:["contenteditable","true"]}
+              );
+              break;
+          case "item_money_received":
+              td_des.push(
+                {t:"e",v:["click", td.builder.cell_checker]},
+                {t:"e",v:["blur",td.builder.number_check_after_input]},
+                {t:"e",v:["keydown", ls.edit.arrow_key_control]},
+                {t:"e",v:["keypress", td.builder.number_check_when_input]},
+                {t:"e",v:["blur",td.builder.receive_affects_price]},
+                {t:"a",v:["contenteditable","true"]}
+              );
+              break;
+          case "comment_for_item":
+              td_des.push(
+                {t:"e",v:["click", td.builder.cell_checker]},
+                {t:"e",v:["keydown", ls.edit.arrow_key_control]},
+                {t:"a",v:["contenteditable","true"]}
+              )
+              break;
+        }
+      };
 
-      new_tr.appendChild(ln_td);
-      new_tr.appendChild(id_td);
-      new_tr.appendChild(mf_td);
-      new_tr.appendChild(fn_td);
-      new_tr.appendChild(md_td);
-      new_tr.appendChild(un_td);
-      new_tr.appendChild(am_td);
-      new_tr.appendChild(pr_td);
-      new_tr.appendChild(gn_td);
-      new_tr.appendChild(cm_td);
-
-      //   new_tr.innerHTML = 
-      // "<td>"+(j+1)+"</td>"+
-      // "<td>"+a.id+"</td>"+
-      // "<td name='admin_defined_id'>"+a.admin_defined_id+"</td>"+
-      // "<td>"+a.full_name+"</td>"+
-      // "<td>1*"+a.admin_defined_unit_2+"</td>"+
-      // "<td>"+a.unit_1+"</td>"+
-      // "<td name='amount'>"+a.amount+"</td>"+
-      // "<td name='price_base_on_unit'>"+a.price +"</td>"+
-      // "<td name='amount_multiply_by_unit'></td>"+
-      // "<td name='comment_for_item'>"+a.comment+"</td>";//amount ?
-      
-      return new_tr;
+      //tr created
+      return td.builder.new_line_creat("td",tr_fileds_description);
     },
 
     // 两个功能，如果是click和focus，则选中表格内容
@@ -454,8 +494,8 @@ var td = TRANSACTION_DOCUMENT = {
       var i_c_tr=document.querySelector("#i_c").querySelectorAll('tr');
       var amount=money_received=0;
       for (var i = 1; i < i_c_tr.length; i++) {
-        amount += Number(i_c_tr[i].querySelector("*[name='amount']").innerHTML);
-        money_received += Number(i_c_tr[i].querySelector("*[name='amount_multiply_by_unit']").innerHTML);
+        amount += Number(i_c_tr[i].querySelector("*[name='amount_on_unit_1']").innerHTML);
+        money_received += Number(i_c_tr[i].querySelector("*[name='item_money_received']").innerHTML);
       };
       money_received=money_received.toFixed(2);
       document.querySelector("tfoot").querySelector("*[name='total_amount']").innerHTML = amount;
@@ -606,11 +646,11 @@ var td = TRANSACTION_DOCUMENT = {
 
     //amount or price column 添加次为event listener
     "amount_or_price_affect_received": function (e){
-      this.parentNode.querySelector('*[name="amount_multiply_by_unit"]').innerHTML = 
+      this.parentNode.querySelector('*[name="item_money_received"]').innerHTML = 
       Number(
         (
             (Number(this.parentNode.querySelector('*[name="price_base_on_unit"]').innerHTML)*100) * 
-            (Number(this.parentNode.querySelector('*[name="amount"]').innerHTML)*100)/10000
+            (Number(this.parentNode.querySelector('*[name="amount_on_unit_1"]').innerHTML)*100)/10000
         ).toFixed(4)
       );
       td.builder.sum_refresher();
@@ -619,8 +659,8 @@ var td = TRANSACTION_DOCUMENT = {
 
     "receive_affects_price": function (e){
       var a = (
-        Number(this.parentNode.querySelector('*[name="amount_multiply_by_unit"]').innerHTML)*1000/
-        Number(this.parentNode.querySelector('*[name="amount"]').innerHTML)/1000
+        Number(this.parentNode.querySelector('*[name="item_money_received"]').innerHTML)*1000/
+        Number(this.parentNode.querySelector('*[name="amount_on_unit_1"]').innerHTML)/1000
         ).toFixed(5);
       if(a.toString()=="NaN"||a==Infinity) a = "";
       Number(a).toFixed(5);
@@ -632,16 +672,7 @@ var td = TRANSACTION_DOCUMENT = {
     //tr 用return function的方式,在viewer 中使用
     //td 用eventlistener 的方式，在创建中使用
     "make_td_contenteditable": function (type){
-      if (type == "tr"){
-        this.querySelector('*[name="full_name"]').setAttribute("contenteditable","true");
-        this.querySelector('*[name="amount"]').setAttribute("contenteditable","true");
-        this.querySelector('*[name="amount_multiply_by_unit"]').setAttribute("contenteditable","true");
-        this.querySelector('*[name="price_base_on_unit"]').setAttribute("contenteditable","true");
-        this.querySelector('*[name="comment_for_item"]').setAttribute("contenteditable","true");
-      }
-      if(type == "td"){
         this.setAttribute("contenteditable","true");
-      }
     },
 
     "query_products": function(e){
@@ -687,6 +718,7 @@ var td = TRANSACTION_DOCUMENT = {
                 "<td>"+(j+1)+"</td>"+
                 "<td style='display:none;' name='product_id'>"+a.id+"</td>"+
                 "<td name='admin_defined_id'>"+(a.admin_defined_id?a.admin_defined_id:"")+"</td>"+
+                "<td name='manufacturer'>"+(a.manufacturer?a.manufacturer:"")+"</td>"+
                 "<td name='full_name' class='text-left'>"+(a.full_name?a.full_name:"")+"</td>"+
                 "<td class='text-left'>"+(a.py_code?a.py_code:"")+"</td>"+
                 "<td name='another_unit_factor'>"+(a.admin_defined_unit_2_factor?"1*"+a.admin_defined_unit_2_factor:"")+"</td>"+
@@ -814,42 +846,31 @@ var td = TRANSACTION_DOCUMENT = {
           id = $("td[name='invoice_id']").attr("invoice_id"),
           i_c = $("#i_c"),
           new_tr;
+
       for (var i = 0; i < a.length; i++) {
         var o = {
-            "id": $(a[i]).find('*[name="product_id"]').html(),
-            "admin_defined_id": $(a[i]).find('*[name="admin_defined_id"]').html(),
+            "product_id": $(a[i]).find('*[name="product_id"]').html(),
+            "manufacturer":$(a[i]).find('*[name="manufacturer"]').html(),
             "full_name": $(a[i]).find('*[name="full_name"]').html(),
-            "md": $(a[i]).find('*[name="another_unit_factor"]').html(),
-            "un": "箱",//标注用户所选用的计算规格的方式
-            "amount": 0,
-            "price": 0,//如何获取最新价格？
-            "item_money_received": 0
+            "admin_defined_unit":"",
+            "unit_1": "箱",
+            "amount_on_unit_1": 0,
+            "price_base_on_unit": 0,
+            "item_money_received": 0,
+            "comment_for_item":""
           };
         // td.document_lists["invoice_id"+id].document_content_array.push(o);
-        new_tr = $(td.builder.new_line_creator(o));
-        var s_point = i_c.find("*[input_start_point]").first();
+        new_tr = $(td.builder.new_line_creat_from_o_and_thead(o,td.document_lists.invoice_content_head_description_array));
         var e_point = i_c.find("*[input_end_point]").first();
-        // console.log(s_point);
-        if(s_point.get(0) && s_point.parent().get(0)!=i_c.children().last().get(0)){
-          new_tr.insertBefore(s_point.parent());
-          // td.builder.line_deleter(s_point.parentNode);
-          // 覆盖原有行，添加新行然后删除旧行
-          s_point.parent().remove();
-          td.builder.sum_refresher();
-          td.builder.line_number_refresher(document.querySelector("#i_c"));
-        }
-        else{
-          cl(new_tr.insertBefore(e_point.parent()));
-          i_c.children("tr").last().find("*[name='full_name']").html("");//最后一行文件名制空权
-        }
-        // if(i_c.querySelector("*[input_start_point]")){
-        //   i_c.querySelector("*[input_start_point]").removeAttribute("input_start_point");
-        // }
-       
-        if(e_point.parent().get(0)!=e_point.parent().parent().children().last().get(0))e_point.removeAttr("input_end_point");
 
+        if(!e_point){
+          i_c.children().last().attr("input_end_point","");
+        }
+        new_tr.insertBefore(e_point);
        }
        //for 循环结束
+       if(e_point.get(0)!=e_point.parent().children().last().get(0)) e_point.remove();
+
        if(event.preventDefault)event.preventDefault();
        $("#pop_up_modal").find('.btn-primary').off("click", td.input_selected_products);
 
@@ -899,7 +920,6 @@ var td = TRANSACTION_DOCUMENT = {
   "query_people": function(event){
     if (event.keyCode == 13){
         var that = this;
-
         var q_condition_column;
         //判断是否是拼音或者汉子
         if (that.innerHTML.charCodeAt(0)>= 123 ||
@@ -915,41 +935,43 @@ var td = TRANSACTION_DOCUMENT = {
         else {/*code for IE6, IE5*/ajax_object = new ActiveXObject("Microsoft.XMLHTTP");}
         ajax_object.onreadystatechange = function(){
           if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200){
-    
-          if(Number(JSON.parse(ajax_object.response)) != 0) {
-            //that, td 都可用，思考原因
-            td.query_result = JSON.parse(ajax_object.response);
-            p = document.querySelector('#pop_up');
-            p.tabIndex = 12;
-            //清楚pop中上一次查询结果
-            p.innerHTML = "";
+            if(Number(JSON.parse(ajax_object.response))!= 0) {
+              //that, td 都可用，思考原因
+              td.query_result = JSON.parse(ajax_object.response); 
+              p = document.querySelector('#pop_up');
+              p.tabIndex = 12;
+              //清除pop中上一次查询结果
+              p.innerHTML = "";
 
-            console.log("ajax");//test exec
-            var modal = $("#pop_up_modal");
-                modal.modal("show");
-                modal.find(".modal-title").text("往来单位查询结果");
-                modal.find(".btn-primary").on("click",td.input_selected_des);
-            //t is #pop_pu->table
-            var t = p.appendChild(document.createElement("table"));
-            $(t).addClass("table table-bordered");
-            var tb = t.appendChild(document.createElement("tbody"));
-            for(var j=0;j<td.query_result.length;j++){
-              var a = td.query_result[j];
-              var new_tr = document.createElement("tr");
-              new_tr.addEventListener("mouseenter", td.make_selection_single);
-              new_tr.addEventListener("dblclick",td.input_selected_des);
-              new_tr.innerHTML = 
-              "<td>"+j+"</td>"+//j 行号
-              "<td>"+a.id+"</td>"+
-              "<td>"+(a.full_name?a.full_name:"")+"</td>"+
-              "<td>"+(a.py_code?a.py_code:"")+"</td>"+
-              "<td>"+(a.tel?a.tel:"")+"</td>"+
-              "<td>"+(a.phone?a.phone:"")+"</td>";
-              tb.appendChild(new_tr);
-              }
-            document.querySelector('#pop_up').addEventListener("keypress",td.input_selected_des);
+              console.log("ajax");//test exec
+              var modal = $("#pop_up_modal");
+                  modal.modal("show");
+                  modal.find(".modal-title").text("往来单位查询结果");
+                  modal.find(".btn-primary").on("click",td.input_selected_des);
+              //t is #pop_pu->table
+              var t = p.appendChild(document.createElement("table"));
+              $(t).addClass("table table-bordered");
+              var tb = t.appendChild(document.createElement("tbody"));
+              for(var j=0;j<td.query_result.length;j++){
+                var a = td.query_result[j];
+                var new_tr = document.createElement("tr");
+                new_tr.addEventListener("mouseenter", td.make_selection_single);
+                new_tr.addEventListener("dblclick",td.input_selected_des);
+                new_tr.innerHTML = 
+                "<td>"+j+"</td>"+//j 行号
+                "<td>"+a.id+"</td>"+
+                "<td>"+(a.full_name?a.full_name:"")+"</td>"+
+                "<td>"+(a.py_code?a.py_code:"")+"</td>"+
+                "<td>"+(a.tel?a.tel:"")+"</td>"+
+                "<td>"+(a.phone?a.phone:"")+"</td>";
+                tb.appendChild(new_tr);
+                }
+                document.querySelector('#pop_up').addEventListener("keypress",td.input_selected_des);
             }
-            else alert("当前查询条件无结果");
+            else {
+              ls.checker.status.pop_up_creator("查询提示", $("<p>当前查询条件无结果</p>").get(0));
+              cl("当前查询条件无结果");
+            }
           }
         }
 
@@ -959,7 +981,7 @@ var td = TRANSACTION_DOCUMENT = {
 
           //enter key event
           event.preventDefault();
-          event.stopPropagation();
+          // event.stopPropagation();
         }
   }
 };
@@ -1092,8 +1114,7 @@ var ls = list = {
               switch(table_data_i[k][l].type){
                 case "a": td.setAttribute(table_data_i[k][l].value[0],table_data_i[k][l].value[1]);break;
                 case "e": td.addEventListener(table_data_i[k][l].value[0],table_data_i[k][l].value[1]);break;
-                case "i": 
-                    td.innerHTML= table_data_i[k][l].value;
+                case "i": td.innerHTML= table_data_i[k][l].value;
                     break;
               }
               // break;
@@ -1177,7 +1198,9 @@ var ls = list = {
         "name": "deleteItem",
         type: "button", 
         class: "btn btn-default"
-      }).text("停用商品");
+      }).text("停用商品").on("click", function(){
+        ls.checker.hidden_toggle.call($("tbody tr.info").find("[name='hidden_toggle']").get(0),{"type":"click"});
+      });
 
       var f_list_3 = $('<button ></button>',{
         "name": "saveChange",
@@ -1293,7 +1316,7 @@ var ls = list = {
     // 第一个元素表示更新状态，1表示需要更新（还未更新），0表示不需要更新(已经更新)
     // 第二个元素是数组，表示需要更新的商品，其格式：
       // [{},{}.....],每一个元素都是一个对象，对象格式：
-      // 操作类型t：a表示添加，u表示更新（修改）
+      // 操作类型t：a表示添加，u表示更新（修改）,d表示删除
       // id：如果是删除或者更新，则指明id，否则id 为0
         // {
         //   t:"u",
@@ -1306,7 +1329,64 @@ var ls = list = {
   // 第五个元素是一个数组,该数组用于描述商品的属性
   // 第六个元素是一个数组,该数组用于描述展示商品的列表的表头属性
 
-  "people_info": [1,[],[],[1,[]]],
+  "people_info": [
+    -1,
+    [],
+    [],
+    [1,[]],
+    [
+      "id"
+      "full_name"
+      "simple_name"
+      "person_in_charge"
+      "tel"
+      "phone"
+      "Address"
+      "role"
+      "py_code"
+      "password"
+      "loyalty"
+      "complexity"
+    ],
+    [
+      [{type: "a",value:["name","line_number"]},{type: "i",value:"行号"}],
+      [{type: "a",value:["name","people_id"]},{type: "i",value:"客户编号"}],
+      [{type: "a",value:["name","admin_defined_order"]},{type: "i",value:"用户排序"}],
+      [{type: "a",value:["name","full_name"]},{type: "i",value:"商品全名"}],
+      [{type: "a",value:["name","simple_name"]},{type: "i",value:"简名"}],
+      [{type: "a",value:["name","py_code"]},{type: "i",value:"拼音码"}],
+      [{type: "a",value:["name","tel"]},{type: "i",value:"电话"}],
+      [{type: "a",value:["name","phone"]},{type: "i",value:"手机"}],
+      [{type: "a",value:["name","Address"]},{type: "i",value:"地址"}],
+      [{type: "a",value:["name","role"]},{type: "i",value:"角色"}]
+      [{type: "a",value:["name","loyalty"]},{type: "i",value:"忠诚度"}],
+      [{type: "a",value:["name","complexity"]},{type: "i",value:"复杂度"}]
+    ]
+  ],
+  //products_tag 加入,第一个元素表状态，
+    // -1表示没有数据，需要从服务器抓取数据
+    // 0表示没有基础信息变动，无需从服务器抓取数据，需要置0的情况：
+      // 展示完成后
+      // 更新过修改后
+    // 1表示基础信息已有变动，需要更新到服务器;或者需要从服务器刷新数据
+  // 第二个元素表示抓取的原始数据，
+  // 第三个元素表示处理过，用于展示的数据
+  // 第四个元素是一个包含两个元素的数组,该数组用语更新商品信息
+    // 第一个元素表示更新状态，1表示需要更新（还未更新），0表示不需要更新(已经更新)
+    // 第二个元素是数组，表示需要更新的商品，其格式：
+      // [{},{}.....],每一个元素都是一个对象，对象格式：
+      // 操作类型t：a表示添加，u表示更新（修改）,d表示删除
+      // id：如果是删除或者更新，则指明id，否则id 为0
+        // {
+        //   t:"u",
+        //   id: 0,
+        //   content: {
+        //     name: value,
+        //     ...
+        //   }
+        // }
+  // 第五个元素是一个数组,该数组用于描述商品的属性
+  // 第六个元素是一个数组,该数组用于描述展示商品的列表的表头属性
   "specific_price_specific_person": [],
 
 
@@ -1332,7 +1412,16 @@ var ls = list = {
             alert("请保存或者放弃修改！");
             event.stopPropagation();
           }
+      },
 
+      pop_up_creator: function(modalTitle, modalBody){
+        var modal = $("#pop_up_modal");
+                  modal.modal("show");
+                  modal.find(".modal-title").text(modalTitle).click();
+        var p = document.querySelector('#pop_up');
+        p.innerHTML="";
+        p.appendChild(modalBody);
+        modal.find("[data-dismiss]").first().focus();
       },
       
       "row_checker": function(e){
@@ -1426,19 +1515,17 @@ var ls = list = {
       whether_table_modified : function(){
         var ds = document.querySelector("#display_section");
         var ds_t = ds.querySelector("table");
-        if(ds_t)
-        {
-          var t_tr = ds_t.querySelectorAll("tr");
-          for (var i = 0; i < t_tr.length; i++) {
-            if(Number(t_tr[i].getAttribute("td_modify_count"))!=0){
-              $('[name="saveChange"]').addClass('btn-primary');
-              $('[name="abortChange"]').addClass('btn-danger');
-              return true;
-            }
-          };
-          $('[name="saveChange"]').removeClass('btn-primary');
-          $('[name="abortChange"]').removeClass('btn-danger');
-          return false;
+        if(ds_t){
+          if($(ds_t).find("[tr_modified]").get(0)){
+            $('[name="saveChange"]').addClass('btn-primary').removeAttr("disabled");
+            $('[name="abortChange"]').addClass('btn-danger').removeAttr("disabled");
+            return true;
+          }
+          else{
+            $('[name="saveChange"]').removeClass('btn-primary').attr("disabled","");
+            $('[name="abortChange"]').removeClass('btn-danger').attr("disabled","");
+            return false;
+          }
         }
       }//whether_table_modified函数结束
 
@@ -1452,6 +1539,15 @@ var ls = list = {
 
     },
 
+    admin_defined_order_checker: function(){
+      var rows = document.querySelectorAll("tbody tr");
+      for (var i = 0;i < rows.length; ++i) {
+        var a = rows[i].querySelector("[name='admin_defined_order']");
+        a.innerHTML=1+i;
+        ls.checker.status.whether_td_modified.call(a);
+      }
+    },
+
     "word_check_when_input": function (e){
       if(e.keyCode == 13) e.preventDefault();
     },
@@ -1459,7 +1555,7 @@ var ls = list = {
     //用于标注基本信息是否隐藏
     hidden_toggle: function(e){
       if(e.type=="click"||e.keyCode == 32){
-        var a = ls.checker.true_or_false("trueFalseToggle", this.innerHTML, "Boolean");cl(a);
+        var a = ls.checker.true_or_false("trueFalseToggle", this.innerHTML, "Boolean");
         this.innerHTML=ls.checker.true_or_false("toAnotherValueType", a, "√");
         ls.checker.status.whether_td_modified_allow_space.call(this);
       }
@@ -1632,14 +1728,15 @@ var ls = list = {
             case "created_at" :;break;
             case "changed_at" :;break;
             case "hidden_toggle" :
+                var hidden_toggle_value = ls.checker.true_or_false("toAnotherValueType", td_value==""||td_value=="off"||td_value==undefined?false:true, "√");
                 a.push(
                 {type: "a", value: ["td_modify_status", false]},
-                {type: "a", value: ["placeholder", ls.checker.true_or_false("toAnotherValueType", td_value=="off"||td_value==undefined?false:true, "√")]},//把原来的值存入placeholder 属性中，便于后来的状态检查
+                {type: "a", value: ["placeholder", hidden_toggle_value]},//把原来的值存入placeholder 属性中，便于后来的状态检查
                 {type: "e", value: ["click",ls.checker.hidden_toggle]},
                 {type: "e", value: ["keypress",ls.checker.hidden_toggle]},
                 {type: "e", value: ["blur",ls.checker.status.whether_td_modified]},
                 {
-                  type: "i",  value: ls.checker.true_or_false("toAnotherValueType", td_value=="off"||td_value==undefined?false:true, "√")
+                  type: "i",  value: hidden_toggle_value
                 }
                 );
                 break;
@@ -1673,11 +1770,13 @@ var ls = list = {
       else start.after(new_tr);
 
       ls.checker.list_row_number_checker();
+      ls.checker.admin_defined_order_checker();
 
     },
 
     items_saver: function(){
       var trs = $("tr[tr_modified]");
+      if(trs.get(0)){
       var o_array=[];
 
       function Item(tr){
@@ -1693,6 +1792,7 @@ var ls = list = {
         for (var i = 0; i < tds.length; i++) {
           var td = $(tds[i]);
           if(td.attr("name")=="hidden_toggle"){
+            if(td.text()=="√")o.t="d";
             o.content[td.attr("name")]=td.text()=="√"?1:2;
           }
           else
@@ -1708,7 +1808,6 @@ var ls = list = {
 
       //状态
       ls.product_info[3][0]=1;
-      cl(ls.product_info[3][1]);
       $.ajax({
         url: "update.php?table=product_info",
         method: "POST",
@@ -1723,7 +1822,7 @@ var ls = list = {
           ls.checker.status.whether_table_modified();
         }
       });
-
+    }
 
     },
 
@@ -1758,11 +1857,13 @@ var ls = list = {
 
     arrow_key_control: function(e){
       if(e.keyCode >= 37 && e.keyCode<=40 ){
+        var original_value = $(this).text(),new_td;
         switch(e.keyCode){
           //←
           case 37: 
               var prev_editable_td = $(this).prevAll('[contenteditable="true"]')[0];
               if(prev_editable_td){
+                new_td = prev_editable_td;
                 $(prev_editable_td).focus().click();
               }
 
@@ -1772,6 +1873,7 @@ var ls = list = {
               var this_name = $(this).attr("name");
               var prev_editable_td = $(this).parent().prev().find("td[name='"+this_name+"']")[0];
               if(prev_editable_td){
+                new_td = prev_editable_td;
                 $(prev_editable_td).focus().click();
               }
               break;
@@ -1779,6 +1881,7 @@ var ls = list = {
           case 39:
               var next_editable_td = $(this).nextAll('[contenteditable="true"]')[0];
               if(next_editable_td){
+                new_td = next_editable_td;
                 $(next_editable_td).focus().click();
               }
 
@@ -1788,11 +1891,15 @@ var ls = list = {
               var this_name = $(this).attr("name");
               var next_editable_td = $(this).parent().next().find("td[name='"+this_name+"']")[0];
               if(next_editable_td){
+                new_td = next_editable_td;
                 $(next_editable_td).focus().click();
               }
               break;
           default:
               break;
+        }
+        if(e.shiftKey&&new_td){
+          $(new_td).text(original_value);
         }
         e.preventDefault();
       }

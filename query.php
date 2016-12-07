@@ -56,7 +56,9 @@ values(null,'".($_GET["doc_type"]?$_GET["doc_type"]:'xs')."',1,1)";
 		$sql = "select ".
 		$_GET["q_columns_name"].
 		" from ".
-		$_GET["q_table"].$q_condition;
+		$_GET["q_table"].$q_condition.
+		" order by admin_defined_order;"
+		;
 		
 
 		//如果有返回结果，则返回，否则报错

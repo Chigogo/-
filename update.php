@@ -11,7 +11,7 @@
 	}
 
 	$data = json_decode(file_get_contents('php://input'), true);
-
+	// print_r($data);
 	// print_r($data);
 	// print_r($_GET);
 	$id;
@@ -31,30 +31,37 @@
 						}
 					}
 					break;
-				case 'content': 
-
+				case 't': 
+					$t = $item_value;
+					if($t=="d"){
+						$sql = "DELETE FROM ".$_GET["table"]." where id = ".$id.";";
+						if($conn->query($sql)){
+							echo $sql." operation success!\n";
+							unset($id);
+						}
+						else echo $sql." operation failure!\n";
+					}
 					break;
 				default:
 					break;
 			}
 		}
-		foreach ($item as $item_property => $item_value) {
-			switch ($item_property) {
-				case 'content': 
-					if($id){
+		if($id){
+			foreach ($item as $item_property => $item_value) {
+				switch ($item_property) {
+					case 'content': 
 						foreach ($item_value as $key => $value) {
 							$sql="update ".$_GET["table"]." set ".$key." = '".$value."' Where id='".$id."';";
 							// echo $sql;
-
-						if($conn->query($sql)){
-							echo $key."=".$value.", operation success!\n";
+							if($conn->query($sql)){
+								echo $sql." operation success!\n";
+							}
+							else echo $sql." operation failure!\n";
 						}
-						}
-
-					}
-					break;
-				default:
-					break;
+						break;
+					default:
+						break;
+				}
 			}
 		}
 

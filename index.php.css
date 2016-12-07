@@ -105,6 +105,13 @@ td[td_modify_status="true"]{
   font-weight: bold;
 }
 
+td[name="created_at"], td[name="changed_at"]{
+  display: none;
+}
+th[name="created_at"], th[name="changed_at"]{
+  display: none;
+}
+
 *[name="product_id"]{
   display: none;
 }
