@@ -1674,7 +1674,7 @@ var ls = list = {
     admin_defined_order_checker: function(){
       var rows = document.querySelectorAll("tbody tr");
       for (var i = 0;i < rows.length; ++i) {
-        var a = rows[i].querySelector("[name='admin_defined_order']");
+        var a = rows.item(i).querySelector("[name='admin_defined_order']");
         a.innerHTML=1+i;
         ls.checker.status.whether_td_modified.call(a);
       }
@@ -1825,9 +1825,14 @@ var ls = list = {
           {type: "a", value: c_e}, 
           {type: "e", value: nc_w},
           {type: "e", value: nc_a},
-          {type: "e", value: text_s},
-          placeholder?{type:"i",value: Number(placeholder)}:{type:"i",value: ""}
+          {type: "e", value: text_s}
           );
+        if(placeholder){
+          a.push(
+            {type: "i", value: Number(placeholder)},
+            {type: "a", value: ["placeholder", Number(placeholder)]}
+          );
+        }
       }
 
       if(JSON_array_content_type=="product") return function(a, p_name, placeholder){
