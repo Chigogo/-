@@ -91,13 +91,19 @@ p {
   color: white;
 }
 
-tr[tr_modified]::after {
+/* tr[tr_modified]::after {
   background-image: url('img/huaji.jpg');
   display: inline-block;
   background-size: 28px 28px;
   width: 28px; 
   height: 28px;
   content:"";
+  color:red;
+} */
+
+tr[tr_modified]{
+  /*background-image: url('img/huaji.jpg');*/
+  color:grey;
 }
 
 td[td_modify_status="true"]{

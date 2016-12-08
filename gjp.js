@@ -1070,7 +1070,9 @@ var ls = list = {
     ds.addEventListener("click", ls.checker.status.row_checker);
     $(ds).addClass("table-condensed");
 
-    var thead=document.createElement("thead"),th = document.createElement("tr");//th是head_tr
+    var thead=document.createElement("thead"),
+        th = document.createElement("tr");//th是head_tr
+
     thead.appendChild(th);
     for (var i = 0; i < table_head.length; i++) {
       var td = document.createElement("th");
@@ -1109,11 +1111,18 @@ var ls = list = {
           if(table_data_i[k][l].type == "a" && table_data_i[k][l].value[0]=="name" && table_data_i[k][l].value[1]== tr_in_thead.children[j].getAttribute("name")) 
           { 
             for (var l = 0; l < table_data_i[k].length; l++) {
-              //console.log(table_data);
               switch(table_data_i[k][l].type){
-                case "a": td.setAttribute(table_data_i[k][l].value[0],table_data_i[k][l].value[1]);break;
-                case "e": td.addEventListener(table_data_i[k][l].value[0],table_data_i[k][l].value[1]);break;
-                case "i": td.innerHTML= table_data_i[k][l].value;
+                case "a": 
+                    td.setAttribute(table_data_i[k][l].value[0],table_data_i[k][l].value[1]);
+                    // cl("set "+table_data_i[k][l].value[0]+" to "+table_data_i[k][l].value[1]+" success!");
+                    break;
+                case "e": 
+                    td.addEventListener(table_data_i[k][l].value[0],table_data_i[k][l].value[1]);
+                    // cl("set "+table_data_i[k][l].value[0]+" event to "+table_data_i[k][l].value[1]+" success!");
+                    break;
+                case "i": 
+                    td.innerHTML= table_data_i[k][l].value;
+                    // cl("set innerHTML to "+table_data_i[k][l].value[0]+" success!");
                     break;
               }
               // break;
@@ -1164,7 +1173,7 @@ var ls = list = {
     ls.checker.status.tab_active_check.apply($('li[list_content="product_info"]').get(0));
     
     function p_display(){
-      var p_names = ls.product_info[4];
+      var p_names = ls.product_info[5];
       ls.edit.data_convert_JSON_to_array(ls.product_info[1], ls.product_info[2], p_names, "product");
 
       //表头和表内容的表格
@@ -1215,9 +1224,10 @@ var ls = list = {
         "name": "abortChange",
         type: "button", 
         class: "btn btn-default"
-      }).text("放弃并退出");
+      }).text("放弃修改").on("click",ls.edit.abortChange);
 
       f_list.append(f_list_1, f_list_2, f_list_3, f_list_4);
+      ls.checker.status.whether_table_modified();
     }
 
     //检查ls.product_info[0]的值
@@ -1232,6 +1242,7 @@ var ls = list = {
       ajax_object.onreadystatechange = function(){
         if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200){
           if(Number(ajax_object.response) != 0){
+            ls["product_info"][2] = [];
             ls["product_info"][1] = JSON.parse(ajax_object.response);//查询的结果数组立即作为数组存储
             ls["product_info"][0] = 0;
             p_display();
@@ -1259,10 +1270,10 @@ var ls = list = {
       "full_name",
       "simple_name",
       "unit_1",
-      "admin_defined_unit_1",
-      "admin_defined_unit_1_factor",
       "admin_defined_unit_2",
       "admin_defined_unit_2_factor",
+      "admin_defined_unit_3",
+      "admin_defined_unit_3_factor",
       "price_base",
       "price_for_manufacturer",
       "price_for_dealer",
@@ -1287,10 +1298,10 @@ var ls = list = {
       [{type: "a",value:["name","admin_defined_order"]},{type: "i",value:"用户排序"}],
       [{type: "a",value:["name","full_name"]},{type: "i",value:"商品全名"}],
       [{type: "a",value:["name","simple_name"]},{type: "i",value:"简名"}],
-      [{type: "a",value:["name","admin_defined_unit_1"]},{type: "i",value:"辅助单位1"}],
-      [{type: "a",value:["name","admin_defined_unit_1_factor"]},{type: "i",value:"辅助单位1系数"}],//辅助单位需要有alt 弹出提示吗？
-      [{type: "a",value:["name","admin_defined_unit_2"]},{type: "i",value:"辅助单位2"}],
-      [{type: "a",value:["name","admin_defined_unit_2_factor"]},{type: "i",value:"辅助单位2系数"}],//辅助单位需要有alt 弹出提示吗？
+      [{type: "a",value:["name","admin_defined_unit_2"]},{type: "i",value:"单位2"}],
+      [{type: "a",value:["name","admin_defined_unit_2_factor"]},{type: "i",value:"单位2系数"}],//辅助单位需要有alt 弹出提示吗？
+      [{type: "a",value:["name","admin_defined_unit_3"]},{type: "i",value:"单位3"}],
+      [{type: "a",value:["name","admin_defined_unit_3_factor"]},{type: "i",value:"单位3系数"}],//辅助单位需要有alt 弹出提示吗？
       [{type: "a",value:["name","price_base"]},{type: "i",value:"基准价"}],
       [{type: "a",value:["name","price_for_manufacturer"]},{type: "i",value:"厂商价"}],
       [{type: "a",value:["name","price_for_dealer"]},{type: "i",value:"经销商价"}],
@@ -1358,7 +1369,7 @@ var ls = list = {
     ls.checker.status.tab_active_check.apply($('li[list_content="people_info"]').get(0));
     
     function p_display(){
-      var p_names = ls.people_info[4];
+      var p_names = ls.people_info[5];
       ls.edit.data_convert_JSON_to_array(ls.people_info[1], ls.people_info[2], p_names, "people");
 
       //展示表头、表内容
@@ -1409,9 +1420,10 @@ var ls = list = {
         "name": "abortChange",
         type: "button", 
         class: "btn btn-default"
-      }).text("放弃并退出");
+      }).text("放弃修改").on("click",ls.edit.abortChange);;
 
       f_list.append(f_list_1, f_list_2, f_list_3, f_list_4);
+      ls.checker.status.whether_table_modified();
     }
 
     //检查ls.people_info[0]的值
@@ -1456,10 +1468,11 @@ var ls = list = {
       "Address",
       "role",
       "py_code",
-      "password",
+      // "password",
       "loyalty",
       "complexity",
-      "hidden_toggle"
+      "hidden_toggle",
+      "user_comment" 
     ],
     [
       [{type: "a",value:["name","line_number"]},{type: "i",value:"行号"}],
@@ -1468,14 +1481,15 @@ var ls = list = {
       [{type: "a",value:["name","full_name"]},{type: "i",value:"客户全名"}],
       [{type: "a",value:["name","simple_name"]},{type: "i",value:"简名"}],
       [{type: "a",value:["name","person_in_charge"]},{type: "i",value:"负责人"}],
-      [{type: "a",value:["name","py_code"]},{type: "i",value:"拼音码"}],
       [{type: "a",value:["name","tel"]},{type: "i",value:"电话"}],
       [{type: "a",value:["name","phone"]},{type: "i",value:"手机"}],
       [{type: "a",value:["name","Address"]},{type: "i",value:"地址"}],
       [{type: "a",value:["name","role"]},{type: "i",value:"角色"}],
       [{type: "a",value:["name","loyalty"]},{type: "i",value:"忠诚度"}],
       [{type: "a",value:["name","complexity"]},{type: "i",value:"复杂度"}],
-      [{type: "a",value:["name","hidden_toggle"]},{type: "i",value:"是否删除"}]
+      [{type: "a",value:["name","py_code"]},{type: "i",value:"拼音码"}],
+      [{type: "a",value:["name","hidden_toggle"]},{type: "i",value:"是否删除"}],
+      [{type: "a",value:["name","user_comment "]},{type: "i",value:"备注"}]
     ]
   ],
   //people_tag 加入,第一个元素表状态，
@@ -1745,6 +1759,7 @@ var ls = list = {
     data_convert_JSON_to_array: function(JSON_array, storeArray, p_names, JSON_array_content_type){
     //参数是数组，数组的元素是JSON 对象
       var switch_function = ls.edit.specific_property_specific_attribute(JSON_array_content_type);
+      var property_name;
       for (var i = 0; i < JSON_array.length; i++) {
       //外循环开始，遍历每一个item,比如商品或者用户
       // 把每一个服务器的item转化成易于展示的格式，存储到ls.**_info[2]数组中
@@ -1758,20 +1773,23 @@ var ls = list = {
           // 该循环遍历每一个属性名称
           // a是第j个商品的商品属性（比如名称）的html元素的描述数组（这些属性包括html 元素属性a,事件监听器e,内部html,i）
           var a = storeArray[i][j] = []; 
-          // 每一个商品属性对应的html元素都需要拥有name 属性
-          if(p_names[j]=="id")
-            // 需要修改
-            a.push({type:"a",value:['name',JSON_array_content_type+'_id']});
-          else
-            a.push({type:"a",value:['name',p_names[j]]});   
-          var td_value = JSON_array[i][p_names[j]];//原来的值
-          var placeholder = td_value?td_value.toString():"";
-          a.push({type: "a", value: ["placeholder", placeholder]});//把原来的值存入placeholder 属性中，便于后来的状态检查
 
-          if(placeholder && placeholder!="null" && placeholder!="undefined")
-            // i代表 innerHtml
-            a.push({type:"i",value: placeholder});
-          switch_function(a,p_names[j],placeholder);
+          // 每一个商品属性对应的html元素都需要拥有name 属性
+          switch (p_names[j][0].value[1]){
+            case JSON_array_content_type+"_id":
+                property_name_in_JSON_array="id";
+                break;
+            default: 
+                property_name_in_JSON_array = p_names[j][0].value[1];
+                break;
+          }
+
+          var placeholder = JSON_array[i][property_name_in_JSON_array];//原来的值
+          var placeholder = placeholder!=undefined?placeholder.toString():"";
+          a.push({type: "a", value: ["name", p_names[j][0].value[1]]});
+          a.push({type: "a", value: ["placeholder", placeholder]});//把原来的值存入placeholder 属性中，便于后来的状态检查
+          a.push({type: "i", value: placeholder});
+          switch_function(a, p_names[j][0].value[1] ,placeholder);
         }//内循环结束
       }//外循环结束
 
@@ -1781,9 +1799,9 @@ var ls = list = {
       //是product 还是其他？
 
       // 定义一些需要使用的元素属性的值
-      var c_e = ["contenteditable","true"];
-      var nc_w = ["keypress",td.builder.number_check_when_input];
-      var nc_a = ["blur",ls.checker.number_check_after_input];
+      var c_e = ["contenteditable", "true"];
+      var nc_w = ["keypress", td.builder.number_check_when_input];
+      var nc_a = ["blur", ls.checker.number_check_after_input];
       var text_s = ["click", td.builder.cell_checker];
       //需要包含的函数预定义
       function editable(a){
@@ -1796,7 +1814,8 @@ var ls = list = {
           {type: "e", value: text_s}
         );
       }
-      function e_num(a){//add event listener for num tds
+
+      function e_num(a, placeholder){//add event listener for num tds
         a.push(
           {type: "a", value: ["td_modify_status", false]},
           {type: "e", value: ["blur",ls.checker.status.whether_td_modified]},
@@ -1804,7 +1823,8 @@ var ls = list = {
           {type: "a", value: c_e}, 
           {type: "e", value: nc_w},
           {type: "e", value: nc_a},
-          {type: "e", value: text_s}
+          {type: "e", value: text_s},
+          placeholder?{type:"i",value: Number(placeholder)}:{type:"i",value: ""}
           );
       }
 
@@ -1814,7 +1834,10 @@ var ls = list = {
           break;
           case "manufacturer" : editable(a); break;
           case "admin_defined_order" : 
-              editable(a);
+              a.push(
+                {type: "a", value: ["td_modify_status", false]},
+                {type: "e", value: ["blur",ls.checker.status.whether_td_modified]}
+              );
               break;
           case "full_name" : 
               editable(a);
@@ -1824,11 +1847,10 @@ var ls = list = {
 
           case "unit_1" : editable(a); break;
 
-          case "admin_defined_unit_1" : editable(a); break;
-          case "admin_defined_unit_1_factor" :e_num(a); break;
-          case "admin_defined_unit_2" :editable(a); break;
-          case "admin_defined_unit_2_factor" :e_num(a); break;
-
+          case "admin_defined_unit_2" : editable(a); break;
+          case "admin_defined_unit_3" :editable(a); break;
+          case "admin_defined_unit_2_factor" :
+          case "admin_defined_unit_3_factor" :
           case "price_base" :
           case "price_for_manufacturer" :
           case "price_for_dealer" :
@@ -1837,7 +1859,9 @@ var ls = list = {
           case "price_for_Medium" :
           case "price_for_small" :
           case "price_for_smaller" :
-          case "price_for_smallest" :e_num(a);break;
+          case "price_for_smallest" :
+              e_num(a, placeholder);
+              break;
           
           case "py_code" : 
               a.push({type: "a", value: ["td_modify_status", false]});
@@ -1857,8 +1881,8 @@ var ls = list = {
               {type: "i",  value: placeholder}
               );
               break;
-          case "user_comment" :editable(a); break;
-          case "system_log" :;break;
+          case "user_comment" : editable(a); break;
+          case "system_log" : break;
           default:
             break;
         }
@@ -1868,7 +1892,10 @@ var ls = list = {
           case "id" : 
           break;
           case "admin_defined_order" : 
-              editable(a);
+              a.push(
+                {type: "a", value: ["td_modify_status", false]},
+                {type: "e", value: ["blur",ls.checker.status.whether_td_modified]}
+              );
               break;
           case "full_name" : 
               editable(a);
@@ -1901,7 +1928,7 @@ var ls = list = {
               {type: "i",  value: placeholder}
               );
               break;
-          case "user_comment" :editable(a); break;
+          case "user_comment" :editable(a);break;
           default:
             break;
         }
@@ -1919,14 +1946,14 @@ var ls = list = {
       for(var i=0; i < ls[type+"_info"][4].length;++i){
         o[ls[type+"_info"][4][i]]="";
       }
-      ls.edit.data_convert_JSON_to_array([o],a,ls[type+"_info"][4],type);
+      ls.edit.data_convert_JSON_to_array([o],a,ls[type+"_info"][5],type);
       
       var new_tr = $(ls.create_list_line(a[0], $("thead tr").get(0)));
+      new_tr.addClass("new_created");
       if(!start.get(0)) new_tr.prependTo(tbody);
       else start.after(new_tr);
 
       ls.checker.list_row_number_checker();
-      ls.checker.admin_defined_order_checker();
 
     },
 
@@ -1934,6 +1961,7 @@ var ls = list = {
       var trs = $("tr[tr_modified]");
       if(trs.get(0)){
       var o_array=[];
+
 
       function Item(tr){
         var o={},
@@ -1962,6 +1990,16 @@ var ls = list = {
         ls[type+"_info"][3][1][i] = Item(trs[i]);
       };
 
+      var delete_items = $("[name='hidden_toggle']");
+      for (var i = 0; i < delete_items.length; i++) {
+        var a = $(delete_items[i]);
+        if(a.text()=="√"){
+          a.parent().remove();
+        }
+      };
+      
+      ls.checker.admin_defined_order_checker();
+
       //状态
       var table_name;
       switch(type){
@@ -1980,16 +2018,15 @@ var ls = list = {
         success: function(data, status, XMLHttpRequest_object){
           cl(data);
           ls[type+"_info"][0]=1;
-          $('[td_modify_status="true"]').attr("td_modify_status",false);
-          $("tr[td_modify_count]").attr("td_modify_count",0);
-          $("tr[tr_modified]").removeAttr("tr_modified");
-          var delete_items = $("[name='hidden_toggle']");
-          for (var i = 0; i < delete_items.length; i++) {
-            var a = $(delete_items[i]);
-            if(a.text()=="√"){
-              a.parent().remove();
-            }
+          $("tr.new_created").removeClass("new_created");
+
+          var modified_td = $('[td_modify_status="true"]').attr("td_modify_status",false);
+          for (var i = 0; i < modified_td.length; i++) {
+            $(modified_td[i]).attr("placeholder",$(modified_td[i]).text());
           };
+
+          $("tr[tr_modified]").removeAttr("tr_modified").attr("td_modify_count",0);
+
           ls.checker.list_row_number_checker();
           ls.checker.status.whether_table_modified();
           ls[type+"_info"][3][0]=0;
@@ -1997,6 +2034,28 @@ var ls = list = {
         }
       });
     }
+
+    },
+
+    abortChange: function(){
+      var abortChangeTable = $("[tab_content='list']li.active").attr("list_content");
+
+      ls[abortChangeTable][0]=0;
+
+      $("tr.new_created").remove();
+
+      var modified_td = $('[td_modify_status="true"]').attr("td_modify_status",false);
+      for (var i = 0; i < modified_td.length; i++) {
+        $(modified_td[i]).text($(modified_td[i]).attr("placeholder"));
+      };
+
+      $("tr[td_modify_count]").attr("td_modify_count",0);
+      $("tr[tr_modified]").removeAttr("tr_modified");
+      ls.checker.list_row_number_checker();
+      ls.checker.status.whether_table_modified();
+
+      ls[abortChangeTable][3][0]=0;
+      ls[abortChangeTable][3][1]=[];
 
     },
 
