@@ -651,7 +651,7 @@ var td = TRANSACTION_DOCUMENT = {
         (
             (Number(this.parentNode.querySelector('*[name="price_base_on_unit"]').innerHTML)*100) * 
             (Number(this.parentNode.querySelector('*[name="amount_on_unit_1"]').innerHTML)*100)/10000
-        ).toFixed(4)
+        ).toFixed(5)
       );
       td.builder.sum_refresher();
 
@@ -676,13 +676,14 @@ var td = TRANSACTION_DOCUMENT = {
     },
 
     "query_products": function(e){
+      var that = this;
       if(e.keyCode == 13)
       {
         var q_condition_column;
         if (this.innerHTML.charCodeAt(0)>= 123 || this.innerHTML.charCodeAt(0)<= 96)
-              q_condition_column = "full_name";
+          q_condition_column = "full_name";
         else
-              q_condition_column = "py_code";
+          q_condition_column = "py_code";
   
         ajax_object.onreadystatechange = function(){
           if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200)
@@ -711,7 +712,7 @@ var td = TRANSACTION_DOCUMENT = {
                 var a = td.query_result[j];
                 var new_tr = $("<tr></tr>");
                 new_tr.on({
-                  "click":  function(e){var that = this; td.selection_status(e, that,"select_one");},
+                  "click":  function(e){td.selection_status(e, this,"select_one");},
                 });
 
                 new_tr.html(
@@ -727,7 +728,7 @@ var td = TRANSACTION_DOCUMENT = {
               }
               pop_up.on("keypress",td.input_selected_products);
               p.find('.btn-primary').on("click", td.input_selected_products);
-              p.find('.modal-content').on("click", function(e){var that = this; td.selection_status(e, that, "unselect_all");});
+              p.find('.modal-content').on("click", function(e){td.selection_status(e, this, "unselect_all");});
 
                   
 
@@ -1298,6 +1299,7 @@ var ls = list = {
       [{type: "a",value:["name","admin_defined_order"]},{type: "i",value:"用户排序"}],
       [{type: "a",value:["name","full_name"]},{type: "i",value:"商品全名"}],
       [{type: "a",value:["name","simple_name"]},{type: "i",value:"简名"}],
+      [{type: "a",value:["name","unit_1"]},{type: "i",value:"单位1"}],
       [{type: "a",value:["name","admin_defined_unit_2"]},{type: "i",value:"单位2"}],
       [{type: "a",value:["name","admin_defined_unit_2_factor"]},{type: "i",value:"单位2系数"}],//辅助单位需要有alt 弹出提示吗？
       [{type: "a",value:["name","admin_defined_unit_3"]},{type: "i",value:"单位3"}],
@@ -1489,7 +1491,7 @@ var ls = list = {
       [{type: "a",value:["name","complexity"]},{type: "i",value:"复杂度"}],
       [{type: "a",value:["name","py_code"]},{type: "i",value:"拼音码"}],
       [{type: "a",value:["name","hidden_toggle"]},{type: "i",value:"是否删除"}],
-      [{type: "a",value:["name","user_comment "]},{type: "i",value:"备注"}]
+      [{type: "a",value:["name","user_comment"]},{type: "i",value:"备注"}]
     ]
   ],
   //people_tag 加入,第一个元素表状态，
@@ -1943,8 +1945,8 @@ var ls = list = {
           tbody = $("tbody"),
           start = $("tr.info");
       
-      for(var i=0; i < ls[type+"_info"][4].length;++i){
-        o[ls[type+"_info"][4][i]]="";
+      for(var i=0; i < ls[type+"_info"][5].length;++i){
+        o[ls[type+"_info"][5][0].value[1]]="";
       }
       ls.edit.data_convert_JSON_to_array([o],a,ls[type+"_info"][5],type);
       
