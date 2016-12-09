@@ -32,26 +32,101 @@ PRODUCT_ITEMS_queried = {
 
 };
 
-var d_q=document.querySelector;
+var ui = {
+  tabManager: function(tabOperationType, tabAttr){
+    //该函数用来管理tab，以对象的方式返回对应tab 的html属性:
+      // tabAttr:
+      // {
+          // tabElement: 对应的Element
+          // tabContent:
+          // html_attr: {
+            // class:
+            // tab_type:invoice
+            // my_invoice_id: someid
+          // }
+          // eventListeners: []
+      // }
+      // {
+          // tabElement: 对应的Element
+          // tabContent:
+          // html_attr: {
+            // class:
+            // tab_type:list
+            // list_type: product_info
+          // }
+          // eventListeners: []
+      // }
+    //tabOperationType操作类型，
+      // create，创建tab，如果type是info类型，则直接active 元素
+      // delete，删除tab
+      // modify，修改tab，比如将给元素class添加active
+      // isActive, 检测是否是active，
+    switch(tabOperationType){
+      //1573
+      case "create":
+          // 检查tabAttr.tab_type的值，遍历所有这些tab
+          if(tabAttr.html_attr.tab_type.search(/list/)!=-1){
+            var a = document.querySelector("#documents_tab>ul").querySelector('*[list_type="'+tabAttr.html_attr.list_type+'"]');
+          }
 
-//这是单据内容的构造函数
-function transaction_document_content(){
-  var o = new Object();
 
-  o = {
-  "invoice_id": 1,
-  "line_number": 1,
-	"product_and_id": [id,admin_defined_id,full_name],
-	"amount":/*decimal(9,2)*/1,
-	"user_define_unit": ["","",""],
-	"unit_coefficient": [1,4,40],
-	"price_base_on_unit": 1,/*decimal(9,5)*/
-	"product_income":1, /*decimal(10,2)*/
-	"comment":1/* varchar(63)*/
+          if(tabAttr.html_attr.tab_type.search(/invoice/)!=-1){
+            var a = document.querySelector("#documents_tab>ul").querySelector('*[my_invoice_id="'+tabAttr.html_attr.my_invoice_id+'"]');
+          }
+
+          if(!a){
+            var a = document.createElement("li");
+            //a 指的是tab中的li元素
+            a.appendChild(tabAttr.tabContent);
+            for(var html_attrProperty in tabAttr.html_attr){
+              a.setAttribute(html_attrProperty, tabAttr.html_attr[html_attrProperty]);
+            }
+
+            for (var i = 0; i < tabAttr.eventListeners.length; i++) {
+              a.addEventListener(tabAttr.eventListeners[i][0],tabAttr.eventListeners[i][1]);
+            };
+
+            a.addEventListener("click", function(){
+              ui.tabManager("modify",
+                {
+                  html_attr:{class:"active"},
+                  tabElement: this
+                }
+              );      
+            });
+
+            document.querySelector("#documents_tab>ul").appendChild(a);
+          }
+
+          tabAttr.tabElement = a;
+          
+          ui.tabManager("modify",
+            {
+              html_attr:{class:"active"},
+              tabElement: a
+            }
+          );                                                                                                      
+          break;
+
+      case "modify":
+          if(tabAttr.html_attr.class.search(/active/)!=-1){
+            var  tab=$("#documents_tab");
+            tab.find(".active").removeClass("active");
+            $(tabAttr.tabElement).addClass('active');
+          }
+          break;
+
+      case "isActive":
+          $(tabAttr.tabElement).hasClass('active');
+          break;
+
+      default:
+          break;
+    }
+  return tabAttr;
+  }
+
 };
-
-
-}
 
 //这是单据函数、多个单据数组的对象
 var td = TRANSACTION_DOCUMENT = {
@@ -299,17 +374,22 @@ var td = TRANSACTION_DOCUMENT = {
 
             "document_content_array": []
           };
-          var a = document.createElement("li");
-          //a 指的是tab中的li元素
-          a.innerHTML="<a href='#'>"+doc_type_Chinese+"</a>";
-          document.querySelector("#documents_tab>ul").appendChild(a);
           
+          ui.tabManager("create",{
+            html_attr:{
+              tab_type: "invoice",
+              my_invoice_id: c_new_i
+            },
 
-          a.setAttribute("my_invoice_id",c_new_i);
-          a.setAttribute("tab_content","invoice");
-          a.addEventListener("click",function(){ td.viewer(this.getAttribute("my_invoice_id")); });
-          a.addEventListener("click",ls.checker.status.tab_active_check);
-          ls.checker.status.tab_active_check.call(a);
+            eventListeners: [
+              ["click",function(){ td.viewer(this.getAttribute("my_invoice_id")); }],
+            ],
+
+            tabContent: $("<a/>",{
+              href: "#",
+              text: doc_type_Chinese
+            }).get(0)
+          });
 
           //创建并添加到视图
           td.viewer(c_new_i);
@@ -318,9 +398,10 @@ var td = TRANSACTION_DOCUMENT = {
           alert("数据库连接错误");
         }
       };
+
       ajax_object.open("GET", "query.php?" + string, true);
       ajax_object.send();
-      })//此处传入的c_new_i是字符串，php发现此标记后，进行新发票的创建，返回新发票id
+    })//此处传入的c_new_i是字符串，php发现此标记后，进行新发票的创建，返回新发票id
     ("c_new_i=1&doc_type="+doc_type);
   },
 
@@ -1157,21 +1238,23 @@ var ls = list = {
           return;
     }
 
-    // tab_content表示本tab 的内容的类型
-    // 展示前，检查tab 内显示标签
-    if(!document.querySelector("#documents_tab>ul").querySelector('*[list_content="product_info"]')){
-      var a = document.createElement("li");
-      // a.setAttribute("class","active");
-      a.setAttribute("tab_content","list");
-      //list_content表示 本
-      a.setAttribute("list_content","product_info");
-      a.innerHTML='<a href="#">商品信息</a>';
-      a.addEventListener("click", ls.pr_q_d);
-      a.addEventListener("click", ls.checker.status.tab_active_check);
-      document.querySelector("#documents_tab>ul").appendChild(a);
-    }
-    
-    ls.checker.status.tab_active_check.apply($('li[list_content="product_info"]').get(0));
+
+    ui.tabManager("create",{
+      html_attr:{
+        tab_type: "list",
+        list_type: "product_info"
+      },
+
+
+      eventListeners: [
+        ["click", ls.pr_q_d],
+      ],
+
+      tabContent: $("<a/>",{
+        href: "#",
+        text: "商品信息"
+      }).get(0)
+    });
     
     function p_display(){
       var p_names = ls.product_info[5];
@@ -1354,21 +1437,21 @@ var ls = list = {
           return;
     }
 
-    // tab_content表示本tab 的内容的类型
-    // 展示前，检查tab 内显示标签
-    if(!document.querySelector("#documents_tab>ul").querySelector('*[list_content="people_info"]')){
-      var a = document.createElement("li");
-      // a.setAttribute("class","active");
-      a.setAttribute("tab_content","list");
-      //list_content表示 本
-      a.setAttribute("list_content","people_info");
-      a.innerHTML='<a href="#">客户信息</a>';
-      a.addEventListener("click", ls.pe_q_d);
-      a.addEventListener("click", ls.checker.status.tab_active_check);
-      document.querySelector("#documents_tab>ul").appendChild(a);
-    }
-    
-    ls.checker.status.tab_active_check.apply($('li[list_content="people_info"]').get(0));
+    ui.tabManager("create",{
+      html_attr:{
+        tab_type: "list",
+        list_type: "people_info"
+      },
+
+      eventListeners: [
+        ["click", ls.pe_q_d],
+      ],
+
+      tabContent: $("<a/>",{
+        href: "#",
+        text: "客户信息"
+      }).get(0)
+    });
     
     function p_display(){
       var p_names = ls.people_info[5];
@@ -1564,16 +1647,6 @@ var ls = list = {
         $(a).addClass("info");
         // .addClass("info");
       },
-
-      // 检测标签栏上的tab 的active 状态
-      // 更新此状态
-      // 此作为click 的listener，加在被单击的项目（tab）上
-      tab_active_check: function(event){
-        var  tab=$("#documents_tab");
-        tab.find(".active").removeClass("active");
-        $(this).addClass('active');
-      },
-
 
       whether_td_modified : function(){
       //这个函数用来检测td 的数据是否有改动
@@ -2045,7 +2118,7 @@ var ls = list = {
     },
 
     abortChange: function(){
-      var abortChangeTable = $("[tab_content='list']li.active").attr("list_content");
+      var abortChangeTable = $("[tab_type='list']li.active").attr("list_type");
 
       ls[abortChangeTable][0]=0;
 
