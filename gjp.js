@@ -148,9 +148,9 @@ var td = TRANSACTION_DOCUMENT = {
       [{t: "a",v:["name","manufacturer"]},{t: "i",v:"厂家"}],
       [{t: "a",v:["name","full_name"]},{t: "i",v:"商品全名"}],
       [{t: "a",v:["name","admin_defined_unit"]},{t: "i",v:"规格"}],
-      [{t: "a",v:["name","unit_1"]},{t: "i",v:"单位"}],
-      [{t: "a",v:["name","amount_on_unit_1"]},{t: "i",v:"数量"}],
-      [{t: "a",v:["name","price_base_on_unit"]},{t: "i",v:"单价"}],
+      [{t: "a",v:["name","unit"]},{t: "i",v:"单位"}],
+      [{t: "a",v:["name","amount"]},{t: "i",v:"数量"}],
+      [{t: "a",v:["name","price"]},{t: "i",v:"单价"}],
       [{t: "a",v:["name","item_money_received"]},{t: "i",v:"金额"}],
       [{t: "a",v:["name","comment_for_item"]},{t: "i",v:"备注"}]
     ],
@@ -158,22 +158,21 @@ var td = TRANSACTION_DOCUMENT = {
 
     "invoice_id1": {
         ////INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
-      "trading_object": [1,"系统"],
-      "doc_type" : "xs",//set('xs','jh','cg','db','dd'),销售，进货，草稿，调拨，用户订单
-      "storehouse" : [1,"仓库1"],//[01,"仓库1"],
-      "money_received" : 0,//Decimal(12,2),
+      "trading_object": [1,"系统"],//[id, full_name]
+      "doc_type" : "xs",//doc_type enum('xs','jh','db','dd'),销售，进货，调拨，用户订单
+      "store_house" : [1,"仓库1"],//[id, full_name]
+      "money_received" : 0,//Decimal(12,2)
       "comment" : '',//varchar(63)，描述区的备注
-      "document_status" : "管理员编辑",  /*"成功", "管理员反冲", "管理员编辑", "用户提交（关）", "用户编辑", "用户开", "管理员取消", "用户取消"*/
-      "document_created_time": "2016-11-21 11:46:15",
+      "document_status" : "管理员编辑",  /*enum("完成","管理员反冲", "管理员编辑","管理员取消", "用户编辑", "用户取消") not null default "管理员编辑"*/
+      "created_time": "2016-11-21 11:46:15",
+      "update_time" : "0000-00-00 00:00:00",
       
       // "document_description": 
       "document_content_array": [{
         "product_id": 123,
         "full_name": "小脆筒",
-        "another_unit_factor": 0,//from another_unit
-        "another_unit": "只",
-        "un": "箱",//标注用户所选用的计算规格的方式
-        "amount_on_unit_1": 0,
+        "unit": "箱",//标注用户所选用的计算规格的方式
+        "amount": 0,
         "item_money_received": 0,
         "comment": ""
        },{
@@ -181,9 +180,9 @@ var td = TRANSACTION_DOCUMENT = {
         "manufacturer":"",
         "full_name":"",
         "admin_defined_unit":"",
-        "unit_1":"",
-        "amount_on_unit_1":"",
-        "price_base_on_unit":"",
+        "unit":[],//unit1还是其他？
+        "amount":"",
+        "price":"",
         "item_money_received":"",
         "comment_for_item":""
        }]
@@ -197,7 +196,7 @@ var td = TRANSACTION_DOCUMENT = {
   // 4、把新的id 写入表格描述部分
   // 5、更新发票对应的对象
   // 6、修改tab 状态
-  "viewer": function(invoice_id){
+  "viewer": function(editable_tag ,invoice_id){
     //当前视图如果存在单据,id=i，则先保存该单据
     var section = document.querySelector("#display_section");
     if(section.querySelector("#i")){
@@ -277,7 +276,7 @@ var td = TRANSACTION_DOCUMENT = {
     //展示单据描述数据
     des.querySelector('td[name="generated_id"]').innerHTML = a.doc_type+"-"+invoice_id;
     des.querySelector('td[name="document_created_time"]').innerHTML = a.document_created_time;
-    des.querySelector('td[name="store_house"]').innerHTML = a.storehouse[1];
+    des.querySelector('td[name="store_house"]').innerHTML = a.store_house[1];
     var des_comment = des.querySelector('td[name="comment"]');
     des_comment.innerHTML = a.comment;
     des_comment.addEventListener("click",td.builder.cell_checker);
@@ -291,14 +290,14 @@ var td = TRANSACTION_DOCUMENT = {
     var c = document.querySelector('#i_c');
     var table_head_fields_description_array = td.document_lists.invoice_content_head_description_array;
     //初始化表格头
-    c.appendChild(td.builder.new_line_creat("th",table_head_fields_description_array));
+    c.appendChild(td.builder.creat_new_tr("th",table_head_fields_description_array));
 
     for (var i = 0; i < a.document_content_array.length; i++) {
-      c.appendChild(td.builder.new_line_creat_from_o_and_thead(a.document_content_array[i],table_head_fields_description_array));
+      c.appendChild(td.builder.create_invoice_line(a.document_content_array[i],table_head_fields_description_array,editable_tag));
     };
 
     //last line
-    var last_line = td.builder.new_line_creat_from_o_and_thead("td",table_head_fields_description_array);
+    var last_line = td.builder.create_invoice_line("td",table_head_fields_description_array);
     var full_name_td = last_line.querySelector("[name='full_name']");
     full_name_td.removeEventListener("blur", td.builder.cell_checker);
     c.appendChild(last_line);
@@ -322,8 +321,8 @@ var td = TRANSACTION_DOCUMENT = {
       "full_name": a[i].querySelector('*[name="full_name"]').innerHTML,
       "admin_defined_unit": Number(a[i].querySelector('*[name="admin_defined_unit"]')),
       "unit_1": "箱",//标注用户所选用的计算规格的方式
-      "price_base_on_unit": Number(a[i].querySelector('*[name="price_base_on_unit"]').innerHTML),
-      "amount_on_unit_1": Number(a[i].querySelector('*[name="amount_on_unit_1"]').innerHTML),
+      "price": Number(a[i].querySelector('*[name="price"]').innerHTML),
+      "amount": Number(a[i].querySelector('*[name="amount"]').innerHTML),
       "item_money_received": Number(a[i].querySelector('*[name="item_money_received"]').innerHTML),
       "comment_for_item": a[i].querySelector('*[name="comment_for_item"]').innerHTML
       };
@@ -338,7 +337,12 @@ var td = TRANSACTION_DOCUMENT = {
 
   //方法————单据对象的创建
   //在主数据库创建一个单据，主数据库返回单据id
-  "creator": function (doc_type){
+  "creator": function (doc_type, operationType, doc_status, invoice_id){
+    //doc_type,主要有xs，jh
+    //operationType,主要有
+      // cr，create
+      // vr，viewer
+      // ed, editor
     var c_new_i,
         doc_type_Chinese;
 
@@ -359,26 +363,31 @@ var td = TRANSACTION_DOCUMENT = {
       ajax_object.onreadystatechange = function(){
         if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200){
 
-          var ajax_result = JSON.parse(ajax_object.response);
-          c_new_i = ajax_result.id;
+          //transaction_documents_description, Object
+          var tdd = JSON.parse(ajax_object.response);cl(tdd);
+          invoice_id = tdd.id;
 
-          var invoice = "invoice_id"+c_new_i;
-          td.document_lists[invoice] = {
-            "trading_object": [0,""],
-            "doc_type" : doc_type,
-            "storehouse" : [1,"仓库1"],
-            "money_received" : 0,
-            "comment" : "",
-            "document_status" : "管理员编辑", 
-            "document_created_time": ajax_result.created_time,
+          var invoice = "invoice_id"+invoice_id;//invoice_id12331
+          td.document_lists[invoice] = {};
 
-            "document_content_array": []
-          };
-          
+          for(var property_name in tdd){
+            td.document_lists[invoice][property_name] = tdd[property_name]?tdd[property_name]:"";
+            // switch(property_name){
+            //   case "trading_object": 
+            //       td.document_lists[invoice]["trading_object"] = [tdd[property_name],""];
+            //   case "store_house":
+            //       td.document_lists[invoice]["store_house"] = [tdd[property_name],""];
+            //   default: break;
+            // }
+          }
+
+          td.document_lists[invoice]["document_content_array"] = [];
+
+          //tab 对象创建
           ui.tabManager("create",{
             html_attr:{
               tab_type: "invoice",
-              my_invoice_id: c_new_i
+              my_invoice_id: invoice_id
             },
 
             eventListeners: [
@@ -392,7 +401,7 @@ var td = TRANSACTION_DOCUMENT = {
           });
 
           //创建并添加到视图
-          td.viewer(c_new_i);
+          td.viewer(operationType=="cr"||operationType=="ed"?"editable":"not_editable", invoice_id);
         }
         if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status == 404){
           alert("数据库连接错误");
@@ -402,15 +411,17 @@ var td = TRANSACTION_DOCUMENT = {
       ajax_object.open("GET", "query.php?" + string, true);
       ajax_object.send();
     })//此处传入的c_new_i是字符串，php发现此标记后，进行新发票的创建，返回新发票id
-    ("c_new_i=1&doc_type="+doc_type);
+    ("query_invoice"+
+      (operationType=="cr"?("&c_new_i&doc_type="+doc_type):("&invoice_id="+invoice_id))
+    );
   },
 
   "creator_xs": function(){
-    td.creator("xs");
+    td.creator("xs", "cr");
   },
 
   "creator_jh": function(){
-    td.creator("jh");
+    td.creator("jh", "cr");
   },
   /*
   如果该方法由viewer 唤起，则为相应td 元素添加事件处理器；
@@ -419,16 +430,16 @@ var td = TRANSACTION_DOCUMENT = {
     当用户选中某几个条目时，将条目写入发票中，写入td的lists 中
   */
   "builder": {
-    new_line_creat: function(tag_name_within_line_tr, fields_description_array){
+    creat_new_tr: function(tag_name_within_line_tr, fields_description_array){
       var tr=document.createElement("tr");
       for (var i = 0; i < fields_description_array.length; i++) {
-        tr.appendChild(td.builder.new_element_creat(tag_name_within_line_tr, fields_description_array[i]));
+        tr.appendChild(td.builder.create_new_element_in_tr(tag_name_within_line_tr, fields_description_array[i]));
       };
       return tr;
 
     },
 
-    new_element_creat: function(tag_name, field_description_array){
+    create_new_element_in_tr: function(tag_name, field_description_array){
       var element = document.createElement(tag_name);
       for (var i = 0; i < field_description_array.length; i++) {
         switch(field_description_array[i].t){
@@ -436,7 +447,7 @@ var td = TRANSACTION_DOCUMENT = {
               element.setAttribute(field_description_array[i].v[0],field_description_array[i].v[1]);
               break;
           case "i":
-              element.innerHTML = field_description_array[i].v;
+              element.appendChild(typeof field_description_array[i].v=="string"?document.createTextNode(field_description_array[i].v):field_description_array[i].v);
               break;
           case "e":
               element.addEventListener(field_description_array[i].v[0],field_description_array[i].v[1]);
@@ -446,19 +457,19 @@ var td = TRANSACTION_DOCUMENT = {
       return element;
     },
 
-    new_line_creat_from_o_and_thead: function (a, table_head_fields_description_array){//a是document_content_array的item
-      var tr_fileds_description=[]
+    create_invoice_line: function (a, table_head_fields_description_array){//a是document_content_array的item
+      var tr_fields_description=[]
       for (var i = 0; i < table_head_fields_description_array.length; i++) {
-        tr_fileds_description[i] = [table_head_fields_description_array[i][0]];
+        tr_fields_description[i] = [table_head_fields_description_array[i][0]];
       };
 
-      for (var i = 0; i < tr_fileds_description.length; i++) {
+      for (var i = 0; i < tr_fields_description.length; i++) {
         //innerHTML
-        var td_des = tr_fileds_description[i];
-        if(a[tr_fileds_description[i][0]["v"][1]])
-        tr_fileds_description[i].push({t:"i",v:a[tr_fileds_description[i][0]["v"][1]]});
+        var td_des = tr_fields_description[i];
+        if(a[tr_fields_description[i][0]["v"][1]])
+        tr_fields_description[i].push({t:"i",v:a[tr_fields_description[i][0]["v"][1]]});
 
-        switch(tr_fileds_description[i][0]["v"][1]){
+        switch(tr_fields_description[i][0]["v"][1]){
           case "line_number":
               break;
           case "product_id":
@@ -484,9 +495,9 @@ var td = TRANSACTION_DOCUMENT = {
               break;
           case "admin_defined_unit":
               break;
-          case "unit_1":
+          case "unit":
               break;
-          case "amount_on_unit_1":
+          case "amount":
               td_des.push(
                 {t:"e",v:["click", td.builder.cell_checker]},
                 {t:"e",v:["blur",td.builder.number_check_after_input]},
@@ -497,7 +508,7 @@ var td = TRANSACTION_DOCUMENT = {
 
               );
               break;
-          case "price_base_on_unit":
+          case "price":
               td_des.push(
                 {t:"e",v:["click", td.builder.cell_checker]},
                 {t:"e",v:["blur",td.builder.number_check_after_input]},
@@ -528,7 +539,7 @@ var td = TRANSACTION_DOCUMENT = {
       };
 
       //tr created
-      return td.builder.new_line_creat("td",tr_fileds_description);
+      return td.builder.creat_new_tr("td",tr_fields_description);
     },
 
     // 两个功能，如果是click和focus，则选中表格内容
@@ -575,7 +586,7 @@ var td = TRANSACTION_DOCUMENT = {
       var i_c_tr=document.querySelector("#i_c").querySelectorAll('tr');
       var amount=money_received=0;
       for (var i = 1; i < i_c_tr.length; i++) {
-        amount += Number(i_c_tr[i].querySelector("*[name='amount_on_unit_1']").innerHTML);
+        amount += Number(i_c_tr[i].querySelector("*[name='amount']").innerHTML);
         money_received += Number(i_c_tr[i].querySelector("*[name='item_money_received']").innerHTML);
       };
       money_received=money_received.toFixed(2);
@@ -730,8 +741,8 @@ var td = TRANSACTION_DOCUMENT = {
       this.parentNode.querySelector('*[name="item_money_received"]').innerHTML = 
       Number(
         (
-            (Number(this.parentNode.querySelector('*[name="price_base_on_unit"]').innerHTML)*100) * 
-            (Number(this.parentNode.querySelector('*[name="amount_on_unit_1"]').innerHTML)*100)/10000
+            (Number(this.parentNode.querySelector('*[name="price"]').innerHTML)*100) * 
+            (Number(this.parentNode.querySelector('*[name="amount"]').innerHTML)*100)/10000
         ).toFixed(5)
       );
       td.builder.sum_refresher();
@@ -741,11 +752,11 @@ var td = TRANSACTION_DOCUMENT = {
     "receive_affects_price": function (e){
       var a = (
         Number(this.parentNode.querySelector('*[name="item_money_received"]').innerHTML)*1000/
-        Number(this.parentNode.querySelector('*[name="amount_on_unit_1"]').innerHTML)/1000
+        Number(this.parentNode.querySelector('*[name="amount"]').innerHTML)/1000
         ).toFixed(5);
       if(a.toString()=="NaN"||a==Infinity) a = "";
       Number(a).toFixed(5);
-      this.parentNode.querySelector('*[name="price_base_on_unit"]').innerHTML = Number(a);
+      this.parentNode.querySelector('*[name="price"]').innerHTML = Number(a);
       td.builder.sum_refresher();
 
     },
@@ -935,14 +946,14 @@ var td = TRANSACTION_DOCUMENT = {
             "manufacturer":$(a[i]).find('*[name="manufacturer"]').html(),
             "full_name": $(a[i]).find('*[name="full_name"]').html(),
             "admin_defined_unit":"",
-            "unit_1": "箱",
-            "amount_on_unit_1": 0,
-            "price_base_on_unit": 0,
+            "unit": "箱",
+            "amount": 0,
+            "price": 0,
             "item_money_received": 0,
             "comment_for_item":""
           };
         // td.document_lists["invoice_id"+id].document_content_array.push(o);
-        new_tr = $(td.builder.new_line_creat_from_o_and_thead(o,td.document_lists.invoice_content_head_description_array));
+        new_tr = $(td.builder.create_invoice_line(o,td.document_lists.invoice_content_head_description_array));
         var e_point = i_c.find("*[input_end_point]").first();
 
         if(!e_point){
@@ -1354,10 +1365,10 @@ var ls = list = {
       "full_name",
       "simple_name",
       "unit_1",
-      "admin_defined_unit_2",
-      "admin_defined_unit_2_factor",
-      "admin_defined_unit_3",
-      "admin_defined_unit_3_factor",
+      "unit_2",
+      "unit_2_factor",
+      "unit_3",
+      "unit_3_factor",
       "price_base",
       "price_for_manufacturer",
       "price_for_dealer",
@@ -1383,10 +1394,10 @@ var ls = list = {
       [{type: "a",value:["name","full_name"]},{type: "i",value:"商品全名"}],
       [{type: "a",value:["name","simple_name"]},{type: "i",value:"简名"}],
       [{type: "a",value:["name","unit_1"]},{type: "i",value:"单位1"}],
-      [{type: "a",value:["name","admin_defined_unit_2"]},{type: "i",value:"单位2"}],
-      [{type: "a",value:["name","admin_defined_unit_2_factor"]},{type: "i",value:"单位2系数"}],//辅助单位需要有alt 弹出提示吗？
-      [{type: "a",value:["name","admin_defined_unit_3"]},{type: "i",value:"单位3"}],
-      [{type: "a",value:["name","admin_defined_unit_3_factor"]},{type: "i",value:"单位3系数"}],//辅助单位需要有alt 弹出提示吗？
+      [{type: "a",value:["name","unit_2"]},{type: "i",value:"单位2"}],
+      [{type: "a",value:["name","unit_2_factor"]},{type: "i",value:"单位2系数"}],//辅助单位需要有alt 弹出提示吗？
+      [{type: "a",value:["name","unit_3"]},{type: "i",value:"单位3"}],
+      [{type: "a",value:["name","unit_3_factor"]},{type: "i",value:"单位3系数"}],//辅助单位需要有alt 弹出提示吗？
       [{type: "a",value:["name","price_base"]},{type: "i",value:"基准价"}],
       [{type: "a",value:["name","price_for_manufacturer"]},{type: "i",value:"厂商价"}],
       [{type: "a",value:["name","price_for_dealer"]},{type: "i",value:"经销商价"}],
@@ -1927,10 +1938,10 @@ var ls = list = {
 
           case "unit_1" : editable(a); break;
 
-          case "admin_defined_unit_2" : editable(a); break;
-          case "admin_defined_unit_3" :editable(a); break;
-          case "admin_defined_unit_2_factor" :
-          case "admin_defined_unit_3_factor" :
+          case "unit_2" : editable(a); break;
+          case "unit_3" :editable(a); break;
+          case "unit_2_factor" :
+          case "unit_3_factor" :
           case "price_base" :
           case "price_for_manufacturer" :
           case "price_for_dealer" :
