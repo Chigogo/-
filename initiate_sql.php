@@ -1,10 +1,24 @@
 <?php
 	header('Content-Type: text/plain');
 ?>
---在database外
+
 drop database gjp_web;
 create database gjp_web;
+
+<?php
+  $user_agent = $_SERVER['HTTP_USER_AGENT'];
+  if(!strpos($user_agent, "Windows NT"))
+  echo <<<Mac
+
+GRANT ALL ON test.* TO 'Chigogo'@'localhost' WITH GRANT OPTION;
+Mac;
+
+
+  if(strpos($user_agent, "Windows NT"))
+  echo <<<Win
 grant all on gjp_web.* to Chigogo with grant option;
+Win;
+?>
 
 use gjp_web;
 
@@ -25,7 +39,7 @@ complexity INT,
 user_comment varchar(127)
 );
 
-/*标签，价格系数*/
+-- 标签，价格系数
 create table people_tag (
 id SMALLINT Unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,  /* 最多有65535个tag */
 tag_name VARCHAR(12) NOT NULL,
@@ -36,7 +50,7 @@ tag_category enum('role', 'non_category'),
 tag_describe VARCHAR(127)
 );
 
-/*单位的标签*/
+-- 单位的标签
 create table people_and_their_tags(
 tag_id SMALLINT Unsigned NOT NULL,
 people_id INT NOT NULL,
@@ -50,7 +64,7 @@ ON UPDATE CASCADE
 ON DELETE CASCADE
 );
 
-/*商品信息*/
+-- 商品信息
 create table product_info(
 id MEDIUMINT Unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,
 admin_defined_order mediumint(8) unsigned,
@@ -67,9 +81,10 @@ unit_2_factor tinyint,
 unit_3 varchar(2),
 unit_3_factor tinyint,
 
-/* price strategy*/
+-- price strategy
 price_base decimal(8,4),
-/* product level factor*/
+
+-- product level factor
 price_for_manufacturer decimal(7,4),
 price_for_dealer decimal(7,4),
 price_for_bigger decimal(7,4),
@@ -95,7 +110,7 @@ id INT Unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,
 unit_1_volume_length smallint,
 unit_1_volume_width smallint,
 unit_1_volume_height smallint, /* in mm*/
-unit_1_weight MEDIUMINT, /* in g*/
+unit_1_weight MEDIUMINT /* in g*/
 );
 
 create table product_tag (
@@ -130,9 +145,9 @@ doc_type enum('xs','jh','db','dd'),/*销售，进货，调拨，用户订单*/
 trading_object INT NOT NULL,
 foreign key trading_object(trading_object)
 references people(id),
-/* 系统维护人员!!! */
+-- 系统维护人员!!!
 created_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-update_time TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 store_house tinyint not null,
 money_received Decimal(12,2),
 comment varchar(63),
@@ -164,8 +179,6 @@ ON UPDATE CASCADE,
 amount decimal(9,4) not null,
 
 unit enum("unit_1","unit_2","unit_3")not null,
-
-price decimal(9,5),
 
 item_income decimal(10,2), 
 
@@ -221,6 +234,7 @@ client_info varchar(1024),
 when_login TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 last_operation_or_die TIMESTAMP NULL /*最后一次操作时间距离上次操作时间不应超过30分钟*/
 );
+
 <?php
 	$user_agent = $_SERVER['HTTP_USER_AGENT'];
 	if(!strpos($user_agent, "Windows NT"))
@@ -229,7 +243,8 @@ last_operation_or_die TIMESTAMP NULL /*最后一次操作时间距离上次操�
 
 -- 在Mac下，跨盘操作，需要移除Local 关键字
 -- 需要mysql 客户端输入参数 --local-infile
-LOAD DATA LOCAL INFILE '/Users/Chigogo/Documents/Study_Material/LearningCS/建站/gjp_web/单位信息sublime utf-8.txt' INTO TABLE people;
+LOAD DATA LOCAL INFILE '/Users/Chigogo/Documents/Study_Material/LearningCS/建站/gjp_web/单位信息sublime utf-8.txt' 
+INTO TABLE people (id, full_name, @v1, @v2, tel, @phone, Address, @v3, py_code, @v3 ,@v3);
 Mac;
 
 

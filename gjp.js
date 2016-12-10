@@ -147,10 +147,10 @@ var td = TRANSACTION_DOCUMENT = {
       [{t: "a",v:["name","product_id"]},{t: "i",v:"商品id"}],
       [{t: "a",v:["name","manufacturer"]},{t: "i",v:"厂家"}],
       [{t: "a",v:["name","full_name"]},{t: "i",v:"商品全名"}],
-      [{t: "a",v:["name","admin_defined_unit"]},{t: "i",v:"规格"}],
-      [{t: "a",v:["name","unit"]},{t: "i",v:"单位"}],
       [{t: "a",v:["name","amount"]},{t: "i",v:"数量"}],
       [{t: "a",v:["name","price"]},{t: "i",v:"单价"}],
+      [{t: "a",v:["name","unit"]},{t: "i",v:"单位"}],
+      [{t: "a",v:["name","units_factor"]},{t: "i",v:"规格"}],
       [{t: "a",v:["name","item_money_received"]},{t: "i",v:"金额"}],
       [{t: "a",v:["name","comment_for_item"]},{t: "i",v:"备注"}]
     ],
@@ -179,10 +179,10 @@ var td = TRANSACTION_DOCUMENT = {
         "product_id":"",
         "manufacturer":"",
         "full_name":"",
-        "admin_defined_unit":"",
-        "unit":[],//unit1还是其他？
         "amount":"",
         "price":"",
+        "unit":[],//unit1还是其他？
+        "units_factor":[],
         "item_money_received":"",
         "comment_for_item":""
        }]
@@ -381,7 +381,11 @@ var td = TRANSACTION_DOCUMENT = {
             // }
           }
 
+          td.document_lists[invoice]["store_house"] = [];
+          td.document_lists[invoice]["trading_object"] = [];
           td.document_lists[invoice]["document_content_array"] = [];
+
+          var viewer_arg = operationType=="cr"||operationType=="ed"?"editable":"not_editable";
 
           //tab 对象创建
           ui.tabManager("create",{
@@ -391,7 +395,7 @@ var td = TRANSACTION_DOCUMENT = {
             },
 
             eventListeners: [
-              ["click",function(){ td.viewer(this.getAttribute("my_invoice_id")); }],
+              ["click",function(){ td.viewer(viewer_arg, this.getAttribute("my_invoice_id")); }],
             ],
 
             tabContent: $("<a/>",{
@@ -401,7 +405,7 @@ var td = TRANSACTION_DOCUMENT = {
           });
 
           //创建并添加到视图
-          td.viewer(operationType=="cr"||operationType=="ed"?"editable":"not_editable", invoice_id);
+          td.viewer(viewer_arg, invoice_id);
         }
         if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status == 404){
           alert("数据库连接错误");

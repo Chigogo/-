@@ -28,45 +28,46 @@
 			}
 
 			else echo "0 results";
-		}
-		else{
+		}else{
 			$id = $_GET["invoice_id"];
 
-			$invoice_content = $conn->query("");
+			$invoice_content = $conn->query("select * from transaction_documents_content where transaction_document_id = '".$id."';");
 			if($invoice_content->num_rows>0) {
 			// echo var_dump($invoice_content["num_rows"]);
 			// echo "<br>".$sql;
-			for ($invoice_content_items; $invoice_content_item = $invoice_content->fetch_assoc(); $invoice_content_items[]=$invoice_content_item);
-			foreach ($invoice_content_items as $item_key=>$item) {
-				foreach ($item as $pkey=>$property) {
-					if ($property == NULL) {
-						// print_r($pkey);echo "\n";
-						unset($invoice_content_items[$item_key][$pkey]);
+				for ($invoice_content_items; $invoice_content_item = $invoice_content->fetch_assoc(); $invoice_content_items[]=$invoice_content_item);
+
+				foreach ($invoice_content_items as $item_key=>$item) {
+					$item_id = $item["product_id"];
+
+					$item_detailed = $conn->query(
+						"select manufacturer, full_name, unit_1, unit_2, unit_2_factor, unit_3, unit_3_factor from product_info where id = '".$item_id."';"
+						)->fetch_assoc();
+
+					$item["units_factor"] = ["unit_1"=>[$item_detailed["unit_1"]?$item_detailed["unit_1"]:"箱",1]];
+					if($item_detailed["unit_2"]!=null && $item_detailed["unit_2_factor"]!=null) {
+						$item["units_factor"]["unit_2"] = [$item_detailed["unit_2"], $item_detailed["unit_2_factor"]];
+						unset($item_detailed["unit_2"]);
+						unset($item_detailed["unit_2_factor"]);
 					}
+					if($item_detailed["unit_3"]!=null && $item_detailed["unit_3_factor"]!=null) {
+						$item["units_factor"]["unit_3"] = [$item_detailed["unit_3"], $item_detailed["unit_3_factor"]];
+						unset($item_detailed["unit_3"]);
+						unset($item_detailed["unit_3_factor"]);
+					}
+
+					foreach ($item_detailed as $item_detailed_propeerty_key => $item_detailed_propeerty) {
+						$item[$item_detailed_propeerty_key] = $item_detailed_propeerty;//把详细信息写入item
+					}
+
+					$item["price"] = $item["item_money_received"]*100/$item["amount"]/100;
 				}
-				# code...
-			}
-			// print_r( $invoice_content_items);
-
-			//PHP 数组测试
-			// $test_var =[0,1,2,3]; foreach ($test_var as $value) {
-			// 	echo gettype($value).$value; unset($value); echo "r:".gettype($value)."\n";
-			// }
-			// var_dump($test_var);
-
-			// echo gettype($invoice_content_items[0][simple_name]);
-			echo json_encode($invoice_content_items, JSON_UNESCAPED_UNICODE);
-			}
-			else {			
-				header('Content-Type: text/html');
-				echo 0;
-				// echo $sql."<br>0 results or query failed.";
 			}
 		}
 
 		$invoice = $conn->query("select * from transaction_documents_description where id = '".$id."'")->fetch_assoc();
-
-		echo json_encode($invoice);
+		$invoice["document_content_array"] = $invoice_content_items?$invoice_content_items:[];
+		echo json_encode($invoice, JSON_UNESCAPED_UNICODE);
 	}
 
 	//如果query_single标记存在，则试图返回查询结果
