@@ -67,6 +67,19 @@
 
 		$invoice = $conn->query("select * from transaction_documents_description where id = '".$id."'")->fetch_assoc();
 		$invoice["document_content_array"] = $invoice_content_items?$invoice_content_items:[];
+
+		$trading_object_full_name = $conn->query("select full_name from people where id = '".$invoice["trading_object"]."'")->fetch_assoc()["full_name"];
+		$invoice["trading_object"] = [
+			$invoice["trading_object"],
+			$trading_object_full_name?$trading_object_full_name:""
+			];
+
+		$store_house_name = $conn->query("select name from store_house where id = '".$invoice["store_house"]."'")->fetch_assoc()["name"];
+		$invoice["store_house"] = [
+			$invoice["store_house"],
+			$store_house_name?$store_house_name:"仓库1"
+			];
+
 		echo json_encode($invoice, JSON_UNESCAPED_UNICODE);
 	}
 

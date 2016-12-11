@@ -13,7 +13,7 @@
 	$data = json_decode(file_get_contents('php://input'), true);
 	// print_r($data);
 	// print_r($data);
-	print_r($_GET);
+	// print_r($_GET);
 	$id;
 	$t;
 	$sql;
@@ -21,13 +21,24 @@
 	foreach ($data as $item_key => $item) {
 		foreach ($item as $item_property => $item_value) {
 			switch ($item_property) {
-				case 'id': 
-					$id = $data[$item_key][$item_property];
-					if($id==0){
-						$sql = "insert into ".$_GET["table"]."(id,full_name,manufacturer,unit_1) values(null, '缺省', '缺省', '箱');";
+				case 'id': //检查id
+					$id = $data[$item_key]["id"];
+					if($id==0){//id为0 则新建
+						switch ($_GET["table"]) {
+							case 'people':
+								$sql = "insert into ".$_GET["table"]."(id,full_name) values(null, '缺省');";
+								break;
+							case 'product_info':
+								$sql = "insert into ".$_GET["table"]."(id,full_name,manufacturer,unit_1) values(null, '缺省', '缺省', '箱');";
+								break;
+							default:
+								# code...
+								break;
+						}
 						echo $sql;
 						if($conn->query($sql)){
 							$id = $conn->query("select last_insert_id()")->fetch_assoc()['last_insert_id()'];
+							echo "operation success!\n";
 						}
 					}
 					break;
@@ -46,6 +57,7 @@
 					break;
 			}
 		}
+
 		if($id){
 			foreach ($item as $item_property => $item_value) {
 				switch ($item_property) {

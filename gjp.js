@@ -148,10 +148,10 @@ var td = TRANSACTION_DOCUMENT = {
       [{t: "a",v:["name","manufacturer"]},{t: "i",v:"厂家"}],
       [{t: "a",v:["name","full_name"]},{t: "i",v:"商品全名"}],
       [{t: "a",v:["name","amount"]},{t: "i",v:"数量"}],
+      [{t: "a",v:["name","item_money_received"]},{t: "i",v:"金额"}],
       [{t: "a",v:["name","price"]},{t: "i",v:"单价"}],
       [{t: "a",v:["name","unit"]},{t: "i",v:"单位"}],
       [{t: "a",v:["name","units_factor"]},{t: "i",v:"规格"}],
-      [{t: "a",v:["name","item_money_received"]},{t: "i",v:"金额"}],
       [{t: "a",v:["name","comment_for_item"]},{t: "i",v:"备注"}]
     ],
 
@@ -215,11 +215,11 @@ var td = TRANSACTION_DOCUMENT = {
       '<td name="trading_object" colspan="3" contenteditable></td>',
       '<td name="invoice_id" invoice_id="'+invoice_id+'">单据编号：</td>',
       '<td name="generated_id" colspan="1"></td>',
-      '<td>制单时间：</td> <td name="document_created_time" ></td>',
+      '<td>制单时间：</td> <td name="created_time" ></td>',
       '</tr>',
       '<tr>',
       '<td colspan=2>仓库：</td>',
-      '<td name="store_house" colspan="3"></td>',
+      '<td name="store_house" store_house_id colspan="3"></td>',
       '<td>备注：</td>',
       '<td name="comment" colspan="3" contenteditable></td>',
       '</tr>',
@@ -232,12 +232,12 @@ var td = TRANSACTION_DOCUMENT = {
       '<tfoot>',
       '<tr>',
       '<td>合计</td>',
-      '<td colspan=3 name="money_received_chinese"></td>',
-      '<td >数量</td>',
+      '<td colspan=2></td>',
       '<td name="total_amount"></td>',
-      '<td>金额</td>',
       '<td colspan=2 name="money_received"></td>',
+      '<td colspan=3 name="money_received_chinese"></td>',
       '</tr>',
+      '</tfoot>'
     ].join("\n");
 
     var ls_fucntion_tab = $([
@@ -257,7 +257,7 @@ var td = TRANSACTION_DOCUMENT = {
 
     $(section).append(ls_fucntion_tab);
 
-    document.querySelector("td[name='trading_object']").addEventListener("keypress", td.query_people);
+    document.querySelector("td[name='trading_object']").addEventListener("keypress", td.builder.query_people);
 
     var des = document.querySelector('#i_des');
     des.querySelector('td[name="invoice_id"]').invoice_id = invoice_id;
@@ -268,23 +268,20 @@ var td = TRANSACTION_DOCUMENT = {
     //展示往来单位
     var des_td = des.querySelector("td[name='trading_object']");
     des_td.addEventListener("click",td.builder.cell_checker);
-    if(a.trading_object[1])
-      des_td.innerHTML = a.trading_object[1];
-    else
-      des_td.innerHTML ="";
+    des_td.innerHTML = a.trading_object[1]?a.trading_object[1]:"";
 
     //展示单据描述数据
     des.querySelector('td[name="generated_id"]').innerHTML = a.doc_type+"-"+invoice_id;
-    des.querySelector('td[name="document_created_time"]').innerHTML = a.document_created_time;
+    des.querySelector('td[name="created_time"]').innerHTML = a.created_time;
     des.querySelector('td[name="store_house"]').innerHTML = a.store_house[1];
+
     var des_comment = des.querySelector('td[name="comment"]');
     des_comment.innerHTML = a.comment;
     des_comment.addEventListener("click",td.builder.cell_checker);
     des_comment.addEventListener("blur",function(){
       a.comment = this.innerHTML;  
     });
-    if(a.money_received)
-    document.querySelector('td[name="money_received"]').innerHTML = a.money_received;
+    document.querySelector('td[name="money_received"]').innerHTML  = a.money_received?a.money_received:"";
 
 
     var c = document.querySelector('#i_c');
@@ -293,14 +290,16 @@ var td = TRANSACTION_DOCUMENT = {
     c.appendChild(td.builder.creat_new_tr("th",table_head_fields_description_array));
 
     for (var i = 0; i < a.document_content_array.length; i++) {
-      c.appendChild(td.builder.create_invoice_line(a.document_content_array[i],table_head_fields_description_array,editable_tag));
+      c.appendChild(td.builder.create_invoice_line(a.document_content_array[i], table_head_fields_description_array, editable_tag));
     };
 
-    //last line
-    var last_line = td.builder.create_invoice_line("td",table_head_fields_description_array);
-    var full_name_td = last_line.querySelector("[name='full_name']");
-    full_name_td.removeEventListener("blur", td.builder.cell_checker);
-    c.appendChild(last_line);
+    //last line in tbody
+    if(editable_tag){
+      var last_line = td.builder.create_invoice_line("td",table_head_fields_description_array, 0);
+      var full_name_td = last_line.querySelector("[name='full_name']");
+      full_name_td.removeEventListener("blur", td.builder.cell_checker);
+      c.appendChild(last_line);
+    }
 
     for (var i = 1; i < c.childNodes.length; i++) {
       c.childNodes[i].querySelector('[name="full_name"]').addEventListener("keypress",td.builder.query_products);
@@ -313,6 +312,8 @@ var td = TRANSACTION_DOCUMENT = {
   "saver": function(id){
     var a = document.querySelector("#i_c").querySelectorAll("tr");
     var d_a=td.document_lists["invoice_id"+id].document_content_array;
+
+    
     d_a.splice(0,d_a.length);// 思考为什么不能用d_a=[];
     for (var i = 1; i < a.length-1; i++) {
       var o = {
@@ -337,7 +338,7 @@ var td = TRANSACTION_DOCUMENT = {
 
   //方法————单据对象的创建
   //在主数据库创建一个单据，主数据库返回单据id
-  "creator": function (doc_type, operationType, doc_status, invoice_id){
+  "creator": function (doc_type, operationType, invoice_id){
     //doc_type,主要有xs，jh
     //operationType,主要有
       // cr，create
@@ -368,24 +369,9 @@ var td = TRANSACTION_DOCUMENT = {
           invoice_id = tdd.id;
 
           var invoice = "invoice_id"+invoice_id;//invoice_id12331
-          td.document_lists[invoice] = {};
+          td.document_lists[invoice] = tdd;
 
-          for(var property_name in tdd){
-            td.document_lists[invoice][property_name] = tdd[property_name]?tdd[property_name]:"";
-            // switch(property_name){
-            //   case "trading_object": 
-            //       td.document_lists[invoice]["trading_object"] = [tdd[property_name],""];
-            //   case "store_house":
-            //       td.document_lists[invoice]["store_house"] = [tdd[property_name],""];
-            //   default: break;
-            // }
-          }
-
-          td.document_lists[invoice]["store_house"] = [];
-          td.document_lists[invoice]["trading_object"] = [];
-          td.document_lists[invoice]["document_content_array"] = [];
-
-          var viewer_arg = operationType=="cr"||operationType=="ed"?"editable":"not_editable";
+          var viewer_arg = operationType=="cr"||operationType=="ed"?1:0;
 
           //tab 对象创建
           ui.tabManager("create",{
@@ -461,7 +447,7 @@ var td = TRANSACTION_DOCUMENT = {
       return element;
     },
 
-    create_invoice_line: function (a, table_head_fields_description_array){//a是document_content_array的item
+    create_invoice_line: function (a, table_head_fields_description_array, editable_tag){//a是document_content_array的item
       var tr_fields_description=[]
       for (var i = 0; i < table_head_fields_description_array.length; i++) {
         tr_fields_description[i] = [table_head_fields_description_array[i][0]];
@@ -473,72 +459,113 @@ var td = TRANSACTION_DOCUMENT = {
         if(a[tr_fields_description[i][0]["v"][1]])
         tr_fields_description[i].push({t:"i",v:a[tr_fields_description[i][0]["v"][1]]});
 
-        switch(tr_fields_description[i][0]["v"][1]){
-          case "line_number":
-              break;
-          case "product_id":
-              break;
-          case "manufacturer":
-              break;
-          case "full_name":
-              td_des.push(
-                {t:"e",v:["name","line_number"]},
-                {t:"e",v:["keypress",td.builder.query_products]},
-                {t:"e",v:["blur", td.builder.cell_checker]},
-                {t:"e",v:["click", td.builder.cell_checker]},
-                {t:"e",v:["keydown", ls.edit.arrow_key_control]},
-                {t:"e",v:["click", 
-                  function(){
-                    $("[input_end_point]").removeAttr("input_end_point");
-                    $(this).parent().attr("input_end_point","");
-                  }
-                  ]},
-                {t:"a", v:["placeholder",a.full_name]},//用于checker
-                {t:"a", v:["contenteditable","true"]}
-                );
-              break;
-          case "admin_defined_unit":
-              break;
-          case "unit":
-              break;
-          case "amount":
-              td_des.push(
-                {t:"e",v:["click", td.builder.cell_checker]},
-                {t:"e",v:["blur",td.builder.number_check_after_input]},
-                {t:"e",v:["blur",td.builder.amount_or_price_affect_received]},
-                {t:"e",v:["keydown", ls.edit.arrow_key_control]},
-                {t:"e",v:["keypress", td.builder.number_check_when_input]},
-                {t:"a",v:["contenteditable","true"]}
+        if(editable_tag){
+          switch(tr_fields_description[i][0]["v"][1]){
+            case "line_number":
+                break;
+            case "product_id":
+                break;
+            case "manufacturer":
+                break;
+            case "full_name":
+                td_des.push(
+                  {t:"e",v:["name","line_number"]},
+                  {t:"e",v:["keypress",td.builder.query_products]},
+                  {t:"e",v:["blur", td.builder.cell_checker]},
+                  {t:"e",v:["click", td.builder.cell_checker]},
+                  {t:"e",v:["keydown", ls.edit.arrow_key_control]},
+                  {t:"e",v:["click", 
+                    function(){
+                      $("[input_end_point]").removeAttr("input_end_point");
+                      $(this).parent().attr("input_end_point","");
+                    }
+                    ]},
+                  {t:"a", v:["placeholder",a.full_name]},//用于checker
+                  {t:"a", v:["contenteditable","true"]}
+                  );
+                break;
+            case "admin_defined_unit":
+                break;
+            case "unit":
+                break;
+            case "amount":
+                td_des.push(
+                  {t:"e",v:["click", td.builder.cell_checker]},
+                  {t:"e",v:["blur",td.builder.number_check_after_input]},
+                  {t:"e",v:["blur",td.builder.amount_or_price_affect_received]},
+                  {t:"e",v:["keydown", ls.edit.arrow_key_control]},
+                  {t:"e",v:["keypress", td.builder.number_check_when_input]},
+                  {t:"a",v:["contenteditable","true"]}
 
-              );
-              break;
-          case "price":
-              td_des.push(
-                {t:"e",v:["click", td.builder.cell_checker]},
-                {t:"e",v:["blur",td.builder.number_check_after_input]},
-                {t:"e",v:["blur",td.builder.amount_or_price_affect_received]},
-                {t:"e",v:["keydown", ls.edit.arrow_key_control]},
-                {t:"e",v:["keypress", td.builder.number_check_when_input]},
-                {t:"a",v:["contenteditable","true"]}
-              );
-              break;
-          case "item_money_received":
-              td_des.push(
-                {t:"e",v:["click", td.builder.cell_checker]},
-                {t:"e",v:["blur",td.builder.number_check_after_input]},
-                {t:"e",v:["keydown", ls.edit.arrow_key_control]},
-                {t:"e",v:["keypress", td.builder.number_check_when_input]},
-                {t:"e",v:["blur",td.builder.receive_affects_price]},
-                {t:"a",v:["contenteditable","true"]}
-              );
-              break;
-          case "comment_for_item":
-              td_des.push(
-                {t:"e",v:["click", td.builder.cell_checker]},
-                {t:"e",v:["keydown", ls.edit.arrow_key_control]},
-                {t:"a",v:["contenteditable","true"]}
-              )
-              break;
+                );
+                break;
+            case "price":
+                td_des.push(
+                  {t:"e",v:["click", td.builder.cell_checker]},
+                  {t:"e",v:["blur",td.builder.number_check_after_input]},
+                  {t:"e",v:["blur",td.builder.amount_or_price_affect_received]},
+                  {t:"e",v:["keydown", ls.edit.arrow_key_control]},
+                  {t:"e",v:["keypress", td.builder.number_check_when_input]},
+                  {t:"a",v:["contenteditable","true"]}
+                );
+                break;
+            case "item_money_received":
+                td_des.push(
+                  {t:"e",v:["click", td.builder.cell_checker]},
+                  {t:"e",v:["blur",td.builder.number_check_after_input]},
+                  {t:"e",v:["keydown", ls.edit.arrow_key_control]},
+                  {t:"e",v:["keypress", td.builder.number_check_when_input]},
+                  {t:"e",v:["blur",td.builder.receive_affects_price]},
+                  {t:"a",v:["contenteditable","true"]}
+                );
+                break;
+            case "comment_for_item":
+                td_des.push(
+                  {t:"e",v:["click", td.builder.cell_checker]},
+                  {t:"e",v:["keydown", ls.edit.arrow_key_control]},
+                  {t:"a",v:["contenteditable","true"]}
+                )
+                break;
+          }
+        }
+        if(!editable_tag){
+          switch(tr_fields_description[i][0]["v"][1]){
+            case "line_number":
+                break;
+            case "product_id":
+                break;
+            case "manufacturer":
+                break;
+            case "full_name":
+                td_des.push(
+                  {t:"e",v:["name","line_number"]},
+                  {t:"e",v:["keypress",td.builder.query_products]},
+                  {t:"e",v:["blur", td.builder.cell_checker]},
+                  {t:"e",v:["click", td.builder.cell_checker]},
+                  {t:"e",v:["keydown", ls.edit.arrow_key_control]},
+                  {t:"e",v:["click", 
+                    function(){
+                      $("[input_end_point]").removeAttr("input_end_point");
+                      $(this).parent().attr("input_end_point","");
+                    }
+                    ]},
+                  {t:"a", v:["placeholder",a.full_name]},//用于checker
+                  {t:"a", v:["contenteditable","true"]}
+                  );
+                break;
+            case "admin_defined_unit":
+                break;
+            case "unit":
+                break;
+            case "amount":
+                break;
+            case "price":
+                break;
+            case "item_money_received":
+                break;
+            case "comment_for_item":
+                break;
+          }
         }
       };
 
@@ -732,12 +759,9 @@ var td = TRANSACTION_DOCUMENT = {
     },
 
     "number_check_after_input": function(){
-      if(this.innerHTML=="NaN") this.innerHTML = 0;
-      if(this.innerHTML=="undefined") this.innerHTML = 0;
+      if(this.innerHTML=="NaN"||this.innerHTML=="undefined") this.innerHTML = 0;
       this.innerHTML= Number(this.innerHTML);
       td.builder.sum_refresher();
-      
-
     },
 
     //amount or price column 添加次为event listener
@@ -772,250 +796,236 @@ var td = TRANSACTION_DOCUMENT = {
     },
 
     "query_products": function(e){
-      var that = this;
-      if(e.keyCode == 13)
-      {
+      if(e.keyCode == 13){
+        var that = this;
         var q_condition_column;
-        if (this.innerHTML.charCodeAt(0)>= 123 || this.innerHTML.charCodeAt(0)<= 96)
+        if (this.innerHTML.charCodeAt(0)>= 123 || 
+            this.innerHTML.charCodeAt(0)<= 96)
           q_condition_column = "full_name";
         else
           q_condition_column = "py_code";
-  
-        ajax_object.onreadystatechange = function(){
-          if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200)
-          {
-            if(Number(ajax_object.response) != 0)
-            {
-              //重写查询结果对象
-              td.query_result = JSON.parse(ajax_object.response);
-              // td.queried_result_products = td.queried_result_products.concat(td.query_result);
-              // td.queried_result_products = td.query_result;
-              var p = $('#pop_up_modal');
-              var pop_up = p.find("#pop_up");
-              p.find(".modal-title").text("商品查询结果");
-              p.tabIndex = 12;
-              //清楚pop中上一次查询结果
-              pop_up.html("");
+        (function query(string){
+          var ajax_object;
+          if (window.XMLHttpRequest) ajax_object = new XMLHttpRequest();
+          else {/*code for IE6, IE5*/ajax_object = new ActiveXObject("Microsoft.XMLHTTP");}
+          
+          ajax_object.onreadystatechange = function(){
+            if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200){
+              if(Number(ajax_object.response) != 0){
+                var table_head = [
+                  [{type: "a",value:["name","line_number"]},{type: "i",value:"行号"}],
+                  [{type: "a",value:["name","product_id"]},{type: "i",value:"商品编号"}],
+                  [{type: "a",value:["name","manufacturer"]},{type: "i",value:"生产厂家"}],
+                  [{type: "a",value:["name","admin_defined_order"]},{type: "i",value:"用户排序"}],
+                  [{type: "a",value:["name","full_name"]},{type: "i",value:"商品全名"}],
+                  [{type: "a",value:["name","simple_name"]},{type: "i",value:"简名"}],
+                  [{type: "a",value:["name","unit_1"]},{type: "i",value:"单位1"}],
+                  [{type: "a",value:["name","unit_2"]},{type: "i",value:"单位2"}],
+                  [{type: "a",value:["name","unit_2_factor"]},{type: "i",value:"单位2系数"}],//辅助单位需要有alt 弹出提示吗？
+                  [{type: "a",value:["name","unit_3"]},{type: "i",value:"单位3"}],
+                  [{type: "a",value:["name","unit_3_factor"]},{type: "i",value:"单位3系数"}],//辅助单位需要有alt 弹出提示吗？
+                  [{type: "a",value:["name","py_code"]},{type: "i",value:"拼音码"}],
+                  [{type: "a",value:["name","user_comment"]},{type: "i",value:"用户备注"}]
+                ];
+                //重写查询结果对象
+                td.query_result = JSON.parse(ajax_object.response);
+                    
+                var storeArray = [];
+                ls.edit.data_convert_JSON_to_array(td.query_result, storeArray, table_head, "for_input");
 
-              console.log("正在查询");
-      
-              p.modal("show");
-              //t is #pop_pu->table
-              var t = $("<table class='table table-bordered'></table>").appendTo(pop_up);
-              var tb = $("<tbody></tbody>").appendTo(t);
-              for(var j=0;j<td.query_result.length;j++)
-              {
-                var a = td.query_result[j];
-                var new_tr = $("<tr></tr>");
-                new_tr.on({
-                  "click":  function(e){td.selection_status(e, this,"select_one");},
-                });
-
-                new_tr.html(
-                "<td>"+(j+1)+"</td>"+
-                "<td style='display:none;' name='product_id'>"+a.id+"</td>"+
-                "<td name='admin_defined_id'>"+(a.admin_defined_id?a.admin_defined_id:"")+"</td>"+
-                "<td name='manufacturer'>"+(a.manufacturer?a.manufacturer:"")+"</td>"+
-                "<td name='full_name' class='text-left'>"+(a.full_name?a.full_name:"")+"</td>"+
-                "<td class='text-left'>"+(a.py_code?a.py_code:"")+"</td>"+
-                "<td name='another_unit_factor'>"+(a.admin_defined_unit_2_factor?"1*"+a.admin_defined_unit_2_factor:"")+"</td>"+
-                "<td>"+(a.hidden_toggle?a.hidden_toggle:"")+"</td>");
-                new_tr.appendTo(tb);
+                var display_table = ls.create_list_table(
+                  table_head,
+                  storeArray,
+                  [
+                    ["click", function(e){td.builder.selection_status(e, this,"select_one");}]
+                  ]
+                );
+                var modal = ls.checker.status.pop_up_creator("商品查询结果", display_table);
+                modal.querySelector('.modal-content').addEventListener("click", function(e){td.builder.selection_status(e, this, "unselect_all");});
+                modal.querySelector('.btn-primary').addEventListener("click", td.builder.input_selected_products);
+                ajax_object.response = 0;
               }
-              pop_up.on("keypress",td.input_selected_products);
-              p.find('.btn-primary').on("click", td.input_selected_products);
-              p.find('.modal-content').on("click", function(e){td.selection_status(e, this, "unselect_all");});
-
-                  
-
-              ajax_object.response = 0;
-
-            }
-              else 
-                alert("当前查询条件无结果");
+              else {
+                ls.checker.status.pop_up_creator("查询提示", $("<p>当前查询条件无结果</p>").get(0));
+              }
             }
           };
-        ajax_object.open("GET", "query.php?query_multiple&q_columns_name=*&q_table=product_info&q_condition_column="+q_condition_column
-             +"&q_condition_value="+this.innerHTML, true);
-        ajax_object.send();
-        e.preventDefault();
-      }
-    }
-  },
-  //builder 对象结束
-
-  "query_single_and_modify": function(that, q_name, q_table, q_condition){
-    //php发现query_single标记后，进行单挑条目查询，返回字符串
-    var query_result;
-    
-    (function query(string) 
-    {
-    var ajax_object;
-    if (window.XMLHttpRequest) ajax_object = new XMLHttpRequest();
-    else {/*code for IE6, IE5*/ajax_object = new ActiveXObject("Microsoft.XMLHTTP");}
-
-    ajax_object.onreadystatechange = function(){
-      if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200)
-
-      that.innerHTML = ajax_object.response;
-
-    };
-    ajax_object.open("GET", "query.php?" + string, true);ajax_object.send();
-    }
-    )(
-      "query_single&q_name="+q_name+"&q_table="+q_table+"&q_condition="+q_condition
-     );
-  },
-  "query_multiple": function(q_columns_name, q_table, q_condition_column, q_condition_value){
-    var that = this;
-
-    (function query(string) 
-    {
-    ajax_object.onreadystatechange = function(){
-      if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200) 
-
-      if(JSON.parse(ajax_object.response)) that.query_result = JSON.parse(ajax_object.response);
-      else query_result = false;
-
-    };
-    ajax_object.open("GET", "query.php?" + string, true);ajax_object.send();
-    }
-    )(
-      "query_multiple&q_columns_name="+q_columns_name
-         +"&q_table="+q_table
-         +"&q_condition_column="+q_condition_column
-         +"&q_condition_value="+q_condition_value
-     );    
-  },
-
-  "make_selection_single": function (){
-    document.querySelector('#pop_up').focus();
-      if(this.className!=="info"){
-          var a = document.querySelector("#pop_up").getElementsByClassName("info");
-          for (var i = 0; i < a.length; i++) {
-            a[i].className = "";
-            }
-          this.className="info";
-      }
-      else this.className="";
-  },
-
-  //使用info来进行选中高亮、选中标记
-  "selection_status": function(e, that, type){
-    if(type){
-      if (type=="select_one") {
-          document.querySelector('#pop_up').focus();
-          if(that.className!=="info"){
-            that.className="info";
-          }
-          else that.className="";
-          e.stopPropagation();
-        };
-    
-      if(type == 'unselect_all'){
-          $(that).find(".info").removeClass('info');
+          
+          ajax_object.open("GET", "query.php?" + string, true);
+          ajax_object.send();
         }
-    
-      // e.stopPropagation();
-    }
+        )("query_multiple&q_columns_name=*&q_table=product_info&q_condition_column="+q_condition_column
+        +"&q_condition_value="+that.innerHTML);
 
-  },
+        event.preventDefault();
+      }
+    },
+    //query_products 对象结束
 
-  "toggle_display": function (){
-      if(window.getComputedStyle(this).display=="none"){
-      this.style.display="block";
-    }
-      else this.style.display="none";
+    "query_single_and_modify": function(that, q_name, q_table, q_condition){
+      //php发现query_single标记后，进行单挑条目查询，返回字符串
+      var query_result;
       
-  },
+      (function query(string) 
+      {
+      var ajax_object;
+      if (window.XMLHttpRequest) ajax_object = new XMLHttpRequest();
+      else {/*code for IE6, IE5*/ajax_object = new ActiveXObject("Microsoft.XMLHTTP");}
 
-  "esc_display": function(event){
-      if(event.keyCode == 27){
-      $("#pop_up_modal").modal("hide");
+      ajax_object.onreadystatechange = function(){
+        if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200)
+
+        that.innerHTML = ajax_object.response;
+
+      };
+      ajax_object.open("GET", "query.php?" + string, true);ajax_object.send();
       }
-  },
+      )(
+        "query_single&q_name="+q_name+"&q_table="+q_table+"&q_condition="+q_condition
+       );
+    },
+    "query_multiple": function(q_columns_name, q_table, q_condition_column, q_condition_value){
+      var that = this;
 
-  "input_selected_products": function(event){
-    if(event.keyCode ==13 || event.type=="click" ){
-      //a 是选中的元素组成的数组
-      //获取视图中发票的id
-      var a = $("#pop_up").find(".info"),
-          id = $("td[name='invoice_id']").attr("invoice_id"),
-          i_c = $("#i_c"),
-          new_tr;
+      (function query(string) 
+      {
+      ajax_object.onreadystatechange = function(){
+        if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200) 
 
-      for (var i = 0; i < a.length; i++) {
-        var o = {
-            "product_id": $(a[i]).find('*[name="product_id"]').html(),
-            "manufacturer":$(a[i]).find('*[name="manufacturer"]').html(),
-            "full_name": $(a[i]).find('*[name="full_name"]').html(),
-            "admin_defined_unit":"",
-            "unit": "箱",
-            "amount": 0,
-            "price": 0,
-            "item_money_received": 0,
-            "comment_for_item":""
-          };
-        // td.document_lists["invoice_id"+id].document_content_array.push(o);
-        new_tr = $(td.builder.create_invoice_line(o,td.document_lists.invoice_content_head_description_array));
-        var e_point = i_c.find("*[input_end_point]").first();
+        if(JSON.parse(ajax_object.response)) that.query_result = JSON.parse(ajax_object.response);
+        else query_result = false;
 
-        if(!e_point){
-          i_c.children().last().attr("input_end_point","");
+      };
+      ajax_object.open("GET", "query.php?" + string, true);ajax_object.send();
+      }
+      )(
+        "query_multiple&q_columns_name="+q_columns_name
+           +"&q_table="+q_table
+           +"&q_condition_column="+q_condition_column
+           +"&q_condition_value="+q_condition_value
+       );    
+    },
+
+    "make_selection_single": function (){
+      document.querySelector('#pop_up').focus();
+        if(this.className!=="info"){
+            var a = document.querySelector("#pop_up").getElementsByClassName("info");
+            for (var i = 0; i < a.length; i++) {
+              a[i].className = "";
+              }
+            this.className="info";
         }
-        new_tr.insertBefore(e_point);
+        else this.className="";
+    },
+
+    //使用info来进行选中高亮、选中标记
+    "selection_status": function(e, that, type){
+      if(type){
+        if (type=="select_one") {
+            document.querySelector('#pop_up').focus();
+            if(that.className!=="info"){
+              that.className="info";
+            }
+            else that.className="";
+            e.stopPropagation();
+          };
+      
+        if(type == 'unselect_all'){
+            $(that).find(".info").removeClass('info');
+          }
+      
+        // e.stopPropagation();
+      }
+
+    },
+
+    "toggle_display": function (){
+        if(window.getComputedStyle(this).display=="none"){
+        this.style.display="block";
+      }
+        else this.style.display="none";
+        
+    },
+
+    "esc_display": function(event){
+        if(event.keyCode == 27){
+        $("#pop_up_modal").modal("hide");
+        }
+    },
+
+    "input_selected_products": function(event){
+      if(event.keyCode ==13 || event.type=="click" ){
+        //a 是选中的元素组成的数组
+        //获取视图中发票的id
+        var a = $("#pop_up").find(".info"),
+            id = $("td[name='invoice_id']").attr("invoice_id"),
+            i_c = $("#i_c"),
+            new_tr;
+
+        for (var i = 0; i < a.length; i++) {
+          var o = {
+              "product_id": $(a[i]).find('*[name="product_id"]').html(),
+              "manufacturer":$(a[i]).find('*[name="manufacturer"]').html(),
+              "full_name": $(a[i]).find('*[name="full_name"]').html(),
+              "admin_defined_unit":"",
+              "unit": "箱",
+              "amount": 0,
+              "price": 0,
+              "item_money_received": 0,
+              "comment_for_item":""
+            };
+          // td.document_lists["invoice_id"+id].document_content_array.push(o);
+          new_tr = $(td.builder.create_invoice_line(o,td.document_lists.invoice_content_head_description_array, 1));
+          var e_point = i_c.find("*[input_end_point]").first();
+
+          if(!e_point){
+            i_c.children().last().attr("input_end_point","");
+          }
+          new_tr.insertBefore(e_point);
+         }
+         //for 循环结束
+         if(e_point.get(0)!=e_point.parent().children().last().get(0)) e_point.remove();
+
+         if(event.preventDefault)event.preventDefault();
+         $("#pop_up_modal").find('.btn-primary').off("click", td.input_selected_products);
+
+       //关闭pop_up
+       td.esc_display({keyCode:27});
+       td.builder.line_number_refresher(document.querySelector("#i_c"))
        }
-       //for 循环结束
-       if(e_point.get(0)!=e_point.parent().children().last().get(0)) e_point.remove();
+    },
 
-       if(event.preventDefault)event.preventDefault();
-       $("#pop_up_modal").find('.btn-primary').off("click", td.input_selected_products);
+    "input_selected_des": function(event){
+      if(event.keyCode ==13 || event.keyCode ==32 ||event.type=="click" ){
+         //获取视图中发票的id
+        var id = document.querySelector("td[name='invoice_id']").getAttribute("invoice_id");
 
-     //关闭pop_up
-     td.esc_display({keyCode:27});
-     td.builder.line_number_refresher(document.querySelector("#i_c"))
-     }
-  },
+        //修改对象
+        var a = $("#pop_up tr.info");
+        var trading_object = [a.find('[name="people_id"]').text(), a.find('[name="full_name"]').text()];
+        td.document_lists["invoice_id"+id].trading_object = trading_object;
 
-  "input_selected_des": function(event){
-    if(event.keyCode ==13 || event.keyCode ==32 ||event.type=="dblclick" ){
-      var a = document.querySelector("#pop_up").getElementsByClassName("info")[0];
-       //获取视图中发票的id
-      var id = document.querySelector("td[name='invoice_id']").getAttribute("invoice_id");
+        //在此修tab
+        var tab = document.querySelector("[my_invoice_id='"+id+"']");
+        tab.querySelector("a").innerHTML = tab.querySelector("a").innerHTML.replace(/^(销售给|进货从).*/,'$1'+trading_object[1]);
 
-      //修改对象
-      // cl(a.childNodes[1].innerHTML);
-      td.document_lists["invoice_id"+id].trading_object = [a.childNodes[1].innerHTML,a.childNodes[2].innerHTML];
-      //在此修tab
-      var tab = document.querySelector("[my_invoice_id='"+id+"']");
-      tab.querySelector("a").innerHTML = tab.querySelector("a").innerHTML.replace(/^(销售给|进货从).*/,'$1'+a.childNodes[2].innerHTML);
+        //在此修td
+        var des_td = $("td[name='trading_object']");cl(des_td);
+        des_td.text(trading_object[1]).attr("placeholder",trading_object[1]).attr("people_id",trading_object[0]);
+        des_td.on("blur", td.builder.cell_checker);
 
-      //在此修td
-      var des_td = document.querySelector("#i_des").querySelector("td[name='trading_object']");
-      des_td.innerHTML=a.childNodes[2].innerHTML;
-      des_td.setAttribute("placeholder",a.childNodes[2].innerHTML);
-      // des_td.addEventListener("click",td.builder.cell_checker);
-      des_td.addEventListener("blur", 
-       function(){
-       if(this.innerHTML!=this.getAttribute("placeholder"))
-         this.innerHTML=this.getAttribute("placeholder");
-       }
-      );
+        event.preventDefault();
+         //关闭pop_up
+        td.esc_display({keyCode:27});
+        document.querySelector('#pop_up').removeEventListener("keypress",td.input_selected_des);
+        document.querySelector('.btn-primary').removeEventListener("click",td.input_selected_des);
+      }
+    },
 
-      event.preventDefault();
-     //关闭pop_up
-     td.esc_display({keyCode:27});
-     document.querySelector('#pop_up').removeEventListener("dblclick",td.input_selected_des);
-     document.querySelector('#pop_up').removeEventListener("keypress",td.input_selected_des);
-    }
+    "query_result": 0,
 
-
-  },
-
-  "query_result": 0,
-
-  "query_people": function(event){
-    if (event.keyCode == 13){
+    "query_people": function(event){
+      if (event.keyCode == 13){
         var that = this;
         var q_condition_column;
         //判断是否是拼音或者汉子
@@ -1024,62 +1034,66 @@ var td = TRANSACTION_DOCUMENT = {
           q_condition_column = "full_name";
         else
           q_condition_column = "py_code";
+        (function query(string){
+          var ajax_object;
+          if (window.XMLHttpRequest) ajax_object = new XMLHttpRequest();
+          else {/*code for IE6, IE5*/ajax_object = new ActiveXObject("Microsoft.XMLHTTP");}
 
-        (function query(string) 
-        {
-        var ajax_object;
-        if (window.XMLHttpRequest) ajax_object = new XMLHttpRequest();
-        else {/*code for IE6, IE5*/ajax_object = new ActiveXObject("Microsoft.XMLHTTP");}
-        ajax_object.onreadystatechange = function(){
-          if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200){
-            if(Number(JSON.parse(ajax_object.response))!= 0) {
-              //that, td 都可用，思考原因
-              td.query_result = JSON.parse(ajax_object.response); 
-              p = document.querySelector('#pop_up');
-              p.tabIndex = 12;
-              //清除pop中上一次查询结果
-              p.innerHTML = "";
+          ajax_object.onreadystatechange = function(){
+            if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200){
+              if(Number(JSON.parse(ajax_object.response))!= 0) {
+                var table_head = [
+                  [{type: "a",value:["name","line_number"]},{type: "i",value:"行号"}],
+                  [{type: "a",value:["name","people_id"]},{type: "i",value:"客户编号"}],
+                  [{type: "a",value:["name","admin_defined_order"]},{type: "i",value:"用户排序"}],
+                  [{type: "a",value:["name","full_name"]},{type: "i",value:"客户全名"}],
+                  [{type: "a",value:["name","simple_name"]},{type: "i",value:"简名"}],
+                  [{type: "a",value:["name","person_in_charge"]},{type: "i",value:"负责人"}],
+                  [{type: "a",value:["name","tel"]},{type: "i",value:"电话"}],
+                  [{type: "a",value:["name","phone"]},{type: "i",value:"手机"}],
+                  [{type: "a",value:["name","Address"]},{type: "i",value:"地址"}],
+                  [{type: "a",value:["name","role"]},{type: "i",value:"角色"}],
+                  [{type: "a",value:["name","loyalty"]},{type: "i",value:"忠诚度"}],
+                  [{type: "a",value:["name","complexity"]},{type: "i",value:"复杂度"}],
+                  [{type: "a",value:["name","py_code"]},{type: "i",value:"拼音码"}],
+                  [{type: "a",value:["name","user_comment"]},{type: "i",value:"备注"}]
+                ];
+                //that, td 都可用，思考原因
+                td.query_result = JSON.parse(ajax_object.response);
 
-              console.log("ajax");//test exec
-              var modal = $("#pop_up_modal");
-                  modal.modal("show");
-                  modal.find(".modal-title").text("往来单位查询结果");
-                  modal.find(".btn-primary").on("click",td.input_selected_des);
-              //t is #pop_pu->table
-              var t = p.appendChild(document.createElement("table"));
-              $(t).addClass("table table-bordered");
-              var tb = t.appendChild(document.createElement("tbody"));
-              for(var j=0;j<td.query_result.length;j++){
-                var a = td.query_result[j];
-                var new_tr = document.createElement("tr");
-                new_tr.addEventListener("mouseenter", td.make_selection_single);
-                new_tr.addEventListener("dblclick",td.input_selected_des);
-                new_tr.innerHTML = 
-                "<td>"+j+"</td>"+//j 行号
-                "<td>"+a.id+"</td>"+
-                "<td>"+(a.full_name?a.full_name:"")+"</td>"+
-                "<td>"+(a.py_code?a.py_code:"")+"</td>"+
-                "<td>"+(a.tel?a.tel:"")+"</td>"+
-                "<td>"+(a.phone?a.phone:"")+"</td>";
-                tb.appendChild(new_tr);
-                }
-                document.querySelector('#pop_up').addEventListener("keypress",td.input_selected_des);
+                var storeArray = [];
+                ls.edit.data_convert_JSON_to_array(td.query_result, storeArray, table_head, "for_input");
+
+                var display_table = ls.create_list_table(
+                  table_head,
+                  storeArray,
+                  [
+                    ["mouseenter", td.make_selection_single],
+                    ["click",td.input_selected_des]
+                  ]
+                  );
+                var modal = ls.checker.status.pop_up_creator("往来单位查询结果", display_table);
+                modal.querySelector('#pop_up').addEventListener("keypress",td.input_selected_des);
+                modal.querySelector('.btn-primary').addEventListener("click",td.input_selected_des);
+                ajax_object.response = 0;
+              }
+              else {
+                ls.checker.status.pop_up_creator("查询提示", $("<p>当前查询条件无结果</p>").get(0));
+              }
             }
-            else {
-              ls.checker.status.pop_up_creator("查询提示", $("<p>当前查询条件无结果</p>").get(0));
-              cl("当前查询条件无结果");
-            }
-          }
-        }
+          };
 
-          ajax_object.open("GET", "query.php?" + string, true);ajax_object.send();
-          }
-          )("query_multiple&q_columns_name=*&q_table=people&q_condition_column="+q_condition_column+"&q_condition_value="+that.innerHTML);
-
-          //enter key event
-          event.preventDefault();
-          // event.stopPropagation();
+          ajax_object.open("GET", "query.php?" + string, true);
+          ajax_object.send();
         }
+        )("query_multiple&q_columns_name=*&q_table=people&q_condition_column="+q_condition_column
+        +"&q_condition_value="+that.innerHTML);
+
+        //enter key event
+        event.preventDefault();
+        // event.stopPropagation();
+      }
+    }
   }
 };
 //td 对象结束
@@ -1115,7 +1129,7 @@ function in_page_query (event){
 
 //new file imported
 //如何阻止用户close window？
-window.onclose = window_close_check;
+// window.onclose = window_close_check;
 
 function window_close_check (e) {
   alert("what");
@@ -1144,7 +1158,7 @@ function window_close_check (e) {
 //   edit类方法
 //   saver类方法
 var ls = list = {
-  "display": function(table_head, table_data){
+  "create_list_table": function(table_head, table_data, trEventListener){
     //table_head 是一个数组，[[{}...{}]...[{}...{}]],每一个元素对应一个td
       //每一个元素也是数组，这个数组由对应的td 的内容组成，比如属性、事件、innerHTM等
     //table_data 是一个数组，比上述数组高一阶[
@@ -1159,18 +1173,17 @@ var ls = list = {
     //     i,innerHTML
     //   value = [name,value]/[listenertype,funcion]/"string"
     // }
-    var ds = document.querySelector("#display_section");
-    //条件语句，若当前窗口有未保存的修改，则不继续执行下列语句
-    ds.innerHTML = "";
-    //ds 变为新建的table
-    ds = ds.appendChild(document.createElement("table"));
-    ds.addEventListener("click", ls.checker.status.row_checker);
-    $(ds).addClass("table-condensed");
+
+    //ds 为新建的table
+    var ds = document.createElement("table");
+    $(ds).addClass("table table-condensed table-bordered");
 
     var thead=document.createElement("thead"),
         th = document.createElement("tr");//th是head_tr
 
     thead.appendChild(th);
+    ds.appendChild(thead);//表头字段写入页面
+
     for (var i = 0; i < table_head.length; i++) {
       var td = document.createElement("th");
       for (var j = 0; j < table_head[i].length; j++) {
@@ -1182,19 +1195,29 @@ var ls = list = {
       };
       th.appendChild(td);
     };
-    $(ds).addClass('table table-bordered');
 
     var tbody=document.createElement("tbody");
-    ds.appendChild(thead);//表头字段写入页面
     ds.appendChild(tbody);
 
 
-    for (var i = 0; i < table_data.length; i++) {//遍历每一个数组元素，创建对一个的tr，一个tr对应一个商品
-      tbody.appendChild(ls.create_list_line(table_data[i], th));
+    for (var i = 0,tr; i < table_data.length; i++) {//遍历每一个数组元素，创建对一个的tr，一个tr对应一个商品
+      tr = tbody.appendChild(ls.create_list_line(table_data[i], th));
+      tr.querySelector("td").innerHTML= 1+i;
+      if(trEventListener) {
+        for (var i = 0,listener; i < trEventListener.length; i++) {
+          listener = trEventListener[i];
+          tr.addEventListener(listener[0],listener[1]);
+        };
+      }
     }
 
-    ls.checker.list_row_number_checker();
+    return ds;
+  },
 
+  display: function(element, container){
+    container.innerHTML = "";
+    container.appendChild(element);
+    return element;
   },
 
   create_list_line: function(table_data_i, tr_in_thead){
@@ -1275,8 +1298,9 @@ var ls = list = {
       var p_names = ls.product_info[5];
       ls.edit.data_convert_JSON_to_array(ls.product_info[1], ls.product_info[2], p_names, "product");
 
-      //表头和表内容的表格
-      ls.display(ls.product_info[5],ls.product_info[2]);
+      var ds = document.querySelector("#display_section");
+      var created_table = ls.create_list_table(ls.product_info[5],ls.product_info[2])
+      ls.display(created_table, ds);
 
       //显示完成，将状态置0
       ls.product_info[0]=0;
@@ -1472,8 +1496,9 @@ var ls = list = {
       var p_names = ls.people_info[5];
       ls.edit.data_convert_JSON_to_array(ls.people_info[1], ls.people_info[2], p_names, "people");
 
-      //展示表头、表内容
-      ls.display(ls.people_info[5],ls.people_info[2]);
+      var ds = document.querySelector("#display_section");
+      var created_table = ls.create_list_table(ls.people_info[5],ls.people_info[2])
+      ls.display(created_table, ds);
 
       //显示完成，将状态置0
       ls.people_info[0]=0;
@@ -1645,6 +1670,7 @@ var ls = list = {
       },
 
       pop_up_creator: function(modalTitle, modalBody){
+        //ls.checker.status.pop_up_creator
         var modal = $("#pop_up_modal");
                   modal.modal("show");
                   modal.find(".modal-title").text(modalTitle).click();
@@ -1652,6 +1678,7 @@ var ls = list = {
         p.innerHTML="";
         p.appendChild(modalBody);
         modal.find("[data-dismiss]").first().focus();
+        return $(modal).get(0);
       },
       
       "row_checker": function(e){
@@ -1865,8 +1892,8 @@ var ls = list = {
           var a = storeArray[i][j] = []; 
 
           // 每一个商品属性对应的html元素都需要拥有name 属性
-          switch (p_names[j][0].value[1]){
-            case JSON_array_content_type+"_id":
+          switch (p_names[j][0].value[1].search(/id/)!=-1){
+            case true:
                 property_name_in_JSON_array="id";
                 break;
             default: 
@@ -1879,7 +1906,7 @@ var ls = list = {
           a.push({type: "a", value: ["name", p_names[j][0].value[1]]});
           a.push({type: "a", value: ["placeholder", placeholder]});//把原来的值存入placeholder 属性中，便于后来的状态检查
           a.push({type: "i", value: placeholder});
-          switch_function(a, p_names[j][0].value[1] ,placeholder);
+          if(switch_function) switch_function(a, p_names[j][0].value[1] ,placeholder);
         }//内循环结束
       }//外循环结束
 
@@ -2039,7 +2066,7 @@ var ls = list = {
           start = $("tr.info");
       
       for(var i=0; i < ls[type+"_info"][5].length;++i){
-        o[ls[type+"_info"][5][0].value[1]]="";
+        o[ls[type+"_info"][5][i][0].value[1]]="";
       }
       ls.edit.data_convert_JSON_to_array([o],a,ls[type+"_info"][5],type);
       
@@ -2054,82 +2081,82 @@ var ls = list = {
 
     items_saver: function(type){
       var trs = $("tr[tr_modified]");
+
       if(trs.get(0)){
-      var o_array=[];
+        var o_array=[];
+        ls.checker.admin_defined_order_checker();
+        trs = $("tr[tr_modified]");
 
+        function Item(tr){
+          var o={},
+              a = $(tr).find('[name="'+type+'_id"]'),
+              tds = $(tr).find('[td_modify_status="true"]'); 
+              
+              o.content = {};
 
-      function Item(tr){
-        var o={},
-            a = $(tr).find('[name="'+type+'_id"]'),
-            tds = $(tr).find('[td_modify_status="true"]'); 
-            
-            o.content = {};
+          o.id=a.text() == ""?0:a.text();
+          o.t=a.text() == ""?"a":"u";
 
-        o.id=a.text() == ""?0:a.text();
-        o.t=a.text() == ""?"a":"u";
-
-        for (var i = 0; i < tds.length; i++) {
-          var td = $(tds[i]);
-          if(td.attr("name")=="hidden_toggle"){
-            if(td.text()=="√")o.t="d";
-            o.content[td.attr("name")]=td.text()=="√"?1:2;
-          }
-          else
-          o.content[td.attr("name")]=td.text();
-        };
-        return o;
-      }
-
-
-      for (var i = 0; i < trs.length; i++) {
-        ls[type+"_info"][3][1][i] = Item(trs[i]);
-      };
-
-      var delete_items = $("[name='hidden_toggle']");
-      for (var i = 0; i < delete_items.length; i++) {
-        var a = $(delete_items[i]);
-        if(a.text()=="√"){
-          a.parent().remove();
-        }
-      };
-      
-      ls.checker.admin_defined_order_checker();
-
-      //状态
-      var table_name;
-      switch(type){
-        case "product":
-            table_name = "product_info";break;
-        case "people":
-            table_name = "people";break;
-        default: break;
-      }
-      ls[type+"_info"][3][0]=1;
-      $.ajax({
-        url: "update.php?table="+table_name,
-        method: "POST",
-        contentType: "application/json",
-        data: JSON.stringify(ls[type+"_info"][3][1]),
-        success: function(data, status, XMLHttpRequest_object){
-          cl(data);
-          ls[type+"_info"][0]=1;
-          $("tr.new_created").removeClass("new_created");
-
-          var modified_td = $('[td_modify_status="true"]').attr("td_modify_status",false);
-          for (var i = 0; i < modified_td.length; i++) {
-            $(modified_td[i]).attr("placeholder",$(modified_td[i]).text());
+          for (var i = 0; i < tds.length; i++) {
+            var td = $(tds[i]);
+            if(td.attr("name")=="hidden_toggle"){
+              if(td.text()=="√")o.t="d";
+              o.content[td.attr("name")]=td.text()=="√"?1:2;
+            }
+            else
+            o.content[td.attr("name")]=td.text();
           };
-
-          $("tr[tr_modified]").removeAttr("tr_modified").attr("td_modify_count",0);
-
-          ls.checker.list_row_number_checker();
-          ls.checker.status.whether_table_modified();
-          ls[type+"_info"][3][0]=0;
-          ls[type+"_info"][3][1]=[];
+          return o;
         }
-      });
-    }
 
+        for (var i = 0; i < trs.length; i++) {
+          ls[type+"_info"][3][1][i] = Item(trs[i]);
+        };
+
+        var delete_items = $("[name='hidden_toggle']");
+        for (var i = 0; i < delete_items.length; i++) {
+          var a = $(delete_items[i]);
+          if(a.text()=="√"){
+            a.parent().remove();
+          }
+        };
+
+        //状态
+        var table_name;
+        switch(type){
+          case "product":
+              table_name = "product_info";break;
+          case "people":
+              table_name = "people";break;
+          default: break;
+        }
+        ls[type+"_info"][3][0]=1;
+
+        $.ajax({
+          url: "update.php?table="+table_name,
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify(ls[type+"_info"][3][1]),
+
+          success: function(data, status, XMLHttpRequest_object){
+            cl(data);
+            ls[type+"_info"][0]=1;
+            $("tr.new_created").removeClass("new_created");
+
+            var modified_td = $('[td_modify_status="true"]').attr("td_modify_status",false);
+            for (var i = 0; i < modified_td.length; i++) {
+              $(modified_td[i]).attr("placeholder",$(modified_td[i]).text());
+            };
+
+            $("tr[tr_modified]").removeAttr("tr_modified").attr("td_modify_count",0);
+
+            ls.checker.list_row_number_checker();
+            ls.checker.status.whether_table_modified();
+            ls[type+"_info"][3][0]=0;
+            ls[type+"_info"][3][1]=[];
+          }
+        });
+      }
     },
 
     abortChange: function(){
