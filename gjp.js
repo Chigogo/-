@@ -150,8 +150,7 @@ var td = TRANSACTION_DOCUMENT = {
       [{t: "a",v:["name","amount"]},{t: "i",v:"数量"}],
       [{t: "a",v:["name","item_money_received"]},{t: "i",v:"金额"}],
       [{t: "a",v:["name","price"]},{t: "i",v:"单价"}],
-      [{t: "a",v:["name","unit"]},{t: "i",v:"单位"}],
-      [{t: "a",v:["name","units_factor"]},{t: "i",v:"规格"}],
+      [{t: "a",v:["name","units_factor"]},{t: "i",v:"单位和规格"}],
       [{t: "a",v:["name","comment_for_item"]},{t: "i",v:"备注"}]
     ],
 
@@ -181,8 +180,13 @@ var td = TRANSACTION_DOCUMENT = {
         "full_name":"",
         "amount":"",
         "price":"",
-        "unit":[],//unit1还是其他？
-        "units_factor":[],
+        "unit":"",//unit1还是其他？
+        "units_factor":[
+          "unit_1",
+          ["unit_1", "箱", 1],
+          ["unit_2", "支", 50],
+          ["unit_3", "g", 60]
+        ],
         "item_money_received":"",
         "comment_for_item":""
        }]
@@ -200,7 +204,7 @@ var td = TRANSACTION_DOCUMENT = {
     //当前视图如果存在单据,id=i，则先保存该单据
     var section = document.querySelector("#display_section");
     if(section.querySelector("#i")){
-        td.saver(document.querySelector("td[name=invoice_id]").getAttribute("invoice_id"));
+        td.saver_toBg(document.querySelector("td[name=invoice_id]").getAttribute("invoice_id"));
     }
 
     var doc_type_caption = document.querySelector("*[my_invoice_id='"+invoice_id+"']").querySelector("a").innerHTML.replace(/^(销售|进货).*/,"$1"+"单");
@@ -212,14 +216,14 @@ var td = TRANSACTION_DOCUMENT = {
       '<thead id="i_des">',
       '<tr>',
       '<td colspan=2>往来单位：</td>',
-      '<td name="trading_object" colspan="3" contenteditable></td>',
+      '<td name="trading_object" colspan="2" contenteditable></td>',
       '<td name="invoice_id" invoice_id="'+invoice_id+'">单据编号：</td>',
       '<td name="generated_id" colspan="1"></td>',
       '<td>制单时间：</td> <td name="created_time" ></td>',
       '</tr>',
       '<tr>',
       '<td colspan=2>仓库：</td>',
-      '<td name="store_house" store_house_id colspan="3"></td>',
+      '<td name="store_house" store_house_id colspan="2"></td>',
       '<td>备注：</td>',
       '<td name="comment" colspan="3" contenteditable></td>',
       '</tr>',
@@ -309,7 +313,7 @@ var td = TRANSACTION_DOCUMENT = {
     td.builder.sum_refresher();
   },
 
-  "saver": function(id){
+  "saver_toBg": function(id){
     var a = document.querySelector("#i_c").querySelectorAll("tr");
     var d_a=td.document_lists["invoice_id"+id].document_content_array;
 
@@ -320,7 +324,8 @@ var td = TRANSACTION_DOCUMENT = {
       "product_id": Number(a[i].querySelector('*[name="product_id"]').innerHTML),
       "manufacturer": a[i].querySelector('*[name="manufacturer"]').innerHTML,
       "full_name": a[i].querySelector('*[name="full_name"]').innerHTML,
-      "unit_1": "箱",//标注用户所选用的计算规格的方式
+      "unit": "",//标注用户所选用的计算规格的方式
+      "units_factor": td.builder.priceUnitManager("sv", a[i].querySelector('*[name="units_factor"]').querySelector("div")),
       "price": Number(a[i].querySelector('*[name="price"]').innerHTML),
       "amount": Number(a[i].querySelector('*[name="amount"]').innerHTML),
       "item_money_received": Number(a[i].querySelector('*[name="item_money_received"]').innerHTML),
@@ -425,7 +430,6 @@ var td = TRANSACTION_DOCUMENT = {
         tr.appendChild(td.builder.create_new_element_in_tr(tag_name_within_line_tr, fields_description_array[i]));
       };
       return tr;
-
     },
 
     create_new_element_in_tr: function(tag_name, field_description_array){
@@ -436,6 +440,8 @@ var td = TRANSACTION_DOCUMENT = {
               element.setAttribute(field_description_array[i].v[0],field_description_array[i].v[1]);
               break;
           case "i":
+              if(field_description_array[i].v==undefined) field_description_array[i].v = "";
+              if(typeof field_description_array[i].v=="number") field_description_array[i].v = field_description_array[i].v.toString();
               element.appendChild(typeof field_description_array[i].v=="string"?document.createTextNode(field_description_array[i].v):field_description_array[i].v);
               break;
           case "e":
@@ -455,7 +461,7 @@ var td = TRANSACTION_DOCUMENT = {
       for (var i = 0; i < tr_fields_description.length; i++) {
         //innerHTML
         var td_des = tr_fields_description[i];
-        if(a[tr_fields_description[i][0]["v"][1]])
+        if(tr_fields_description[i][0]["v"][1]!="units_factor")
         tr_fields_description[i].push({t:"i",v:a[tr_fields_description[i][0]["v"][1]]});
 
         if(editable_tag){
@@ -483,9 +489,10 @@ var td = TRANSACTION_DOCUMENT = {
                   {t:"a", v:["contenteditable","true"]}
                   );
                 break;
-            case "admin_defined_unit":
-                break;
-            case "unit":
+            case "units_factor":
+                td_des.push(
+                  {t:"i",v: td.builder.priceUnitManager("cr", a.units_factor)}
+                );
                 break;
             case "amount":
                 td_des.push(
@@ -495,7 +502,6 @@ var td = TRANSACTION_DOCUMENT = {
                   {t:"e",v:["keydown", ls.edit.arrow_key_control]},
                   {t:"e",v:["keypress", td.builder.number_check_when_input]},
                   {t:"a",v:["contenteditable","true"]}
-
                 );
                 break;
             case "price":
@@ -551,8 +557,6 @@ var td = TRANSACTION_DOCUMENT = {
                   {t:"a", v:["placeholder",a.full_name]},//用于checker
                   {t:"a", v:["contenteditable","true"]}
                   );
-                break;
-            case "admin_defined_unit":
                 break;
             case "unit":
                 break;
@@ -610,6 +614,86 @@ var td = TRANSACTION_DOCUMENT = {
       for (var i = 1; i < tr.length; i++) {
         tr[i].querySelector("td").innerHTML = i;
       }
+    },
+
+    priceUnitManager: function(operationType, units_factor_array_or_div){
+      //进行 种操作
+      //第一种，创建,
+        //根据服务器提供的"价格、单位、规格"对象创建表格内容
+      //第二种，检查状态,event listener
+        //根据当前的invoice状态、用户操作，调整对应的价格和单位
+        //当用户调整价格或者单元的同时
+      //第三种，生成服务器接受的"价格、单元、规格"格式
+      if(operationType == "cr"){
+        var element = $("<div/>");
+        for (var i = 1; i < units_factor_array_or_div.length; i++) {
+          var outer_span = $("<span/>",{
+            name: units_factor_array_or_div[i][0],
+            name_for_user: units_factor_array_or_div[i][1],
+            factor: units_factor_array_or_div[i][2]
+          }).text(units_factor_array_or_div[i][2]);
+
+          outer_span.on("click", function(){
+            var tr = $(this).closest('tr');
+            var price_element = tr.find('[name="price"]');
+            var price = price_element.text();cl(price);
+
+            var span_siblings = $(this).parent().children('span');
+            var allUnits = [];
+            for (var j = 0; j < span_siblings.length; j++) {
+              allUnits.push([$(span_siblings[j]).attr("name"), $(span_siblings[j]).attr("factor")]);
+              if($(span_siblings[i]).hasClass('info')){
+                var prevUnitElement = $(span_siblings[i]);
+                var prevUnitElement_pointer = j;
+                prevUnitElement.removeClass('info');
+              }
+              if(this == $(span_siblings[j])){
+                var currentUnitElement_pointer = j;
+              }
+            };
+
+            for(pointer = prevUnitElement_pointer;pointer<prevUnitElement_pointer;pointer++){
+              var price = price / allUnits[pointer+1][1];
+            }
+
+            for(pointer = prevUnitElement_pointer;pointer>prevUnitElement_pointer;pointer--){
+              var price = price * allUnits[pointer][1];
+            }
+            price_element.text(price);
+            price_element.blur();
+
+            $(this).addClass('info');
+          });
+  
+          var inner_span = $("<span/>",{
+            name: "name_for_user",
+            text: units_factor_array_or_div[i][1]
+          }).appendTo(outer_span);
+  
+          if(units_factor_array_or_div[i][0]=units_factor_array_or_div[0]){
+            outer_span.addClass('info');
+          }
+          element.append(outer_span);
+
+          if(i<units_factor_array_or_div.length-1){
+            element.append($(document.createTextNode("×")));
+          }
+        };
+  
+        return element.get(0);
+      }
+      if(operationType == "sv"){
+        var units_factor = [];
+        var div = $(units_factor_array_or_div);
+        var units = div.children('span');
+        var info = div.find('info');
+        units_factor.push(info.attr("name"));
+        for (var i = 0; i < units.length; i++) {
+          units_factor.push([units[i].attr("name"), units[i].attr("name_for_user"), units[i].attr("factor")]);
+        };
+        return units_factor;
+      }
+
     },
 
     "sum_refresher": function(){
@@ -959,20 +1043,35 @@ var td = TRANSACTION_DOCUMENT = {
         var a = $("#pop_up").find(".info"),
             id = $("td[name='invoice_id']").attr("invoice_id"),
             i_c = $("#i_c"),
-            new_tr;
+            new_tr,
+            storeObject = {//for ajax
+              people_id: "",
+              products_id: []
+            };
 
         for (var i = 0; i < a.length; i++) {
           var o = {
               "product_id": $(a[i]).find('*[name="product_id"]').html(),
               "manufacturer":$(a[i]).find('*[name="manufacturer"]').html(),
               "full_name": $(a[i]).find('*[name="full_name"]').html(),
-              "admin_defined_unit":"",
-              "unit": "箱",
+              "units_factor": [],
+              "unit": "unit_1",
               "amount": 0,
               "price": 0,
               "item_money_received": 0,
               "comment_for_item":""
             };
+          o.units_factor = [
+            "unit_1",
+            ["unit_1", $(a[i]).find('[name="unit_1"]').text(), 1]
+          ];
+          if($(a[i]).find('[name="unit_2"]').text())
+            o.units_factor.push(["unit_2", $(a[i]).find('[name="unit_2"]').text(), $(a[i]).find('[name="unit_2_factor"]').text()]);
+
+          if($(a[i]).find('[name="unit_3"]').text())
+            o.units_factor.push(["unit_3", $(a[i]).find('[name="unit_3"]').text(), $(a[i]).find('[name="unit_3_factor"]').text()]);
+          
+          storeObject.products_id.push($(a[i]).find('*[name="product_id"]').html());
           // td.document_lists["invoice_id"+id].document_content_array.push(o);
           new_tr = $(td.builder.create_invoice_line(o,td.document_lists.invoice_content_head_description_array, 1));
           var e_point = i_c.find("*[input_end_point]").first();
@@ -982,30 +1081,19 @@ var td = TRANSACTION_DOCUMENT = {
           }
           new_tr.insertBefore(e_point);
         }
-        $.ajax({
-          url: "query.php?complex_query&items_price",
-          method: "POST",
-          contentType: "application/json",
-          data: JSON.stringify(ls[type+"_info"][3][1]),
 
-          success: function(data, status, XMLHttpRequest_object){
-            cl(data);
-            ls[type+"_info"][0]=1;
-            $("tr.new_created").removeClass("new_created");
 
-            var modified_td = $('[td_modify_status="true"]').attr("td_modify_status",false);
-            for (var i = 0; i < modified_td.length; i++) {
-              $(modified_td[i]).attr("placeholder",$(modified_td[i]).text());
-            };
+        // $.ajax({
+        //   url: "query.php?complex_query&items_price",
+        //   method: "POST",
+        //   contentType: "application/json",
+        //   data: JSON.stringify(storeArray),
 
-            $("tr[tr_modified]").removeAttr("tr_modified").attr("td_modify_count",0);
-
-            ls.checker.list_row_number_checker();
-            ls.checker.status.whether_table_modified();
-            ls[type+"_info"][3][0]=0;
-            ls[type+"_info"][3][1]=[];
-          }
-        });
+        //   success: function(data, status, XMLHttpRequest_object){
+        //     cl(data);
+            
+        //   }
+        // });
          //for 循环结束
          e_point.find('[name="full_name"]').text("");
          if(e_point.get(0)!=e_point.parent().children().last().get(0)) e_point.remove();
@@ -2288,8 +2376,6 @@ var ls = list = {
     "updater": function(){}, //for basic_info
     "event": function(){} //event for edit
   },
-
-  "saver": function(){}, //for invoice
 
   "filter": function(){}, //for information displaying
 };
