@@ -146,6 +146,10 @@
 		}
 	}
 
+	if (isset($_GET["complex_query"])){
+
+	}
+
 
 	/*{
 		$product_id = 
