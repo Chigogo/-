@@ -321,7 +321,7 @@ var td = TRANSACTION_DOCUMENT = {
       "product_id": Number(a[i].querySelector('*[name="product_id"]').innerHTML),
       "manufacturer": a[i].querySelector('*[name="manufacturer"]').innerHTML,
       "full_name": a[i].querySelector('*[name="full_name"]').innerHTML,
-      "unit": "",//标注用户所选用的计算规格的方式
+      "unit": td.builder.priceUnitManager("sv", a[i].querySelector('*[name="units_factor"]').querySelector("div"))[0],//标注用户所选用的计算规格的方式
       "units_factor": td.builder.priceUnitManager("sv", a[i].querySelector('*[name="units_factor"]').querySelector("div")),
       "price": Number(a[i].querySelector('*[name="price"]').innerHTML),
       "amount": Number(a[i].querySelector('*[name="amount"]').innerHTML),
@@ -332,7 +332,26 @@ var td = TRANSACTION_DOCUMENT = {
       d_a.push(o);
 
     }
+  },
 
+
+  "saver_toSever": function(id){
+    var invoice_id = document.querySelector("td[name=invoice_id]").getAttribute("invoice_id");
+    td.saver_toBg(invoice_id);
+
+    cl(JSON.stringify(td.document_lists["invoice_id"+invoice_id]));
+
+    $.ajax({
+      url: "update.php?type=save_invoice",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(td.document_lists["invoice_id"+invoice_id]),
+
+      success: function(data, status, XMLHttpRequest_object){
+        cl(data);
+        
+      }
+    });
 
   },
 
@@ -2272,7 +2291,7 @@ var ls = list = {
         ls[type+"_info"][3][0]=1;
 
         $.ajax({
-          url: "update.php?table="+table_name,
+          url: "update.php?table="+table_name+"&type=basic_information_build",
           method: "POST",
           contentType: "application/json",
           data: JSON.stringify(ls[type+"_info"][3][1]),
