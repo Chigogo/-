@@ -634,6 +634,8 @@ var td = TRANSACTION_DOCUMENT = {
             var tr = $(this).closest('tr');
             var price_element = tr.find('[name="price"]');
             var price = Number(price_element.text());
+            var amount_element = tr.find('[name="amount"]');
+            var amount = Number(amount_element.text());
 
             var span_siblings = $(this).parent().children('span');
             var allUnits = [];
@@ -651,12 +653,15 @@ var td = TRANSACTION_DOCUMENT = {
 
             for(pointer = prevUnitElement_pointer;pointer<currentUnitElement_pointer;pointer++){
               var price = price / allUnits[pointer+1][1];
+              var amount = amount * allUnits[pointer+1][1];
             }
 
             for(pointer = prevUnitElement_pointer;pointer>currentUnitElement_pointer;pointer--){
               var price = price * allUnits[pointer][1];
+              var amount = amount / allUnits[pointer][1];
             }
             price_element.text(price);
+            amount_element.text(amount);
             price_element.blur();
 
             $(this).addClass('info');
