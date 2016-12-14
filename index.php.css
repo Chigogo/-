@@ -67,6 +67,19 @@ td {
 	/*overflow-x: auto;*/
 }
 
+td span{
+  color: grey;
+
+  font-size: 0.8em;
+}
+
+
+td .info span{
+  color: black;
+  font-weight: bold;
+  font-size: 1.25em;
+}
+
 thead *{
 	border:none;
 }
@@ -107,7 +120,7 @@ tr[tr_modified]{
 }
 
 td[td_modify_status="true"]{
-  color: #D0104C;
+  background-color: #d9edf7;
   font-weight: bold;
 }
 

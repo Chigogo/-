@@ -203,9 +203,6 @@ var td = TRANSACTION_DOCUMENT = {
   "viewer": function(editable_tag ,invoice_id){
     //当前视图如果存在单据,id=i，则先保存该单据
     var section = document.querySelector("#display_section");
-    if(section.querySelector("#i")){
-        td.saver_toBg(document.querySelector("td[name=invoice_id]").getAttribute("invoice_id"));
-    }
 
     var doc_type_caption = document.querySelector("*[my_invoice_id='"+invoice_id+"']").querySelector("a").innerHTML.replace(/^(销售|进货).*/,"$1"+"单");
     section.innerHTML=[
@@ -636,27 +633,27 @@ var td = TRANSACTION_DOCUMENT = {
           outer_span.on("click", function(){
             var tr = $(this).closest('tr');
             var price_element = tr.find('[name="price"]');
-            var price = price_element.text();cl(price);
+            var price = Number(price_element.text());
 
             var span_siblings = $(this).parent().children('span');
             var allUnits = [];
             for (var j = 0; j < span_siblings.length; j++) {
               allUnits.push([$(span_siblings[j]).attr("name"), $(span_siblings[j]).attr("factor")]);
-              if($(span_siblings[i]).hasClass('info')){
-                var prevUnitElement = $(span_siblings[i]);
+              if($(span_siblings[j]).hasClass('info')){
+                var prevUnitElement = $(span_siblings[j]);
                 var prevUnitElement_pointer = j;
                 prevUnitElement.removeClass('info');
               }
-              if(this == $(span_siblings[j])){
+              if(this == span_siblings[j]){
                 var currentUnitElement_pointer = j;
               }
             };
 
-            for(pointer = prevUnitElement_pointer;pointer<prevUnitElement_pointer;pointer++){
+            for(pointer = prevUnitElement_pointer;pointer<currentUnitElement_pointer;pointer++){
               var price = price / allUnits[pointer+1][1];
             }
 
-            for(pointer = prevUnitElement_pointer;pointer>prevUnitElement_pointer;pointer--){
+            for(pointer = prevUnitElement_pointer;pointer>currentUnitElement_pointer;pointer--){
               var price = price * allUnits[pointer][1];
             }
             price_element.text(price);
@@ -670,7 +667,7 @@ var td = TRANSACTION_DOCUMENT = {
             text: units_factor_array_or_div[i][1]
           }).appendTo(outer_span);
   
-          if(units_factor_array_or_div[i][0]=units_factor_array_or_div[0]){
+          if(units_factor_array_or_div[i][0]==units_factor_array_or_div[0]){
             outer_span.addClass('info');
           }
           element.append(outer_span);
@@ -686,10 +683,11 @@ var td = TRANSACTION_DOCUMENT = {
         var units_factor = [];
         var div = $(units_factor_array_or_div);
         var units = div.children('span');
-        var info = div.find('info');
+        var info = div.find('.info');
         units_factor.push(info.attr("name"));
         for (var i = 0; i < units.length; i++) {
-          units_factor.push([units[i].attr("name"), units[i].attr("name_for_user"), units[i].attr("factor")]);
+          units_i = $(units[i]);
+          units_factor.push([units_i.attr("name"), units_i.attr("name_for_user"), units_i.attr("factor")]);
         };
         return units_factor;
       }
@@ -1353,7 +1351,11 @@ var ls = list = {
                     // cl("set "+table_data_i[k][l].value[0]+" event to "+table_data_i[k][l].value[1]+" success!");
                     break;
                 case "i": 
-                    td.appendChild(typeof table_data_i[k][l].value=="string"?document.createTextNode(table_data_i[k][l].value):table_data_i[k][l].value);
+                    td.innerHTML = "";
+                    td.appendChild(
+                      typeof table_data_i[k][l].value=="string"||
+                      typeof table_data_i[k][l].value=="number"
+                      ?document.createTextNode(table_data_i[k][l].value):table_data_i[k][l].value);
                     // cl("set innerHTML to "+table_data_i[k][l].value[0]+" success!");
                     break;
               }
@@ -1765,6 +1767,13 @@ var ls = list = {
       //normal_check, 用来进行整体的check，防止用户在保存修改前就进入其他页面
       normal_check: function(){
         // 检查单机的目标，如果用户未保存修改，则不允许用户进入其他界面
+
+        if(document.querySelector("#i")){
+            var invoice_id = document.querySelector("td[name=invoice_id]").getAttribute("invoice_id");
+            td.saver_toBg(invoice_id);
+            cl("单据"+invoice_id+"已保存到网页后台（未上传服务器）");
+        }
+
         var srcE=event.target.tagName.toLowerCase();
 
         // console.log(srcE);
@@ -2037,17 +2046,28 @@ var ls = list = {
         a.push(
           {type: "a", value: c_e}, 
           {type: "a", value: ["td_modify_status", false]},
-          {type: "e", value: ["blur",ls.checker.status.whether_td_modified]},
           {type: "e", value: ["keypress", ls.checker.word_check_when_input]},
           {type: "e", value: ["keydown", ls.edit.arrow_key_control]},
           {type: "e", value: text_s}
         );
       }
+      function editable_allow_space(a){
+        editable(a); 
+        a.push(
+          {type: "e", value: ["blur",ls.checker.status.whether_td_modified_allow_space]}
+          );
+      }
+      function editable_not_allow_space(a){
+        editable(a); 
+        a.push(
+          {type: "e", value: ["blur",ls.checker.status.whether_td_modified]}
+          );
+      }
 
       function e_num(a, placeholder){//add event listener for num tds
         a.push(
           {type: "a", value: ["td_modify_status", false]},
-          {type: "e", value: ["blur",ls.checker.status.whether_td_modified]},
+          {type: "e", value: ["blur",ls.checker.status.whether_td_modified_allow_space]},
           {type: "e", value: ["keydown", ls.edit.arrow_key_control]},
           {type: "a", value: c_e}, 
           {type: "e", value: nc_w},
@@ -2074,15 +2094,17 @@ var ls = list = {
               );
               break;
           case "full_name" : 
-              editable(a);
-              a.push({type: "e", value: ["blur", ls.edit.py_code_editor]});
+              editable_not_allow_space(a)
+              a.push(
+                {type: "e", value: ["blur", ls.edit.py_code_editor]}
+                );
               break;
-          case "simple_name" : editable(a); break;
+          case "simple_name" : editable_allow_space(a); break;
 
-          case "unit_1" : editable(a); break;
+          case "unit_1" : editable_allow_space(a); break;
 
-          case "unit_2" : editable(a); break;
-          case "unit_3" :editable(a); break;
+          case "unit_2" : editable_allow_space(a); break;
+          case "unit_3" :editable_allow_space(a); break;
           case "unit_2_factor" :
           case "unit_3_factor" :
           case "price_base" :

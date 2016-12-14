@@ -77,9 +77,9 @@ simple_name varchar(8),
 unit_1 varchar(2) not null,
 
 unit_2 varchar(2),
-unit_2_factor tinyint,
+unit_2_factor smallint,
 unit_3 varchar(2),
-unit_3_factor tinyint,
+unit_3_factor smallint,
 
 -- price strategy
 price_base decimal(8,4),
