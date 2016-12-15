@@ -255,6 +255,16 @@ var td = TRANSACTION_DOCUMENT = {
       );
 
     ls_fucntion_tab.find("#print_invoice").on("click", function(){window.print();});
+    
+    var save_as_draft_btn = ls_fucntion_tab.find("#save_as_draft");
+    var invoice_to_db_btn = ls_fucntion_tab.find("#invoice_to_db");
+    if(editable_tag){
+      save_as_draft_btn.on("click", function(){td.saver_toSever("草稿");});
+      invoice_to_db_btn.on("click", function(){td.saver_toSever("完成");});
+    }else{
+      save_as_draft_btn.attr("disabled","disabled");
+      invoice_to_db_btn.attr("disabled","disabled");
+    }
 
     $(section).append(ls_fucntion_tab);
 
@@ -269,6 +279,7 @@ var td = TRANSACTION_DOCUMENT = {
     //展示往来单位
     var des_td = des.querySelector("td[name='trading_object']");
     des_td.addEventListener("click",td.builder.cell_checker);
+    des_td.setAttribute("people_id",a.trading_object[0]?a.trading_object[0]:"");
     des_td.innerHTML = a.trading_object[1]?a.trading_object[1]:"";
 
     //展示单据描述数据
@@ -335,11 +346,15 @@ var td = TRANSACTION_DOCUMENT = {
   },
 
 
-  "saver_toSever": function(id){
-    var invoice_id = document.querySelector("td[name=invoice_id]").getAttribute("invoice_id");
-    td.saver_toBg(invoice_id);
+  "saver_toSever": function(document_status, id ){
+    var invoice_id = id?id:document.querySelector("td[name=invoice_id]").getAttribute("invoice_id");
+    if(document_status != "草稿")
+    {
+      if(td.invoice_validator(document_status, invoice_id)==false) return;
+    }
 
-    cl(JSON.stringify(td.document_lists["invoice_id"+invoice_id]));
+    td.saver_toBg(invoice_id);
+    td.document_lists["invoice_id"+invoice_id].document_status = document_status;
 
     $.ajax({
       url: "update.php?type=save_invoice",
@@ -352,10 +367,61 @@ var td = TRANSACTION_DOCUMENT = {
         
       }
     });
-
   },
 
+  "invoice_validator": function(document_status, id ){
+    var invoice = $("#i");
+    var i_des = invoice.find("#i_des");
+    var div = $("<div/>");
+    var value = true;
+    if(i_des.find('[name="trading_object"]').text()=="系统"||
+      i_des.find('[name="trading_object"]').text()==""){
+      $("<div/>",{
+        "text": "往来单位有误"
+      }).appendTo(div);
+      value = false;
+    }
 
+    var i_content = invoice.find("#i_c");
+    var trs = i_content.find("tr");
+    for (var i = 1; i < trs.length-1; i++) {
+      var mark = false;
+      var outer = $("<div/>");
+      var line_number = $(trs[i]).find('[name="line_number"]').text();
+      outer.append($("<div/>",{
+        "text": "行号为"+line_number+"的产品存在以下问题："
+      }));
+
+
+      var full_name = $(trs[i]).find('[name="full_name"]');
+      var amount = $(trs[i]).find('[name="amount"]');
+      var price = $(trs[i]).find('[name="price"]');
+      if(full_name.text()=="") {
+        outer.append($("<div>商品名称不正确</div>"));
+        mark = true;
+      }
+      if(typeof Number(amount.text())!="number"||Number(price.text())==0) {
+        cl(Number(amount.text()));
+        outer.append($("<div>商品数量不正确</div>"));
+        mark = true;
+      }
+      if(typeof Number(price.text())!="number"||Number(price.text())==0) {
+        outer.append($("<div>商品价格不正确</div>"));
+        mark = true;
+      }
+
+      if(mark){
+        div.append(outer);
+        value = false;
+      }
+    };
+
+    if(value==false){
+      ls.checker.status.pop_up_creator("您不能保存单据，原因是", div.get(0));
+    }
+
+    return value==false?false:true;
+  },
   //方法————单据对象的创建
   //在主数据库创建一个单据，主数据库返回单据id
   "creator": function (doc_type, operationType, invoice_id){
@@ -485,6 +551,9 @@ var td = TRANSACTION_DOCUMENT = {
             case "line_number":
                 break;
             case "product_id":
+                td_des.push(
+                  {t:"a",v:["product_id", a.product_id]}
+                );
                 break;
             case "manufacturer":
                 break;
@@ -527,6 +596,7 @@ var td = TRANSACTION_DOCUMENT = {
                   {t:"e",v:["blur",td.builder.amount_or_price_affect_received]},
                   {t:"e",v:["keydown", ls.edit.arrow_key_control]},
                   {t:"e",v:["keypress", td.builder.number_check_when_input]},
+                  {t:"e",v:["blur", td.builder.whether_price_reasonable]},
                   {t:"a",v:["contenteditable","true"]}
                 );
                 break;
@@ -672,16 +742,16 @@ var td = TRANSACTION_DOCUMENT = {
 
             for(pointer = prevUnitElement_pointer;pointer<currentUnitElement_pointer;pointer++){
               var price = price / allUnits[pointer+1][1];
-              var amount = amount * allUnits[pointer+1][1];
+              // var amount = amount * allUnits[pointer+1][1];
             }
 
             for(pointer = prevUnitElement_pointer;pointer>currentUnitElement_pointer;pointer--){
               var price = price * allUnits[pointer][1];
-              var amount = amount / allUnits[pointer][1];
+              // var amount = amount / allUnits[pointer][1];
             }
             price_element.text(price);
-            amount_element.text(amount);
-            price_element.blur();
+            // amount_element.text(amount);
+            td.builder.amount_or_price_affect_received.apply(price_element.get(0));
 
             $(this).addClass('info');
           });
@@ -891,7 +961,18 @@ var td = TRANSACTION_DOCUMENT = {
       Number(a).toFixed(5);
       this.parentNode.querySelector('*[name="price"]').innerHTML = Number(a);
       td.builder.sum_refresher();
+    },
 
+    "whether_price_reasonable": function (e){
+      var price_base = Number($(this).attr("price_base"));
+      var last_price = Number($(this).attr("last_price"));
+      var price_reasonable = true;
+      if(price_base && Number($(this).html) < price_base||
+         last_price && Number($(this).html) < last_price
+        ) price_reasonable = false;
+
+      if(price_reasonable == false) $(this).addClass("danger");
+      else $(this).removeClass("danger");
     },
 
     //tr 用return function的方式,在viewer 中使用
@@ -1066,14 +1147,17 @@ var td = TRANSACTION_DOCUMENT = {
             id = $("td[name='invoice_id']").attr("invoice_id"),
             i_c = $("#i_c"),
             new_tr,
-            storeObject = {//for ajax
-              people_id: "",
-              products_id: []
+            storeObject = {
+              //for ajax
+              //price_based on tag 需要添加
+              people_id: $("#i_des").find('[name="trading_object"]').attr("people_id"),
+              products: {}
             };
+        var e_point = i_c.find("*[input_end_point]").first();
 
         for (var i = 0; i < a.length; i++) {
           var o = {
-              "product_id": $(a[i]).find('*[name="product_id"]').html(),
+              "product_id": Number($(a[i]).find('*[name="product_id"]').html()),
               "manufacturer":$(a[i]).find('*[name="manufacturer"]').html(),
               "full_name": $(a[i]).find('*[name="full_name"]').html(),
               "units_factor": [],
@@ -1082,51 +1166,58 @@ var td = TRANSACTION_DOCUMENT = {
               "price": 0,
               "item_money_received": 0,
               "comment_for_item":""
-            };
+          };
           o.units_factor = [
             "unit_1",
             ["unit_1", $(a[i]).find('[name="unit_1"]').text(), 1]
           ];
-          if($(a[i]).find('[name="unit_2"]').text())
-            o.units_factor.push(["unit_2", $(a[i]).find('[name="unit_2"]').text(), $(a[i]).find('[name="unit_2_factor"]').text()]);
 
-          if($(a[i]).find('[name="unit_3"]').text())
-            o.units_factor.push(["unit_3", $(a[i]).find('[name="unit_3"]').text(), $(a[i]).find('[name="unit_3_factor"]').text()]);
-          
-          storeObject.products_id.push($(a[i]).find('*[name="product_id"]').html());
-          // td.document_lists["invoice_id"+id].document_content_array.push(o);
+          if($(a[i]).find('[name="unit_2"]').text() && $(a[i]).find('[name="unit_2_factor"]').text())
+            o.units_factor.push(["unit_2", $(a[i]).find('[name="unit_2"]').text(), Number($(a[i]).find('[name="unit_2_factor"]').text())]);
+
+          if($(a[i]).find('[name="unit_3"]').text() && $(a[i]).find('[name="unit_3_factor"]').text())
+            o.units_factor.push(["unit_3", $(a[i]).find('[name="unit_3"]').text(), Number($(a[i]).find('[name="unit_3_factor"]').text())]);
+
+          storeObject.products[o.product_id]=0;
+
           new_tr = $(td.builder.create_invoice_line(o,td.document_lists.invoice_content_head_description_array, 1));
-          var e_point = i_c.find("*[input_end_point]").first();
 
           if(!e_point){
-            i_c.children().last().attr("input_end_point","");
+            e_point = i_c.children().last().attr("input_end_point","");
           }
           new_tr.insertBefore(e_point);
         }
 
+        $.ajax({
+          url: "query.php?complex_query&items_price",
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify(storeObject),
 
-        // $.ajax({
-        //   url: "query.php?complex_query&items_price",
-        //   method: "POST",
-        //   contentType: "application/json",
-        //   data: JSON.stringify(storeArray),
+          success: function(data, status, XMLHttpRequest_object){
+            cl(data);
+            data = JSON.parse(data);
+            for(var product_id in data.products){
+              var price_element = i_c.find('[product_id="'+product_id+'"]').parent().find('[name="price"]');
+              price_base = data.products[product_id][0]?data.products[product_id][0]:0;
+              last_price = data.products[product_id][1]?data.products[product_id][1]:0;
+              price_element.attr("price_base", price_base);
+              price_element.attr("last_price", last_price);
+              price_element.text(last_price);
+            };
+          }
+        });
+        
+        e_point.find('[name="full_name"]').text("");
+        if(e_point.get(0)!=e_point.parent().children().last().get(0)) e_point.remove();
 
-        //   success: function(data, status, XMLHttpRequest_object){
-        //     cl(data);
-            
-        //   }
-        // });
-         //for 循环结束
-         e_point.find('[name="full_name"]').text("");
-         if(e_point.get(0)!=e_point.parent().children().last().get(0)) e_point.remove();
+        if(event.preventDefault)event.preventDefault();
+        $("#pop_up_modal").find('.btn-primary').off("click", td.input_selected_products);
 
-         if(event.preventDefault)event.preventDefault();
-         $("#pop_up_modal").find('.btn-primary').off("click", td.input_selected_products);
-
-       //关闭pop_up
-       td.builder.esc_display({keyCode:27});
-       td.builder.line_number_refresher(document.querySelector("#i_c"))
-       }
+        //关闭pop_up
+        td.builder.esc_display({keyCode:27});
+        td.builder.line_number_refresher(document.querySelector("#i_c"))
+      }
     },
 
     "input_selected_des": function(event){

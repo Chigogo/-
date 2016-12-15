@@ -50,7 +50,7 @@ tag_category enum('role', 'non_category'),
 tag_describe VARCHAR(127)
 );
 
--- 单位的标签
+-- 客户的标签
 create table people_and_their_tags(
 tag_id SMALLINT Unsigned NOT NULL,
 people_id INT NOT NULL,
@@ -84,15 +84,15 @@ unit_3_factor smallint,
 -- price strategy
 price_base decimal(8,4),
 
--- product level factor
-price_for_manufacturer decimal(7,4),
-price_for_dealer decimal(7,4),
-price_for_bigger decimal(7,4),
-price_for_big decimal(7,4),
-price_for_Medium decimal(7,4),
-price_for_small decimal(7,4),
-price_for_smaller decimal(7,4),
-price_for_smallest decimal(7,4),
+-- product level price
+price_for_manufacturer decimal(8,4),
+price_for_dealer decimal(8,4),
+price_for_bigger decimal(8,4),
+price_for_big decimal(8,4),
+price_for_Medium decimal(8,4),
+price_for_small decimal(8,4),
+price_for_smaller decimal(8,4),
+price_for_smallest decimal(8,4),
 
 size_id INT Unsigned,
 

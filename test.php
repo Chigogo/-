@@ -41,10 +41,12 @@
 	// 	// echo $sql."<br>0 results or query failed.";
 	// }
 		
-	echo $conn->query("select full_name from people where id = '"."2"."'")->fetch_assoc()["full_name"];
+	// echo $conn->query("select full_name from people where id = '"."2"."'")->fetch_assoc()["full_name"];
 
 	// echo "hehe";
 	// echo isset($_GET["query_invoice"]);
+	$aaa = ["a","b","c"];
+	echo $aaa[1];
 	$conn->close();
 
 ?>

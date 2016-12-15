@@ -79,8 +79,106 @@
 		}
 	}
 	if($_GET["type"] == "save_invoice"){
-		print_r($data);
+		if($data["document_status"]=="草稿"){
+			$sql = "delete from transaction_documents_content where transaction_document_id=".$data["id"];
+			if($conn->query($sql)){
+				echo $sql."operation success!\n";
+			}else{
+				echo $sql."operation failure!\n";
+			}
+		}
+		if($data["document_status"]=="完成"){
+			$sql = "select * from transaction_documents_description where id = ".$data["id"];
+			if($conn->query($sql)){
+				$document_status = $conn->query($sql)->fetch_assoc()["document_status"];
+				echo $sql." document_status is ".$document_status." operation success!\n";
+				if($document_status == "草稿"){
+					$sql = "delete from transaction_documents_content where transaction_document_id=".$data["id"];
+					if($conn->query($sql)){
+						echo $sql."operation success!\n";
+					}else{
+						echo $sql."operation failure!\n";
+					}
+				}
+			}else{
+				echo $sql."operation failure!\n";
+			}
+		}
 
+		$sql = "update transaction_documents_description set ".
+		" trading_object"."=". $data["trading_object"][0].
+		", store_house"."=". $data["store_house"][0].
+		", money_received"."=". $data["money_received"].
+		", comment"."="."'" .$data["comment"]."'".
+		", document_status"."="."'" .$data["document_status"]."'".
+		" where id = ".$data["id"];
+
+		//写入单据描述部分
+		if($conn->query($sql)){
+			echo $sql."operation success!\n";
+		}else{
+			echo $sql."operation failure!\n";
+		}
+
+		foreach ($data["document_content_array"] as $product_key => $product) {
+			$sql = "insert into transaction_documents_content (".
+				" transaction_document_id,".
+				" product_id,".
+				" amount,".
+				" unit,".
+				" price,".
+				" item_income,".
+				" comment".
+				")".
+				" values(".
+				$data["id"].
+				", ". $product["product_id"].
+				", ". $product["amount"].
+				", ". "'". $product["unit"]."'".
+				", ". $product["price"].
+				", ". $product["item_money_received"].
+				", ". "'".$product["comment_for_item"]."'".
+				")"
+			;
+			if($conn->query($sql)){
+				echo $sql."operation success!\n";
+			}else{
+				echo $sql."operation failure!\n";
+			}
+		}
+
+		//价格更新
+		if($data["document_status"]=="完成"){
+			foreach ($data["document_content_array"] as $product_key => $product) {
+				//检查是否有原来的价格
+				$sql = "select * from specific_price_specific_person where people_id=".$data["trading_object"][0]." and product_id=".$product["product_id"];
+				if($result = $conn->query($sql)){
+					echo $sql; echo 156;
+					$original_price = $result->fetch_assoc()["price_base_on_unit_1"];
+				}else{
+					$original_price = 0;
+				}
+				$current_unit = $product["unit"];
+				$current_unit_pointer = str_replace("unit_","",$current_unit); 
+				$price = $product["price"];
+				for (; $current_unit_pointer >1 ; $current_unit_pointer--) {
+					$price = $price*$product["units_factor"][$current_unit_pointer][2];
+				}
+				if($original_price!=$price){
+					echo $product["full_name"]."for".$data["trading_object"][1]." is ".$original_price."(基于单位1)\n";
+	
+					$sql = "update specific_price_specific_person set ".
+						   "transaction_document_id=".$data["id"].
+						   ", price_base_on_unit_1 = ".$price." where people_id=".$data["trading_object"][0]." and product_id=".$product["product_id"];
+					if($conn->query($sql)){
+						echo $product["full_name"]."for".$data["trading_object"][1]." is ".$price." now (基于单位1)\n";
+					}else{
+						echo $sql."operation failure!\n";
+					}
+				}
+			}
+		}
+		
 	}
 
 

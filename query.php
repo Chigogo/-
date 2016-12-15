@@ -149,7 +149,29 @@
 	}
 
 	if (isset($_GET["complex_query"])){
-
+		if(isset($_GET["items_price"])){
+			$data = json_decode(file_get_contents('php://input'), true);
+			$people_id = $data["people_id"];
+			foreach ($data["products"] as $product_id => $product_price) {
+				$sql = "select price_base_on_unit_1 from specific_price_specific_person where people_id=".$people_id." and product_id=".$product_id;
+				if($last_price = $conn->query($sql)){
+					$data["products"][$product_id] = [0, $last_price->fetch_assoc()["price_base_on_unit_1"]];
+					echo $sql;
+				}
+				else{
+					echo $sql." failure!";
+				}
+				$sql = "select price_base from product_info where id=".$product_id;
+				if($base_price = $conn->query($sql)){
+					$data["products"][$product_id][0] = $base_price->fetch_assoc()["price_base_on_unit_1"];
+				}
+				else{
+					echo $sql." failure!";
+				}
+				/** price based on tag 需要添加**/
+			}
+			echo json_encode($data);
+		}
 	}
 
 
