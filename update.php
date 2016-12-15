@@ -152,8 +152,8 @@
 			foreach ($data["document_content_array"] as $product_key => $product) {
 				//检查是否有原来的价格
 				$sql = "select * from specific_price_specific_person where people_id=".$data["trading_object"][0]." and product_id=".$product["product_id"];
-				if($result = $conn->query($sql)){
-					echo $sql; echo 156;
+				$result = $conn->query($sql);
+				if($result->num_rows>0){
 					$original_price = $result->fetch_assoc()["price_base_on_unit_1"];
 				}else{
 					$original_price = 0;
@@ -163,6 +163,25 @@
 				$price = $product["price"];
 				for (; $current_unit_pointer >1 ; $current_unit_pointer--) {
 					$price = $price*$product["units_factor"][$current_unit_pointer][2];
+				}
+				if($original_price==0){
+					$original_price=$price;
+					$sql = "insert into specific_price_specific_person(".
+						"transaction_document_id".
+						", price_base_on_unit_1".
+						", people_id".
+						", product_id".")"." values(".
+						$data["id"].", ".
+						$price.", ".
+						$data["trading_object"][0].", ".
+						$product["product_id"].
+						")";
+					if($conn->query($sql)){
+						echo $product["full_name"]."for".$data["trading_object"][1]." is ".$price." now (基于单位1)\n";
+					}else{
+						echo $sql."failure!";
+					}
+
 				}
 				if($original_price!=$price){
 					echo $product["full_name"]."for".$data["trading_object"][1]." is ".$original_price."(基于单位1)\n";

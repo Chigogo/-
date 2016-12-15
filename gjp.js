@@ -374,7 +374,7 @@ var td = TRANSACTION_DOCUMENT = {
     var i_des = invoice.find("#i_des");
     var div = $("<div/>");
     var value = true;
-    if(i_des.find('[name="trading_object"]').text()=="系统"||
+    if(i_des.find('[name="trading_object"]').attr("people_id")=="1"||
       i_des.find('[name="trading_object"]').text()==""){
       $("<div/>",{
         "text": "往来单位有误"
@@ -384,6 +384,14 @@ var td = TRANSACTION_DOCUMENT = {
 
     var i_content = invoice.find("#i_c");
     var trs = i_content.find("tr");
+
+    if(trs.length<3){
+      $("<div/>",{
+        "text": "列表中无商品！"
+      }).appendTo(div);
+      value = false;
+    }
+
     for (var i = 1; i < trs.length-1; i++) {
       var mark = false;
       var outer = $("<div/>");
@@ -750,10 +758,11 @@ var td = TRANSACTION_DOCUMENT = {
               // var amount = amount / allUnits[pointer][1];
             }
             price_element.text(price);
-            // amount_element.text(amount);
-            td.builder.amount_or_price_affect_received.apply(price_element.get(0));
-
             $(this).addClass('info');
+            
+            td.builder.amount_or_price_affect_received.apply($(price_element)[0]);
+            td.builder.whether_price_reasonable.apply($(price_element)[0]);
+
           });
   
           var inner_span = $("<span/>",{
@@ -967,8 +976,17 @@ var td = TRANSACTION_DOCUMENT = {
       var price_base = Number($(this).attr("price_base"));
       var last_price = Number($(this).attr("last_price"));
       var price_reasonable = true;
-      if(price_base && Number($(this).html) < price_base||
-         last_price && Number($(this).html) < last_price
+      var price = Number($(this).html());
+      var this_price_to_base_on_unit_1 = price;
+      var currentUnitElement = $(this).parent().find('[name="units_factor"] span.info');
+      var currentUnit = currentUnitElement.attr("name");
+      for(var i = currentUnit.replace("unit_",""); i>1;i--){
+        this_price_to_base_on_unit_1 = this_price_to_base_on_unit_1*
+          Number(currentUnitElement.parent().find('[name="unit_'+i+'"]').attr("factor"));
+      }
+
+      if(price_base && this_price_to_base_on_unit_1 < price_base||
+         last_price && this_price_to_base_on_unit_1 < last_price
         ) price_reasonable = false;
 
       if(price_reasonable == false) $(this).addClass("danger");
@@ -1198,7 +1216,7 @@ var td = TRANSACTION_DOCUMENT = {
             cl(data);
             data = JSON.parse(data);
             for(var product_id in data.products){
-              var price_element = i_c.find('[product_id="'+product_id+'"]').parent().find('[name="price"]');
+              var price_element = i_c.find('[product_id="'+product_id+'"]').last().parent().find('[name="price"]');
               price_base = data.products[product_id][0]?data.products[product_id][0]:0;
               last_price = data.products[product_id][1]?data.products[product_id][1]:0;
               price_element.attr("price_base", price_base);

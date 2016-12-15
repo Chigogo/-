@@ -154,19 +154,22 @@
 			$people_id = $data["people_id"];
 			foreach ($data["products"] as $product_id => $product_price) {
 				$sql = "select price_base_on_unit_1 from specific_price_specific_person where people_id=".$people_id." and product_id=".$product_id;
-				if($last_price = $conn->query($sql)){
+				$last_price = $conn->query($sql);
+				if($last_price->num_rows>0){
+					//last_price
 					$data["products"][$product_id] = [0, $last_price->fetch_assoc()["price_base_on_unit_1"]];
-					echo $sql;
 				}
 				else{
-					echo $sql." failure!";
+					$data["products"][$product_id] = [0, 0];
 				}
 				$sql = "select price_base from product_info where id=".$product_id;
-				if($base_price = $conn->query($sql)){
-					$data["products"][$product_id][0] = $base_price->fetch_assoc()["price_base_on_unit_1"];
+				$base_price = $conn->query($sql);
+				if($base_price->num_rows>0){
+					$base_price = $base_price->fetch_assoc()["price_base"];
+					$data["products"][$product_id][0] = $base_price?$base_price:0;
 				}
 				else{
-					echo $sql." failure!";
+					$data["products"][$product_id][0] = 0;
 				}
 				/** price based on tag 需要添加**/
 			}
