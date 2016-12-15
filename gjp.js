@@ -2219,7 +2219,7 @@ var ls = list = {
         switch(p_name){
           case "id" : 
           break;
-          case "manufacturer" : editable(a); break;
+          case "manufacturer" : editable_allow_space(a); break;
           case "admin_defined_order" : 
               a.push(
                 {type: "a", value: ["td_modify_status", false]},
