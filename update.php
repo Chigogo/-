@@ -151,11 +151,14 @@
 		if($data["document_status"]=="完成"){
 			foreach ($data["document_content_array"] as $product_key => $product) {
 				//检查是否有原来的价格
-				$sql = "select * from specific_price_specific_person where people_id=".$data["trading_object"][0]." and product_id=".$product["product_id"];
+				$sql = "select * from specific_price_specific_person spp inner join transaction_documents_description t1 on spp.transaction_document_id=t1.id where t1.doc_type='".$data["doc_type"]."' and people_id=".$data["trading_object"][0]." and product_id=".$product["product_id"];
 				$result = $conn->query($sql);
 				if($result->num_rows>0){
-					$original_price = $result->fetch_assoc()["price_base_on_unit_1"];
+					$result= $result->fetch_assoc();
+					$original_price = $result["price_base_on_unit_1"];
+					$original_documents_id = $result["transaction_document_id"];
 				}else{
+					echo $sql." failure!\n";
 					$original_price = 0;
 				}
 				$current_unit = $product["unit"];
@@ -177,20 +180,23 @@
 						$product["product_id"].
 						")";
 					if($conn->query($sql)){
-						echo $product["full_name"]."for".$data["trading_object"][1]." is ".$price." now (基于单位1)\n";
+						echo $product["full_name"]."for".$data["trading_object"][1]." is ".$price." now(".$data["doc_type"]."价 (基于单位1) 181行\n";
 					}else{
 						echo $sql."failure!";
 					}
-
 				}
-				if($original_price!=$price){
+				else{
 					echo $product["full_name"]."for".$data["trading_object"][1]." is ".$original_price."(基于单位1)\n";
 	
 					$sql = "update specific_price_specific_person set ".
 						   "transaction_document_id=".$data["id"].
-						   ", price_base_on_unit_1 = ".$price." where people_id=".$data["trading_object"][0]." and product_id=".$product["product_id"];
+						   ", price_base_on_unit_1 = ".$price.
+						   " where".
+						   " transaction_document_id=".$original_documents_id.
+						   " and people_id=".$data["trading_object"][0].
+						   " and product_id=".$product["product_id"];
 					if($conn->query($sql)){
-						echo $product["full_name"]."for".$data["trading_object"][1]." is ".$price." now (基于单位1)\n";
+						echo $product["full_name"]."for".$data["trading_object"][1]." is ".$price." now (".$data["doc_type"]."价 基于单位1) 193行\n";
 					}else{
 						echo $sql."operation failure!\n";
 					}

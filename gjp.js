@@ -968,7 +968,9 @@ var td = TRANSACTION_DOCUMENT = {
         ).toFixed(5);
       if(a.toString()=="NaN"||a==Infinity) a = "";
       Number(a).toFixed(5);
-      this.parentNode.querySelector('*[name="price"]').innerHTML = Number(a);
+      var price_element = this.parentNode.querySelector('*[name="price"]')
+      price_element.innerHTML = Number(a);
+      td.builder.whether_price_reasonable.apply(price_element);
       td.builder.sum_refresher();
     },
 
@@ -985,9 +987,18 @@ var td = TRANSACTION_DOCUMENT = {
           Number(currentUnitElement.parent().find('[name="unit_'+i+'"]').attr("factor"));
       }
 
-      if(price_base && this_price_to_base_on_unit_1 < price_base||
-         last_price && this_price_to_base_on_unit_1 < last_price
-        ) price_reasonable = false;
+      var doc_type = $('[name="generated_id"]').html().replace(/-\d+/,"");
+
+      if(doc_type == "xs"){
+        if(price_base && this_price_to_base_on_unit_1 < price_base||
+           last_price && this_price_to_base_on_unit_1 < last_price
+          ) price_reasonable = false;
+      }
+      if(doc_type == "jh"){
+        if(price_base && this_price_to_base_on_unit_1 > price_base||
+           last_price && this_price_to_base_on_unit_1 > last_price
+          ) price_reasonable = false;
+      }
 
       if(price_reasonable == false) $(this).addClass("danger");
       else $(this).removeClass("danger");
@@ -1169,7 +1180,8 @@ var td = TRANSACTION_DOCUMENT = {
               //for ajax
               //price_based on tag 需要添加
               people_id: $("#i_des").find('[name="trading_object"]').attr("people_id"),
-              products: {}
+              products: {},
+              doc_type : $('[name="generated_id"]').html().replace(/-\d+/,"")
             };
         var e_point = i_c.find("*[input_end_point]").first();
 
@@ -1463,7 +1475,7 @@ var ls = list = {
     return element;
   },
 
-  create_list_line: function(table_data_i, tr_in_thead){
+  create_list_line: function(table_data_i, tr_in_thead, tr){
     //tr_in_thead 当前视图的表格中的thead 的 tr行
     var tr = document.createElement("tr");
     tr.setAttribute("td_modify_count",0);
@@ -1546,7 +1558,8 @@ var ls = list = {
       ls.edit.data_convert_JSON_to_array(ls.product_info[1], ls.product_info[2], p_names, "product");
 
       var ds = document.querySelector("#display_section");
-      var created_table = ls.create_list_table(ls.product_info[5],ls.product_info[2])
+      var created_table = ls.create_list_table(ls.product_info[5],ls.product_info[2]);
+      created_table.addEventListener("click", ls.checker.status.row_checker);
       ls.display(created_table, ds);
 
       //显示完成，将状态置0
@@ -1744,7 +1757,8 @@ var ls = list = {
       ls.edit.data_convert_JSON_to_array(ls.people_info[1], ls.people_info[2], p_names, "people");
 
       var ds = document.querySelector("#display_section");
-      var created_table = ls.create_list_table(ls.people_info[5],ls.people_info[2])
+      var created_table = ls.create_list_table(ls.people_info[5],ls.people_info[2]);
+      created_table.addEventListener("click", ls.checker.status.row_checker);
       ls.display(created_table, ds);
 
       //显示完成，将状态置0

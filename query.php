@@ -153,15 +153,21 @@
 			$data = json_decode(file_get_contents('php://input'), true);
 			$people_id = $data["people_id"];
 			foreach ($data["products"] as $product_id => $product_price) {
-				$sql = "select price_base_on_unit_1 from specific_price_specific_person where people_id=".$people_id." and product_id=".$product_id;
+				$sql = "select price_base_on_unit_1 from specific_price_specific_person spp".
+					   " inner join transaction_documents_description t1 on spp.transaction_document_id=t1.id".
+					   " where spp.people_id=".$people_id.
+					   " and product_id=".$product_id.
+					   " and doc_type='".$data["doc_type"]."'";
 				$last_price = $conn->query($sql);
 				if($last_price->num_rows>0){
 					//last_price
 					$data["products"][$product_id] = [0, $last_price->fetch_assoc()["price_base_on_unit_1"]];
 				}
 				else{
+					echo $sql;
 					$data["products"][$product_id] = [0, 0];
 				}
+
 				$sql = "select price_base from product_info where id=".$product_id;
 				$base_price = $conn->query($sql);
 				if($base_price->num_rows>0){
