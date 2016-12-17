@@ -87,6 +87,7 @@
 				echo $sql."operation failure!\n";
 			}
 		}
+
 		if($data["document_status"]=="完成"){
 			$sql = "select * from transaction_documents_description where id = ".$data["id"];
 			if($conn->query($sql)){
@@ -105,6 +106,7 @@
 			}
 		}
 
+		//写入单据描述部分
 		$sql = "update transaction_documents_description set ".
 		" trading_object"."=". $data["trading_object"][0].
 		", store_house"."=". $data["store_house"][0].
@@ -120,6 +122,8 @@
 			echo $sql."operation failure!\n";
 		}
 
+		//写入document_content 到transaction_documents_content
+		//写入库存
 		foreach ($data["document_content_array"] as $product_key => $product) {
 			$sql = "insert into transaction_documents_content (".
 				" transaction_document_id,".
@@ -144,6 +148,32 @@
 				echo $sql."operation success!\n";
 			}else{
 				echo $sql."operation failure!\n";
+			}
+			//库存
+			if($data["document_status"]=="完成"){
+				$sql = "select * from products_amount_in_store_house where product_id=".$product["product_id"]." and store_house_id=".$data["store_house"][0];
+				if($result = $conn->query($sql)){
+					if($result->num_rows == 0){
+						$sql = "insert into products_amount_in_store_house(product_id, store_house_id, amount) values(".
+							$product["product_id"].", ".
+							$data["store_house"][0].", ".
+							"0) ";
+						$conn->query($sql);
+						echo $sql." success! 162";
+					}
+				}
+				else{
+					echo $sql." failure! 165";
+				}
+
+				$amount = $product["amount"];
+				$current_unit_pointer = (int) str_replace("unit_","",$product["unit"]);
+				for (; $current_unit_pointer > 1; $current_unit_pointer--) { 
+					$amount = $amount/$product["units_factor"][$current_unit_pointer][2];
+				}
+				$sql = "update products_amount_in_store_house set amount=amount".($data["doc_type"]=="xs"?"-":"+").$amount.
+				" where product_id=".$product["product_id"]." and store_house_id=".$data["store_house"][0];
+				$conn->query($sql);
 			}
 		}
 

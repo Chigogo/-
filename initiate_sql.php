@@ -39,6 +39,8 @@ complexity INT,
 user_comment varchar(127)
 );
 
+insert into people(id, full_name) values (1, "系统");
+
 -- 标签，价格系数
 create table people_tag (
 id SMALLINT Unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,  /* 最多有65535个tag */
@@ -104,6 +106,9 @@ system_log varchar(10240),
 hidden_toggle ENUM('on','off') default 'off'
 );
 
+insert into product_info(id, full_name, unit_1, unit_2, unit_2_factor, unit_3, unit_3_factor) values(null, "360奶黄包", '箱', "包", 12, "个", 12);
+insert into product_info(id, full_name, unit_1, unit_2, unit_2_factor, unit_3, unit_3_factor) values(null, "紫薯包", '箱', "包", 8, "g", 800);
+
 create table product_size (
 id INT Unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,
 
@@ -137,6 +142,24 @@ create table store_house(
 id tinyint not null primary key auto_increment,
 name varchar(127),
 address varchar(127)
+);
+
+insert into store_house(id, name, address) values(1, "五里西路", "五里西路49号");
+
+create table products_amount_in_store_house(
+product_id MEDIUMINT Unsigned NOT NULL,
+FOREIGN KEY product_id(product_id)
+REFERENCES product_info(id)
+ON UPDATE CASCADE
+ON DELETE CASCADE,
+
+store_house_id tinyint,
+FOREIGN KEY store_house_id(store_house_id)
+REFERENCES store_house(id)
+ON UPDATE CASCADE
+ON DELETE CASCADE,
+
+amount decimal(10,4)
 );
 
 create table transaction_documents_description(

@@ -45,8 +45,8 @@
 
 	// echo "hehe";
 	// echo isset($_GET["query_invoice"]);
-	$aaa = ["a","b","c"];
-	echo $aaa[1];
+	
+	echo "4">2;
 	$conn->close();
 
 ?>

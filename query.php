@@ -68,7 +68,7 @@
 		}
 
 		$invoice = $conn->query("select * from transaction_documents_description where id = '".$id."'")->fetch_assoc();
-		$invoice["document_content_array"] = $invoice_content_items?$invoice_content_items:[];
+		$invoice["document_content_array"] = isset($invoice_content_items)?$invoice_content_items:[];
 
 		$trading_object_full_name = $conn->query("select full_name from people where id = '".$invoice["trading_object"]."'")->fetch_assoc()["full_name"];
 		$invoice["trading_object"] = [

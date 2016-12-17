@@ -116,6 +116,10 @@ var ui = {
           }
           break;
 
+      case "delete":
+          $(tabAttr.tabElement).remove();
+          break;
+
       case "isActive":
           $(tabAttr.tabElement).hasClass('active');
           break;
@@ -364,7 +368,11 @@ var td = TRANSACTION_DOCUMENT = {
 
       success: function(data, status, XMLHttpRequest_object){
         cl(data);
-        
+        //删除对应 tab
+        var element_to_close = $('#documents_tab li[my_invoice_id="'+invoice_id+'"]');
+        element_to_close.next().length?element_to_close.next().click():element_to_close.prev().click();
+        ui.tabManager("delete", {tabElement: element_to_close[0]});
+        delete td.document_lists["invoice_id"+invoice_id];
       }
     });
   },
@@ -383,7 +391,7 @@ var td = TRANSACTION_DOCUMENT = {
     }
 
     var i_content = invoice.find("#i_c");
-    var trs = i_content.find("tr");
+    var trs = i_content.find("tr");cl(trs);
 
     if(trs.length<3){
       $("<div/>",{
@@ -408,8 +416,7 @@ var td = TRANSACTION_DOCUMENT = {
         outer.append($("<div>商品名称不正确</div>"));
         mark = true;
       }
-      if(typeof Number(amount.text())!="number"||Number(price.text())==0) {
-        cl(Number(amount.text()));
+      if(typeof Number(amount.text())!="number"||Number(amount.text())==0) {
         outer.append($("<div>商品数量不正确</div>"));
         mark = true;
       }
@@ -1181,7 +1188,8 @@ var td = TRANSACTION_DOCUMENT = {
               //price_based on tag 需要添加
               people_id: $("#i_des").find('[name="trading_object"]').attr("people_id"),
               products: {},
-              doc_type : $('[name="generated_id"]').html().replace(/-\d+/,"")
+              doc_type : $('[name="generated_id"]').html().replace(/-\d+/,""),
+              store_house : td.document_lists["invoice_id"+id].store_house[0]
             };
         var e_point = i_c.find("*[input_end_point]").first();
 
@@ -2550,6 +2558,27 @@ var ls = list = {
 };
 
 $(".dropdown-menu li").addClass("btn");
+
+//创建主页
+ui.tabManager("create",{
+  html_attr:{
+    id: "main_page",
+    tab_type: ""
+  },
+
+  eventListeners: [
+    ["click",function(){
+      var display_section = $('#display_section');
+      display_section.html("");
+
+    }],
+  ],
+
+  tabContent: $("<a/>",{
+    href: "#",
+    text: "主页"
+  }).get(0)
+});
 
 document.querySelector("#checkout_product_info").addEventListener("click", ls.pr_q_d);
 document.querySelector("#checkout_people_info").addEventListener("click", ls.pe_q_d);
