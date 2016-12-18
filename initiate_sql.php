@@ -39,7 +39,7 @@ complexity INT,
 user_comment varchar(127)
 );
 
-insert into people(id, full_name) values (1, "系统");
+insert into people(id, full_name) values (999, "系统");
 
 -- 标签，价格系数
 create table people_tag (
@@ -106,8 +106,8 @@ system_log varchar(10240),
 hidden_toggle ENUM('on','off') default 'off'
 );
 
-insert into product_info(id, full_name, unit_1, unit_2, unit_2_factor, unit_3, unit_3_factor) values(null, "360奶黄包", '箱', "包", 12, "个", 12);
-insert into product_info(id, full_name, unit_1, unit_2, unit_2_factor, unit_3, unit_3_factor) values(null, "紫薯包", '箱', "包", 8, "g", 800);
+insert into product_info(id, full_name, unit_1, unit_2, unit_2_factor, unit_3, unit_3_factor) values(998, "360奶黄包", '箱', "包", 12, "个", 12);
+insert into product_info(id, full_name, unit_1, unit_2, unit_2_factor, unit_3, unit_3_factor) values(999, "紫薯包", '箱', "包", 8, "g", 800);
 
 create table product_size (
 id INT Unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,
