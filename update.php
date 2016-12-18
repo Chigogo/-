@@ -232,8 +232,14 @@
 					}
 				}
 			}
+			//修改price base
+			if($data["doc_type"]=="jh"){
+				foreach ($data["document_content_array"] as $product_key => $product) {
+					$sql = "update product_info set price_base=".$product["price"]." where id=".$product["product_id"]."";
+					$conn->query($sql);
+				}
+			}
 		}
-		
 	}
 
 

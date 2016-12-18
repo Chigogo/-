@@ -145,6 +145,11 @@ td[td_modify_status="true"]{
   background-color: rgba(0,0,0, 0.9);
 }*/
 
+.modal-body {
+  max-height: calc(90vh - 100px);
+  overflow-y: auto;
+}
+
 
 
 @media only print {

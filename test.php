@@ -45,8 +45,10 @@
 
 	// echo "hehe";
 	// echo isset($_GET["query_invoice"]);
-	
-	echo "4">2;
+	$a = [];
+	$a[0] = 3;
+	$a[1] = 4;
+	echo json_encode($a);
 	$conn->close();
 
 ?>

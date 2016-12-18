@@ -24,7 +24,7 @@
 				<ul class="dropdown-menu">
 					<li id="creator_xs">创建销售单据</li>
 					<li id="creator_jh">创建进货单据</li>
-					<li id="viewer_craft">查看草稿</li>
+					<li id="view_craft">查看草稿</li>
 				</ul>
 			</li>
 			<!-- 
@@ -39,7 +39,7 @@
 				</ul>
 				</li><!-- 
 	  --><!-- 
-			 --><li class="btn"><a href="#" role="button" aria-haspopup="true" aria-expanded="false">
+			 --><li class="btn" id="view_history"><a href="#" role="button" aria-haspopup="true" aria-expanded="false">
     经营历程
   			</a></li>
 		</ul>

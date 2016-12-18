@@ -599,6 +599,7 @@ var td = TRANSACTION_DOCUMENT = {
                   {t:"e",v:["click", td.builder.cell_checker]},
                   {t:"e",v:["blur",td.builder.number_check_after_input]},
                   {t:"e",v:["blur",td.builder.amount_or_price_affect_received]},
+                  {t:"e",v:["blur", td.builder.whether_amount_out_of_storage]},
                   {t:"e",v:["keydown", ls.edit.arrow_key_control]},
                   {t:"e",v:["keypress", td.builder.number_check_when_input]},
                   {t:"a",v:["contenteditable","true"]}
@@ -981,6 +982,31 @@ var td = TRANSACTION_DOCUMENT = {
       td.builder.sum_refresher();
     },
 
+    whether_amount_out_of_storage: function(){
+      var remaining_amount = Number($(this).attr("remaining_amount"));
+      var amount = Number($(this).text());
+      var doc_type = $('[name="generated_id"]').html().replace(/-\d+/,"");
+      var amount_to_base_on_unit_1 = amount;
+      var is_out_of_storage = false;
+      var currentUnitElement = $(this).parent().find('[name="units_factor"] span.info');
+      var currentUnit = currentUnitElement.attr("name");
+      for(var i = currentUnit.replace("unit_",""); i>1;i--){
+        amount_to_base_on_unit_1 = amount_to_base_on_unit_1/
+          Number(currentUnitElement.parent().find('[name="unit_'+i+'"]').attr("factor"));
+      }
+      if(doc_type == "xs" && amount_to_base_on_unit_1!=0 && amount_to_base_on_unit_1 > remaining_amount){
+        is_out_of_storage = true;
+      }
+
+      var $_this = $(this);
+
+      if(is_out_of_storage){
+        $_this.attr("title", "输入数量（转化成单位1）后为："+amount_to_base_on_unit_1+"，库存数量为："+remaining_amount+"！").addClass("danger");
+      }else{
+        $_this.attr("title", "").removeClass("danger");
+      }
+    },
+
     "whether_price_reasonable": function (e){
       var price_base = Number($(this).attr("price_base"));
       var last_price = Number($(this).attr("last_price"));
@@ -996,15 +1022,26 @@ var td = TRANSACTION_DOCUMENT = {
 
       var doc_type = $('[name="generated_id"]').html().replace(/-\d+/,"");
 
+      var $_this = $(this);
       if(doc_type == "xs"){
         if(price_base && this_price_to_base_on_unit_1 < price_base||
            last_price && this_price_to_base_on_unit_1 < last_price
-          ) price_reasonable = false;
+          ){
+          price_reasonable = false;
+          $_this.attr("title", "价格为："+price+"，低于近期进价或售价！");
+        }else{
+          $_this.attr("title", "");
+        }
       }
       if(doc_type == "jh"){
         if(price_base && this_price_to_base_on_unit_1 > price_base||
            last_price && this_price_to_base_on_unit_1 > last_price
-          ) price_reasonable = false;
+          ) {
+          price_reasonable = false;
+          $_this.attr("title", "价格为："+price+"，高于近期进价！");
+        }else{
+          $_this.attr("title", "");
+        }
       }
 
       if(price_reasonable == false) $(this).addClass("danger");
@@ -1187,7 +1224,7 @@ var td = TRANSACTION_DOCUMENT = {
               //for ajax
               //price_based on tag 需要添加
               people_id: $("#i_des").find('[name="trading_object"]').attr("people_id"),
-              products: {},
+              products: {},//数据格式为id:[price_base, last_price, amount_in_store_house]
               doc_type : $('[name="generated_id"]').html().replace(/-\d+/,""),
               store_house : td.document_lists["invoice_id"+id].store_house[0]
             };
@@ -1227,7 +1264,7 @@ var td = TRANSACTION_DOCUMENT = {
         }
 
         $.ajax({
-          url: "query.php?complex_query&items_price",
+          url: "query.php?complex_query&items_price&items_amount",
           method: "POST",
           contentType: "application/json",
           data: JSON.stringify(storeObject),
@@ -1237,8 +1274,11 @@ var td = TRANSACTION_DOCUMENT = {
             data = JSON.parse(data);
             for(var product_id in data.products){
               var price_element = i_c.find('[product_id="'+product_id+'"]').last().parent().find('[name="price"]');
-              price_base = data.products[product_id][0]?data.products[product_id][0]:0;
-              last_price = data.products[product_id][1]?data.products[product_id][1]:0;
+              var price_base = data.products[product_id][0]?data.products[product_id][0]:0;
+              var last_price = data.products[product_id][1]?data.products[product_id][1]:0;
+              var remaining_amount = data.products[product_id][2]?data.products[product_id][2]:0;
+              var amount_elements = i_c.find('[product_id="'+product_id+'"]').parent().find('[name="amount"]');
+              amount_elements.attr("remaining_amount", remaining_amount);
               price_element.attr("price_base", price_base);
               price_element.attr("last_price", last_price);
               price_element.text(last_price);
@@ -1734,7 +1774,140 @@ var ls = list = {
         // }
   // 第五个元素是一个数组,该数组用于描述商品的属性
   // 第六个元素是一个数组,该数组用于描述展示商品的列表的表头属性
-  
+  history_q_d: function(type){
+    //type 指明是历史还是草稿
+    ui.tabManager("create",{
+      html_attr:{
+        tab_type: "list",
+        list_type: "invoice_"+type
+      },
+
+      eventListeners: [
+        ["click", function(){ls.history_q_d(type);}],
+      ],
+
+      tabContent: $("<a/>",{
+        href: "#",
+        text: type=="craft"?"草稿单据":"经营历程"
+      }).get(0)
+    });
+    function h_display(){
+      var p_names = ls.i_history[5];
+      ls.edit.data_convert_JSON_to_array(ls.i_history[1], ls.i_history[2], p_names, "history");
+
+      var ds = document.querySelector("#display_section");
+      var created_table = ls.create_list_table(ls.i_history[5],ls.i_history[2]);
+      created_table.addEventListener("click", ls.checker.status.row_checker);
+      ls.display(created_table, ds);
+
+      //显示完成，将状态置0
+      ls.i_history[0]=0;
+
+
+      //给基础信息页面添加功能：新建商品、删除商品、保存更改、放弃更改（什么是更改？新建、删除、修改都是更改）
+      //f_list是 ul元素
+      var ds = $("#display_section");
+      var f_container = $("<div></div>"/*,{
+        class: "container"
+      }*/).appendTo(ds);
+
+      var f_list = $('<div></div>',{
+        'name': 'f_list',
+        class: "btn-group", 
+        role:"group"
+      }).appendTo(f_container);
+
+      var f_list_1 = $('<button ></button>',{
+        "name": "createNewItem",
+        type: "button", 
+        class: "btn btn-default"
+      }).text("新建客户").on("click", function(){
+        ls.edit.item_creator("people");}
+      );
+
+      var f_list_2 = $('<button ></button>',{
+        "name": "deleteItem",
+        type: "button", 
+        class: "btn btn-default"
+      }).text("删除客户").on("click", function(){
+        ls.checker.hidden_toggle.call($("tbody tr.info").find("[name='hidden_toggle']").get(0),{"type":"click"});
+      });
+
+      var f_list_3 = $('<button ></button>',{
+        "name": "saveChange",
+        type: "button", 
+        class: "btn btn-default"
+      }).text("保存修改").on("click", function(){
+        ls.edit.items_saver("people");
+      });
+
+      var f_list_4 = $('<button ></button>',{
+        "name": "abortChange",
+        type: "button", 
+        class: "btn btn-default"
+      }).text("放弃修改").on("click",ls.edit.abortChange);;
+
+      f_list.append(f_list_1, f_list_2, f_list_3, f_list_4);
+      ls.checker.status.whether_table_modified();
+    }
+
+    //检查ls.i_history[0]的值
+      // -1表示没有数据，需要从服务器抓取数据
+      // 0表示没有基础信息变动，无需从服务器抓取数据，直接显示商品
+      // 1表示基础信息已有变动，需要更新到服务器
+
+    if(ls.i_history[0]==0) h_display();
+    else {
+
+      // 文件头声明的文件
+      ajax_object.onreadystatechange = function(){
+        if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200){
+          if(Number(ajax_object.response) != 0){
+            ls["i_history"][1] = JSON.parse(ajax_object.response);//查询的结果数组立即作为数组存储
+            ls["i_history"][0] = 0;
+            h_display();
+          }//内if结束
+          else {
+            ls.checker.status.pop_up_creator("客户查询结果",$("<p>当前条件无客户</p>").get(0));
+            return;
+          }
+        }//外if 结束
+      };
+      ls.query("*","people","");
+    }
+  },
+
+  "i_history": [
+    -1,
+    [],
+    [],
+    [1,[]],
+    [
+      "line_number",
+      "invoice_id",
+      "doc_type",
+      "trading_object",
+      "created_time",
+      "update_time",
+      "store_house",
+      "money_received",
+      "comment",
+      "document_status"
+    ],
+    [
+      [{type: "a",value:["name","line_number"]},{type: "i",value:"行号"}],
+      [{type: "a",value:["name","invoice_id"]},{type: "i",value:"单据编号"}],
+      [{type: "a",value:["name","doc_type"]},{type: "i",value:"单据类型"}],
+      [{type: "a",value:["name","trading_object"]},{type: "i",value:"往来单位"}],
+      [{type: "a",value:["name","created_time"]},{type: "i",value:"单据创建时间"}],
+      [{type: "a",value:["name","update_time"]},{type: "i",value:"最后更新时间"}],
+      [{type: "a",value:["name","store_house"]},{type: "i",value:"仓库"}],
+      [{type: "a",value:["name","money_received"]},{type: "i",value:"单据总额"}],
+      [{type: "a",value:["name","comment"]},{type: "i",value:"用户备注"}],
+      [{type: "a",value:["name","document_status"]},{type: "i",value:"单据状态"}]
+    ]
+  ],
+
   "pe_q_d": function(e){
     // people query and display，用于用户信息的查询event listener
     // 在展示客户信息之前检查状态，如果有修改则提示用户保存修改
@@ -2344,6 +2517,10 @@ var ls = list = {
             break;
         }
       };
+
+      if(JSON_array_content_type=="history") return function(a, p_name, placeholder){
+        
+      };
     },
 
 
@@ -2586,5 +2763,7 @@ document.addEventListener("click",ls.checker.status.normal_check, true);
 
 document.querySelector("#creator_xs").addEventListener("click", td.creator_xs);
 document.querySelector("#creator_jh").addEventListener("click", td.creator_jh);
+document.querySelector("#view_craft").addEventListener("click", function(){ls.history_q_d("craft");});
+document.querySelector("#view_history").addEventListener("click", function(){ls.history_q_d("history");});
 
 document.addEventListener("keydown", td.builder.esc_display);

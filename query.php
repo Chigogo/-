@@ -164,7 +164,7 @@
 					$data["products"][$product_id] = [0, $last_price->fetch_assoc()["price_base_on_unit_1"]];
 				}
 				else{
-					echo $sql;
+					// echo $sql;
 					$data["products"][$product_id] = [0, 0];
 				}
 
@@ -179,8 +179,24 @@
 				}
 				/** price based on tag 需要添加**/
 			}
-			echo json_encode($data);
 		}
+		//检查库存
+		if(isset($_GET["items_amount"])){
+			foreach ($data["products"] as $product_id => $product_amount) {
+				$sql = "select amount from products_amount_in_store_house where product_id=".$product_id.
+							 " and store_house_id=".$data["store_house"]."";
+				$amount = $conn->query($sql);
+				if($amount->num_rows==0){
+					//last_price
+					$data["products"][$product_id][2] = 0;
+				}
+				else{
+					$data["products"][$product_id][2] = $amount->fetch_assoc()["amount"];
+				}
+			}
+		}
+
+		echo json_encode($data);
 	}
 
 
