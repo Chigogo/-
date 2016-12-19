@@ -45,10 +45,7 @@
 
 	// echo "hehe";
 	// echo isset($_GET["query_invoice"]);
-	$a = [];
-	$a[0] = 3;
-	$a[1] = 4;
-	echo json_encode($a);
+	echo (preg_replace('/(and)/', '', "and py_code like '% %'",1));
 	$conn->close();
 
 ?>

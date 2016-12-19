@@ -30,8 +30,8 @@
 			else echo "0 results";
 		}else{
 			$id = $_GET["invoice_id"];//假设是历史单据或者草稿，则根据id查出单据结果
-
-			$invoice_content = $conn->query("select * from transaction_documents_content where transaction_document_id = '".$id."';");
+			$invoice_content = $conn->query("select * from transaction_documents_content where transaction_document_id = ".$id.";");
+			// print_r($invoice_content);
 			if($invoice_content->num_rows>0) {
 			// echo var_dump($invoice_content["num_rows"]);
 			// echo "<br>".$sql;
@@ -41,14 +41,15 @@
 					$item_id = $item["product_id"];
 
 					$item_detailed = $conn->query(
-						"select manufacturer, full_name, unit_1, unit_2, unit_2_factor, unit_3, unit_3_factor from product_info where id = '".$item_id."';"
-						)->fetch_assoc();
+						"select manufacturer, full_name, unit_1, unit_2, unit_2_factor, unit_3, unit_3_factor from product_info where id = ".$item_id.";"
+						)->fetch_assoc(); 
+					// print_r($item_detailed);
 
-					$item["units_factor"] = [];
-					$item["units_factor"][] = $item["unit"];
-					$item["units_factor"][] =["unit_1", $item_detailed["unit_1"]?$item_detailed["unit_1"]:"缺省", 1];
+					$invoice_content_items[$item_key]["units_factor"] = [];
+					$invoice_content_items[$item_key]["units_factor"][] = $invoice_content_items[$item_key]["unit"];
+					$invoice_content_items[$item_key]["units_factor"][] =["unit_1", $item_detailed["unit_1"]?$item_detailed["unit_1"]:"缺省", 1];
 					if($item_detailed["unit_2"]!=null && $item_detailed["unit_2_factor"]!=null) {
-						$item["units_factor"][] = ["unit_2", $item_detailed["unit_2"], $item_detailed["unit_2_factor"]];
+						$invoice_content_items[$item_key]["units_factor"][] = ["unit_2", $item_detailed["unit_2"], $item_detailed["unit_2_factor"]];
 						unset($item_detailed["unit_2"]);
 						unset($item_detailed["unit_2_factor"]);
 					
@@ -59,12 +60,13 @@
 						}
 					}
 					foreach ($item_detailed as $item_detailed_property_key => $item_detailed_propeerty) {
-						$item[$item_detailed_property_key] = $item_detailed_propeerty;//把详细信息写入item
+						$invoice_content_items[$item_key][$item_detailed_property_key] = $item_detailed_propeerty;//把详细信息写入item
 					}
 
-					$item["price"] = $item["amount"] != 0?$item["item_money_received"]*100/$item["amount"]/100:0;
+					$invoice_content_items[$item_key]["price"] = $item["amount"] != 0?$item["item_money_received"]*100/$item["amount"]/100:0;
 				}
 			}
+			// print_r($invoice_content_items);
 		}
 
 		$invoice = $conn->query("select * from transaction_documents_description where id = '".$id."'")->fetch_assoc();
@@ -103,16 +105,27 @@
 	if (isset($_GET["query_multiple"])){
 
 		header('Content-Type: application/json');
-		if($_GET["q_condition_value"]=="")
+		if(!isset($_GET["q_condition"]))
 			$q_condition = "";
-		else
-			$q_condition =" where ".$_GET["q_condition_column"]." like '%".$_GET["q_condition_value"]."%'";
+		else{
+			foreach ($_GET as $key => $value) {
+				$column = preg_replace('/c_(\d)_(.*)/', '\2', $key);
+				if($key!=$column){
+					$q_condition .= " and ".$column." like '%".$value."%' ";
+					// echo $q_condition;
+				}
+			}
+			// echo preg_replace('/and/', '', $q_condition, 1);
+			$q_condition =" where ".(preg_replace('/and/', '', $q_condition, 1));
+		}
+		$order_by = "";
+		if(!isset($_GET["order_by"])){
+			$order_by = " order by ".$_GET["order_by"];
+		}
 		$sql = "select ".
 		$_GET["q_columns_name"].
 		" from ".
-		$_GET["q_table"].$q_condition.
-		" order by admin_defined_order;"
-		;
+		$_GET["q_table"].$q_condition.$order_by;
 		
 
 		//如果有返回结果，则返回，否则报错

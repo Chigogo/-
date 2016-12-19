@@ -130,7 +130,6 @@
 				" product_id,".
 				" amount,".
 				" unit,".
-				" price,".
 				" item_income,".
 				" comment".
 				")".
@@ -139,7 +138,6 @@
 				", ". $product["product_id"].
 				", ". $product["amount"].
 				", ". "'". $product["unit"]."'".
-				", ". $product["price"].
 				", ". $product["item_money_received"].
 				", ". "'".$product["comment_for_item"]."'".
 				")"

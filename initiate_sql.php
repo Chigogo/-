@@ -174,7 +174,7 @@ update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 store_house tinyint not null,
 money_received Decimal(12,2),
 comment varchar(63),
-document_status enum("完成","草稿","管理员反冲","管理员编辑","管理员取消", "用户编辑", "用户取消") not null default "管理员编辑"
+document_status enum("完成","草稿","管理员红冲","管理员编辑","管理员取消", "用户编辑", "用户取消") not null default "管理员编辑"
 );
 
 /*
