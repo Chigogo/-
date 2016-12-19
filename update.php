@@ -138,7 +138,7 @@
 				", ". $product["product_id"].
 				", ". $product["amount"].
 				", ". "'". $product["unit"]."'".
-				", ". $product["item_money_received"].
+				", ". $product["item_income"].
 				", ". "'".$product["comment_for_item"]."'".
 				")"
 			;

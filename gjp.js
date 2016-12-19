@@ -325,12 +325,14 @@ var td = TRANSACTION_DOCUMENT = {
     };
 
     //last line in tbody
+
+    var last_line = td.builder.create_invoice_line("td",table_head_fields_description_array, 0);
+    var full_name_td = last_line.querySelector("[name='full_name']");
     if(editable_tag){
-      var last_line = td.builder.create_invoice_line("td",table_head_fields_description_array, 0);
-      var full_name_td = last_line.querySelector("[name='full_name']");
+      full_name_td.setAttribute("contenteditable", "true");
       full_name_td.removeEventListener("blur", td.builder.cell_checker);
-      c.appendChild(last_line);
     }
+    c.appendChild(last_line);
 
     for (var i = 1; i < c.childNodes.length; i++) {
       c.childNodes[i].querySelector('[name="full_name"]').addEventListener("keypress",td.builder.query_products);
@@ -563,6 +565,7 @@ var td = TRANSACTION_DOCUMENT = {
           case "i":
               if(field_description_array[i].v==undefined) field_description_array[i].v = "";
               if(typeof field_description_array[i].v=="number") field_description_array[i].v = field_description_array[i].v.toString();
+              element.innerHTML = "";
               element.appendChild(typeof field_description_array[i].v=="string"?document.createTextNode(field_description_array[i].v):field_description_array[i].v);
               break;
           case "e":
@@ -680,15 +683,22 @@ var td = TRANSACTION_DOCUMENT = {
                       $(this).parent().attr("input_end_point","");
                     }
                     ]},
-                  {t:"a", v:["placeholder",a.full_name]},//用于checker
-                  {t:"a", v:["contenteditable","true"]}
+                  {t:"a", v:["placeholder",a.full_name]}//用于checker
                   );
                 break;
-            case "unit":
+            case "units_factor":
+                td_des.push(
+                  {t:"i",v: td.builder.priceUnitManager("cr", a.units_factor)}
+                );
                 break;
             case "amount":
                 break;
             case "price":
+                if(a.amount){
+                  td_des.push(
+                    {t:"i",v: Number(a.item_income/a.amount)}
+                  );
+                }
                 break;
             case "item_income":
                 break;
@@ -752,66 +762,67 @@ var td = TRANSACTION_DOCUMENT = {
       //第三种，生成服务器接受的"价格、单元、规格"格式
       if(operationType == "cr"){
         var element = $("<div/>");
-        for (var i = 1; i < units_factor_array_or_div.length; i++) {
-          var outer_span = $("<span/>",{
-            name: units_factor_array_or_div[i][0],
-            name_for_user: units_factor_array_or_div[i][1],
-            factor: units_factor_array_or_div[i][2]
-          }).text(units_factor_array_or_div[i][2]);
+        if(units_factor_array_or_div){
+          for (var i = 1; i < units_factor_array_or_div.length; i++) {
+            var outer_span = $("<span/>",{
+              name: units_factor_array_or_div[i][0],
+              name_for_user: units_factor_array_or_div[i][1],
+              factor: units_factor_array_or_div[i][2]
+            }).text(units_factor_array_or_div[i][2]);
 
-          outer_span.on("click", function(){
-            var tr = $(this).closest('tr');
-            var price_element = tr.find('[name="price"]');
-            var price = Number(price_element.text());
-            var amount_element = tr.find('[name="amount"]');
-            var amount = Number(amount_element.text());
+            outer_span.on("click", function(){
+              var tr = $(this).closest('tr');
+              var price_element = tr.find('[name="price"]');
+              var price = Number(price_element.text());
+              var amount_element = tr.find('[name="amount"]');
+              var amount = Number(amount_element.text());
 
-            var span_siblings = $(this).parent().children('span');
-            var allUnits = [];
-            for (var j = 0; j < span_siblings.length; j++) {
-              allUnits.push([$(span_siblings[j]).attr("name"), $(span_siblings[j]).attr("factor")]);
-              if($(span_siblings[j]).hasClass('info')){
-                var prevUnitElement = $(span_siblings[j]);
-                var prevUnitElement_pointer = j;
-                prevUnitElement.removeClass('info');
+              var span_siblings = $(this).parent().children('span');
+              var allUnits = [];
+              for (var j = 0; j < span_siblings.length; j++) {
+                allUnits.push([$(span_siblings[j]).attr("name"), $(span_siblings[j]).attr("factor")]);
+                if($(span_siblings[j]).hasClass('info')){
+                  var prevUnitElement = $(span_siblings[j]);
+                  var prevUnitElement_pointer = j;
+                  prevUnitElement.removeClass('info');
+                }
+                if(this == span_siblings[j]){
+                  var currentUnitElement_pointer = j;
+                }
+              };
+
+              for(pointer = prevUnitElement_pointer;pointer<currentUnitElement_pointer;pointer++){
+                var price = price / allUnits[pointer+1][1];
+                // var amount = amount * allUnits[pointer+1][1];
               }
-              if(this == span_siblings[j]){
-                var currentUnitElement_pointer = j;
+
+              for(pointer = prevUnitElement_pointer;pointer>currentUnitElement_pointer;pointer--){
+                var price = price * allUnits[pointer][1];
+                // var amount = amount / allUnits[pointer][1];
               }
-            };
+              price_element.text(price);
+              $(this).addClass('info');
+              
+              td.builder.amount_or_price_affect_received.apply($(price_element)[0]);
+              td.builder.whether_price_reasonable.apply($(price_element)[0]);
 
-            for(pointer = prevUnitElement_pointer;pointer<currentUnitElement_pointer;pointer++){
-              var price = price / allUnits[pointer+1][1];
-              // var amount = amount * allUnits[pointer+1][1];
+            });
+    
+            var inner_span = $("<span/>",{
+              name: "name_for_user",
+              text: units_factor_array_or_div[i][1]
+            }).appendTo(outer_span);
+    
+            if(units_factor_array_or_div[i][0]==units_factor_array_or_div[0]){
+              outer_span.addClass('info');
             }
+            element.append(outer_span);
 
-            for(pointer = prevUnitElement_pointer;pointer>currentUnitElement_pointer;pointer--){
-              var price = price * allUnits[pointer][1];
-              // var amount = amount / allUnits[pointer][1];
+            if(i<units_factor_array_or_div.length-1){
+              element.append($(document.createTextNode("×")));
             }
-            price_element.text(price);
-            $(this).addClass('info');
-            
-            td.builder.amount_or_price_affect_received.apply($(price_element)[0]);
-            td.builder.whether_price_reasonable.apply($(price_element)[0]);
-
-          });
-  
-          var inner_span = $("<span/>",{
-            name: "name_for_user",
-            text: units_factor_array_or_div[i][1]
-          }).appendTo(outer_span);
-  
-          if(units_factor_array_or_div[i][0]==units_factor_array_or_div[0]){
-            outer_span.addClass('info');
-          }
-          element.append(outer_span);
-
-          if(i<units_factor_array_or_div.length-1){
-            element.append($(document.createTextNode("×")));
-          }
-        };
-  
+          };
+        }
         return element.get(0);
       }
       if(operationType == "sv"){
@@ -1889,7 +1900,6 @@ var ls = list = {
         type: "button", 
         class: "btn btn-default"
       }).text("删除单据").on("click", function(){
-        ls.edit.items_saver("people");
       });
 
       var f_list_4 = $('<button ></button>',{
@@ -1924,7 +1934,7 @@ var ls = list = {
           }
         }//外if 结束
       };
-      ls.query("*","transaction_documents_description",type=="craft"?{"document_status":"草稿"}:0, "created_time");
+      ls.query("*","transaction_documents_description",type=="craft"?{"document_status":"草稿"}:{"document_status":"完成"}, "created_time DESC");
     }
   },
 
@@ -1949,7 +1959,7 @@ var ls = list = {
       [{type: "a",value:["name","line_number"]},{type: "i",value:"行号"}],
       [{type: "a",value:["name","invoice_id"]},{type: "i",value:"单据编号"}],
       [{type: "a",value:["name","doc_type"]},{type: "i",value:"单据类型"}],
-      [{type: "a",value:["name","trading_object"]},{type: "i",value:"往来单位"}],
+      [{type: "a",value:["name","full_name"]},{type: "i",value:"往来单位"}],
       [{type: "a",value:["name","created_time"]},{type: "i",value:"单据创建时间"}],
       [{type: "a",value:["name","update_time"]},{type: "i",value:"最后更新时间"}],
       [{type: "a",value:["name","store_house"]},{type: "i",value:"仓库"}],

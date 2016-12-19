@@ -103,7 +103,6 @@
 
 	//如果query_multiple标记存在，则试图返回查询结果，JSON对象
 	if (isset($_GET["query_multiple"])){
-
 		header('Content-Type: application/json');
 		if(!isset($_GET["q_condition"]))
 			$q_condition = "";
@@ -119,14 +118,21 @@
 			$q_condition =" where ".(preg_replace('/and/', '', $q_condition, 1));
 		}
 		$order_by = "";
-		if(!isset($_GET["order_by"])){
+		if(isset($_GET["order_by"])){
 			$order_by = " order by ".$_GET["order_by"];
 		}
+
 		$sql = "select ".
 		$_GET["q_columns_name"].
 		" from ".
 		$_GET["q_table"].$q_condition.$order_by;
-		
+
+		if($_GET["q_table"]=="transaction_documents_description"){
+			$sql = "select ".
+			"tdd.id, doc_type, trading_object, created_time, update_time, store_house, money_received, comment, document_status, full_name".
+			",full_name from ".
+			$_GET["q_table"]." tdd inner join people p on tdd.trading_object=p.id ".$q_condition.$order_by;
+		}
 
 		//如果有返回结果，则返回，否则报错
 		$result = $conn->query($sql);
@@ -156,7 +162,7 @@
 		}
 		else {			
 			header('Content-Type: text/html');
-			echo 0;
+			echo $sql;
 			// echo $sql."<br>0 results or query failed.";
 		}
 	}
