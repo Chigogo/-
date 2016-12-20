@@ -131,6 +131,18 @@ var ui = {
           break;
     }
   return tabAttr;
+  },
+
+  close_page: function(event, click_tab_after_close, tab_for_close, close_type){
+    //此函数用于关闭页面，不进行关闭前检查
+    //close_type,支持关闭两种页面，单据页面和信息页面，关闭页面时可以传入等待删除的tab，如果不传入，将默认删除当前活动的tab
+    //关闭invoice 时，可以传入invoice id
+    click_tab_after_close = click_tab_after_close?click_tab_after_close:$('#main_page').get(0);
+    tab_for_close = tab_for_close?tab_for_close:$("#documents_tab li.active").get(0);
+
+    ui.tabManager("delete", {tabElement: tab_for_close});
+    $(click_tab_after_close).click();
+    return true;
   }
 
 };
@@ -242,7 +254,8 @@ var td = TRANSACTION_DOCUMENT = {
       '<td>合计</td>',
       '<td colspan=2></td>',
       '<td name="total_amount"></td>',
-      '<td colspan=2 name="money_received"></td>',
+      '<td colspan=1 name="money_received"></td>',
+      '<td ></td>',
       '<td colspan=3 name="money_received_chinese"></td>',
       '</tr>',
       '</tfoot>'
@@ -255,6 +268,7 @@ var td = TRANSACTION_DOCUMENT = {
       '<button id="print_invoice" class="btn btn-default"><a href="#">打印单据</a></button>',
       '<button id="save_as_draft" class="btn btn-default"><a href="#">存为草稿</a></button>',
       '<button id="invoice_to_db" class="btn btn-default"><a href="#">单据过账</a></button>',
+      '<button id="close_invoice" class="btn btn-default"><a href="#">关闭单据</a></button>',
 
 
       '</div>'
@@ -265,12 +279,19 @@ var td = TRANSACTION_DOCUMENT = {
     
     var save_as_draft_btn = ls_fucntion_tab.find("#save_as_draft");
     var invoice_to_db_btn = ls_fucntion_tab.find("#invoice_to_db");
+    var close_btn = ls_fucntion_tab.find("#close_invoice");
     if(editable_tag){
       save_as_draft_btn.on("click", function(){td.saver_toSever("草稿");});
       invoice_to_db_btn.on("click", function(){td.saver_toSever("完成");});
+      close_btn.remove();
     }else{
       save_as_draft_btn.attr("disabled","disabled");
       invoice_to_db_btn.attr("disabled","disabled");
+      close_btn.on("click", function(){
+        var click_tab_after_close = $('[list_type="invoice_history"]')[0];
+        ui.close_page({}, click_tab_after_close);
+        delete td.document_lists["invoice_id"+invoice_id];
+      });
     }
 
     $(section).append(ls_fucntion_tab);
@@ -386,9 +407,9 @@ var td = TRANSACTION_DOCUMENT = {
       success: function(data, status, XMLHttpRequest_object){
         cl(data);
         //删除对应 tab
-        var element_to_close = $('#documents_tab li[my_invoice_id="'+invoice_id+'"]');
-        element_to_close.next().length?element_to_close.next().click():element_to_close.prev().click();
-        ui.tabManager("delete", {tabElement: element_to_close[0]});
+        var tab_for_close = $('#documents_tab li[my_invoice_id="'+invoice_id+'"]');
+        var click_tab_after_close = tab_for_close.next().length?tab_for_close.next():tab_for_close.prev();
+        ui.close_page({},click_tab_after_close[0], tab_for_close[0]);
         delete td.document_lists["invoice_id"+invoice_id];
       }
     });
@@ -642,6 +663,11 @@ var td = TRANSACTION_DOCUMENT = {
                   {t:"e",v:["blur", td.builder.whether_price_reasonable]},
                   {t:"a",v:["contenteditable","true"]}
                 );
+                if(Number(a.amount)){
+                  td_des.push(
+                    {t:"i",v: Number(a.item_income/a.amount)}
+                  );
+                }
                 break;
             case "item_income":
                 td_des.push(
@@ -1259,7 +1285,7 @@ var td = TRANSACTION_DOCUMENT = {
               //for ajax
               //price_based on tag 需要添加
               people_id: $("#i_des").find('[name="trading_object"]').attr("people_id"),
-              products: {},//数据格式为id:[price_base, last_price, amount_in_store_house]
+              products: {},//返回的数据格式为 id:[price_base, last_price, amount_in_store_house]
               doc_type : $('[name="generated_id"]').html().replace(/-\d+/,""),
               store_house : td.document_lists["invoice_id"+id].store_house[0]
             };
@@ -1710,7 +1736,18 @@ var ls = list = {
         class: "btn btn-default"
       }).text("放弃修改").on("click",ls.edit.abortChange);
 
-      f_list.append(f_list_1, f_list_2, f_list_3, f_list_4);
+      var f_list_5 = $('<button ></button>',{
+        "name": "close_page",
+        type: "button", 
+        class: "btn btn-default"
+      }).text("关闭页面").on("click", function(){
+        ls.edit.abortChange();
+        ui.close_page();
+        ls.product_info[0] = -1;
+        ls.product_info[1] = ls.product_info[2] =[];
+      });
+
+      f_list.append(f_list_1, f_list_2, f_list_3, f_list_4, f_list_5);
       ls.checker.status.whether_table_modified();
     }
 
@@ -1829,22 +1866,23 @@ var ls = list = {
   // 第六个元素是一个数组,该数组用于描述展示商品的列表的表头属性
   history_q_d: function(type){
     //type 指明是历史还是草稿
-    ui.tabManager("create",{
-      html_attr:{
-        tab_type: "list",
-        list_type: "invoice_"+type
-      },
-
-      eventListeners: [
-        ["click", function(){ls.history_q_d(type);}],
-      ],
-
-      tabContent: $("<a/>",{
-        href: "#",
-        text: type=="craft"?"草稿单据":"经营历程"
-      }).get(0)
-    });
     function h_display(){
+      ui.tabManager("create",{
+        html_attr:{
+          tab_type: "list",
+          list_type: "invoice_"+type
+        },
+
+        eventListeners: [
+          ["click", function(){ls.history_q_d(type);}],
+        ],
+
+        tabContent: $("<a/>",{
+          href: "#",
+          text: type=="craft"?"草稿单据":"经营历程"
+        }).get(0)
+      });
+
       var p_names = ls.i_history[5];
       ls.edit.data_convert_JSON_to_array(ls.i_history[1], ls.i_history[2], p_names, "history");
 
@@ -1876,7 +1914,7 @@ var ls = list = {
         "name": "createNewItem",
         type: "button", 
         class: "btn btn-default"
-      }).text("查看单据").on("click", function(){
+      }).text(type=="craft"?"编辑单据":"查看单据").on("click", function(){
         var tr_info = $(created_table).find("tr.info");
         td.creator_in_history_list.apply(tr_info);
       });
@@ -1885,30 +1923,30 @@ var ls = list = {
         "name": "deleteItem",
         type: "button", 
         class: "btn btn-default"
-      }).text(type=="craft"?"编辑单据":"红冲并修改单据").on("click", function(){
+      }).text(type=="craft"?"删除单据":"红冲并重新编辑").on("click", function(){
         if(type=="craft"){
-          var tr_info = $(created_table).find("tr.info");
-          td.creator_in_history_list.apply(tr_info);
+
         }
         if(type=="history"){
 
         }
       });
 
-      var f_list_3 = $('<button ></button>',{
-        "name": "saveChange",
-        type: "button", 
-        class: "btn btn-default"
-      }).text("删除单据").on("click", function(){
-      });
+      // var f_list_3 = $('<button ></button>',{
+      //   "name": "saveChange",
+      //   type: "button", 
+      //   class: "btn btn-default"
+      // }).text("删除单据").on("click", function(){
+
+      // });
 
       var f_list_4 = $('<button ></button>',{
         "name": "abortChange",
         type: "button", 
         class: "btn btn-default"
-      }).text("关闭页面")/*.on("click",ls.edit.abortChange)*/;
+      }).text("关闭页面").on("click", ui.close_page);
 
-      f_list.append(f_list_1, f_list_2, f_list_3, f_list_4);
+      f_list.append(f_list_1, f_list_2, /*f_list_3,*/ f_list_4);
     }
 
     //检查ls.i_history[0]的值
@@ -1922,13 +1960,15 @@ var ls = list = {
       // 文件头声明的文件
       ajax_object.onreadystatechange = function(){
         if (ajax_object.readyState === XMLHttpRequest.DONE && ajax_object.status === 200){
-          if(Number(ajax_object.response) != 0){
-            ls["i_history"][2] = [];
-            ls["i_history"][1] = JSON.parse(ajax_object.response);//查询的结果数组立即作为数组存储
+          try {
+            ls["i_history"][1] = JSON.parse(ajax_object.response);
+            ls["i_history"][2] = [];//查询的结果数组立即作为数组存储
             ls["i_history"][0] = 1;
             h_display();
           }//内if结束
-          else {
+          catch(e) {
+            cl(e.message);
+            cl(ajax_object.response);
             ls.checker.status.pop_up_creator("单据列表查询结果",$("<p>当前条件无单据</p>").get(0));
             return;
           }
@@ -2048,9 +2088,20 @@ var ls = list = {
         "name": "abortChange",
         type: "button", 
         class: "btn btn-default"
-      }).text("放弃修改").on("click",ls.edit.abortChange);;
+      }).text("放弃修改").on("click",ls.edit.abortChange);
 
-      f_list.append(f_list_1, f_list_2, f_list_3, f_list_4);
+      var f_list_5 = $('<button ></button>',{
+        "name": "close_page",
+        type: "button", 
+        class: "btn btn-default"
+      }).text("关闭页面").on("click", function(){
+        ls.edit.abortChange();
+        ui.close_page();
+        ls.people_info[0] = -1;
+        ls.people_info[1] = ls.people_info[2] = [];
+      });
+
+      f_list.append(f_list_1, f_list_2, f_list_3, f_list_4, f_list_5);
       ls.checker.status.whether_table_modified();
     }
 
@@ -2525,7 +2576,7 @@ var ls = list = {
               {type: "i", value: placeholder}
               );
               break;
-          case "user_comment" : editable(a); break;
+          case "user_comment" : editable_allow_space(a); break;
           case "system_log" : break;
           default:
             break;
@@ -2542,17 +2593,19 @@ var ls = list = {
               );
               break;
           case "full_name" : 
-              editable(a);
-              a.push({type: "e", value: ["blur", ls.edit.py_code_editor]});
+              editable_not_allow_space(a)
+              a.push(
+                {type: "e", value: ["blur", ls.edit.py_code_editor]}
+                );
               break;
-          case "simple_name" : editable(a); break;
+          case "simple_name" : editable_allow_space(a); break;
 
-          case "person_in_charge" : editable(a); break;
+          case "person_in_charge" : editable_allow_space(a); break;
           case "tel" :
           case "loyalty":
           case "complexity":
-          case "phone" : editable(a);break;
-          case "Address" : editable(a); break;
+          case "phone" : editable_allow_space(a);break;
+          case "Address" : editable_allow_space(a); break;
 
           case "py_code" : 
               a.push({type: "a", value: ["td_modify_status", false]});
@@ -2572,7 +2625,7 @@ var ls = list = {
               {type: "i",  value: placeholder}
               );
               break;
-          case "user_comment" :editable(a);break;
+          case "user_comment" :editable_allow_space(a);break;
           default:
             break;
         }
@@ -2751,7 +2804,7 @@ var ls = list = {
           //↑
           case 38:
               var this_name = $(this).attr("name");
-              var prev_editable_td = $(this).parent().prev().find("td[name='"+this_name+"']")[0];
+              var prev_editable_td = $(this).parent().prev().find("td[name='"+this_name+"'][contenteditable='true']")[0];
               if(prev_editable_td){
                 new_td = prev_editable_td;
                 $(prev_editable_td).focus().click();
@@ -2769,7 +2822,7 @@ var ls = list = {
           //↓
           case 40:
               var this_name = $(this).attr("name");
-              var next_editable_td = $(this).parent().next().find("td[name='"+this_name+"']")[0];
+              var next_editable_td = $(this).parent().next().find("td[name='"+this_name+"'][contenteditable='true']")[0];
               if(next_editable_td){
                 new_td = next_editable_td;
                 $(next_editable_td).focus().click();

@@ -115,7 +115,6 @@
 		", document_status"."="."'" .$data["document_status"]."'".
 		" where id = ".$data["id"];
 
-		//写入单据描述部分
 		if($conn->query($sql)){
 			echo $sql."operation success!\n";
 		}else{
@@ -193,6 +192,7 @@
 				$current_unit_pointer = str_replace("unit_","",$current_unit); 
 				$price = $product["price"];
 				for (; $current_unit_pointer >1 ; $current_unit_pointer--) {
+					//price 转换成单位1
 					$price = $price*$product["units_factor"][$current_unit_pointer][2];
 				}
 				if($original_price==0){

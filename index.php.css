@@ -156,6 +156,15 @@ td[td_modify_status="true"]{
     nav, #documents_tab, #ls_fucntion_tab{
       display: none;
     }
+    body{
+      font-size: 14px;
+    }
+    .container{
+      /*width: 100%;*/
+    }
+    td,th{
+      font-size: 1.73em;
+    }
 
      
 }
