@@ -162,9 +162,26 @@ td[td_modify_status="true"]{
     .container{
       /*width: 100%;*/
     }
+
     td,th{
       font-size: 1.73em;
     }
 
-     
+    td span{
+      color: white!important;
+
+      font-size: 0.8em;
+    }
+
+
+    td .info span{
+      color: black!important;
+      font-weight: bold;
+      font-size: 1.25em;
+    }
+
+    table caption{
+      font-size: 30px;
+      font-weight: bold;
+    }
 }
